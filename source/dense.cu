@@ -1,4 +1,5 @@
 #include "dense.hpp"
+#include <assert.h>
 
 void DenseTensor::freeAllArrays() {
     free(values_h);
@@ -41,16 +42,24 @@ void DenseMatrix::downloadToHost() {
 
 DenseMatrixManager DenseTensor::mttkrp_naive_cpu(DenseMatrix d, DenseMatrix c) {
     DenseMatrixManager ret;
+    assert(values_h != nullptr);
 
     // TODO
+    assert(0);
+
+    // A(i,j) = B(i,k,l) * D(l,j) * C(k,j);
 
     return ret;
 }
 
 DenseMatrixManager DenseTensor::mttkrp_naive_gpu(DenseMatrix d, DenseMatrix c) {
     DenseMatrixManager ret;
+    assert(values_d != nullptr);
 
     // TODO
+    assert(0);
+
+    // A(i,j) = B(i,k,l) * D(l,j) * C(k,j);
 
     return ret;
 }
@@ -59,6 +68,9 @@ DenseMatrixManager DenseTensor::mttkrp_fast(DenseMatrix d, DenseMatrix c) {
     DenseMatrixManager ret;
 
     // TODO
+    assert(0);
+
+    // A(i,j) = B(i,k,l) * D(l,j) * C(k,j);
 
     return ret;
 }

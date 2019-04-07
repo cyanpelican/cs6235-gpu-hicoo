@@ -1,4 +1,5 @@
 #include "csf.hpp"
+#include <assert.h>
 
 void CsfTensor::freeAllArrays() {
     free(points_h);
@@ -21,16 +22,26 @@ void CsfTensor::downloadToHost() {
 
 DenseMatrixManager CsfTensor::mttkrp_naive_cpu(DenseMatrix d, DenseMatrix c) {
     DenseMatrixManager ret;
+    assert(points_h != nullptr);
+    assert(fiberAddresses_h != nullptr);
 
     // TODO
+    assert(0);
+
+    // A(i,j) = B(i,k,l) * D(l,j) * C(k,j);
 
     return ret;
 }
 
 DenseMatrixManager CsfTensor::mttkrp_naive_gpu(DenseMatrix d, DenseMatrix c) {
     DenseMatrixManager ret;
+    assert(points_d != nullptr);
+    assert(fiberAddresses_d != nullptr);
 
     // TODO
+    assert(0);
+
+    // A(i,j) = B(i,k,l) * D(l,j) * C(k,j);
 
     return ret;
 }
@@ -39,6 +50,9 @@ DenseMatrixManager CsfTensor::mttkrp_fast(DenseMatrix d, DenseMatrix c) {
     DenseMatrixManager ret;
 
     // TODO
+    assert(0);
+
+    // A(i,j) = B(i,k,l) * D(l,j) * C(k,j);
 
     return ret;
 }

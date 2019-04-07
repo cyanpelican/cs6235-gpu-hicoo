@@ -1,4 +1,5 @@
 #include "hicoo.hpp"
+#include <assert.h>
 
 void HicooTensor::freeAllArrays() {
     free(points_h);
@@ -21,16 +22,25 @@ void HicooTensor::downloadToHost() {
 
 DenseMatrixManager HicooTensor::mttkrp_naive_cpu(DenseMatrix d, DenseMatrix c) {
     DenseMatrixManager ret;
+    assert(points_h != nullptr);
+    assert(blocks_h != nullptr);
 
     // TODO
+    assert(0);
+
+    // A(i,j) = B(i,k,l) * D(l,j) * C(k,j);
 
     return ret;
 }
 
 DenseMatrixManager HicooTensor::mttkrp_naive_gpu(DenseMatrix d, DenseMatrix c) {
     DenseMatrixManager ret;
+    assert(values_d != nullptr);
 
     // TODO
+    assert(0);
+
+    // A(i,j) = B(i,k,l) * D(l,j) * C(k,j);
 
     return ret;
 }
@@ -39,6 +49,9 @@ DenseMatrixManager HicooTensor::mttkrp_fast(DenseMatrix d, DenseMatrix c) {
     DenseMatrixManager ret;
 
     // TODO
+    assert(0);
+
+    // A(i,j) = B(i,k,l) * D(l,j) * C(k,j);
 
     return ret;
 }
