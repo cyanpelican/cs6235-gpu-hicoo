@@ -1,6 +1,7 @@
 
 #ifndef CSF_HPP
 #define CSF_HPP
+#include "dense.hpp"
 
 struct CsfPoint {
     float value;
@@ -8,6 +9,7 @@ struct CsfPoint {
 };
 
 
+class DenseMatrix;
 struct CsfTensor {
     CsfPoint* points_h;
     CsfPoint* points_d;
@@ -41,6 +43,8 @@ struct CsfTensor {
 
 
     /* compute functions */
+    // A(i,j) = B(i,k,l) * D(l,j) * C(k,j);
+    DenseMatrixManager mttkrp(DenseMatrix d, DenseMatrix c);
     // TODO
 };
 

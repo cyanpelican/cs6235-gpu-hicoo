@@ -2,6 +2,7 @@
 #ifndef HICOO_HPP
 #define HICOO_HPP
 #include "coo.hpp"
+#include "dense.hpp"
 
 struct HicooPoint {
     unsigned char x, y, z;
@@ -15,6 +16,7 @@ struct HicooBlock {
     unsigned int UNUSED; // for packing
 }
 
+class DenseMatrix;
 struct HicooTensor {
     HicooPoint* points_h;
     HicooPoint* points_d;
@@ -48,6 +50,8 @@ struct HicooTensor {
 
 
     /* compute functions */
+    // A(i,j) = B(i,k,l) * D(l,j) * C(k,j);
+    DenseMatrixManager mttkrp(DenseMatrix d, DenseMatrix c);
     // TODO
 };
 

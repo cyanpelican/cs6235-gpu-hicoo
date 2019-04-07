@@ -16,3 +16,11 @@ void CooTensor::downloadToHost() {
     points_h = malloc(sizeof(CooPoint) * num_elements);
     cudaErrorCheck(cudaMemcpy(points_h, points_d, sizeof(CooPoint) * num_elements, cudaMemcpyDeviceToHost));
 }
+
+DenseMatrixManager CooTensor::mttkrp(DenseMatrix d, DenseMatrix c) {
+    DenseMatrixManager ret;
+
+    // TODO
+
+    return ret;
+}

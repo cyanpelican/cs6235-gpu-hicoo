@@ -2,6 +2,7 @@
 #ifndef DENSE_HPP
 #define DENSE_HPP
 
+class DenseMatrix;
 struct DenseTensor {
     float* values_h;
     float* values_d;
@@ -31,6 +32,8 @@ struct DenseTensor {
 
 
     /* compute functions */
+    // A(i,j) = B(i,k,l) * D(l,j) * C(k,j);
+    DenseMatrixManager mttkrp(DenseMatrix d, DenseMatrix c);
     // TODO
 };
 

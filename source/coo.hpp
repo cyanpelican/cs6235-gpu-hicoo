@@ -1,6 +1,7 @@
 
 #ifndef COO_HPP
 #define COO_HPP
+#include "dense.hpp"
 
 struct CooPoint {
     unsigned int x, y, z;
@@ -14,7 +15,7 @@ enum PointSorting {
     Z_MORTON
 };
 
-
+class DenseMatrix;
 struct CooTensor {
     CooPoint* points_h;
     CooPoint* points_d;
@@ -45,6 +46,8 @@ struct CooTensor {
 
 
     /* compute functions */
+    // A(i,j) = B(i,k,l) * D(l,j) * C(k,j);
+    DenseMatrixManager mttkrp(DenseMatrix d, DenseMatrix c);
     // TODO
 };
 

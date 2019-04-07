@@ -38,3 +38,11 @@ void DenseMatrix::downloadToHost() {
     values_h = malloc(sizeof(CooPoint) * num_elements);
     cudaErrorCheck(cudaMemcpy(values_d, values_h, sizeof(CooPoint) * num_elements, cudaMemcpyDeviceToHost));
 }
+
+DenseMatrixManager DenseTensor::mttkrp(DenseMatrix d, DenseMatrix c) {
+    DenseMatrixManager ret;
+
+    // TODO
+
+    return ret;
+}

@@ -18,3 +18,11 @@ void HicooTensor::downloadToHost() {
     points_h = malloc(sizeof(HicooPoint) * num_elements);
     cudaErrorCheck(cudaMemcpy(points_h, points_d, sizeof(HicooPoint) * num_elements, cudaMemcpyDeviceToHost));
 }
+
+DenseMatrixManager HicooTensor::mttkrp(DenseMatrix d, DenseMatrix c) {
+    DenseMatrixManager ret;
+
+    // TODO
+
+    return ret;
+}

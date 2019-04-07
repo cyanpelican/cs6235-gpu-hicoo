@@ -18,3 +18,11 @@ void CsfTensor::downloadToHost() {
     points_h = malloc(sizeof(CsfPoint) * num_elements);
     cudaErrorCheck(cudaMemcpy(points_h, points_d, sizeof(CsfPoint) * num_elements, cudaMemcpyDeviceToHost));
 }
+
+DenseMatrixManager CsfTensor::mttkrp(DenseMatrix d, DenseMatrix c) {
+    DenseMatrixManager ret;
+
+    // TODO
+
+    return ret;
+}
