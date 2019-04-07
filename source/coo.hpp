@@ -3,9 +3,11 @@
 #define COO_HPP
 
 struct CooPoint {
-    int x, y, z;
+    unsigned int x, y, z;
+    unsigned int UNUSED; // for packing
     float value;
 };
+
 enum PointSorting {
     UNSORTED,
     XYZ,
@@ -14,9 +16,9 @@ enum PointSorting {
 
 
 struct COOTensor {
-    Point* points;
+    CooPoint* points;
     PointSorting sorting;
-    int num_elements;
+    unsigned long long num_elements;
 };
 
 #endif

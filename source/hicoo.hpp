@@ -1,22 +1,26 @@
+
 #ifndef HICOO_HPP
 #define HICOO_HPP
+#include "coo.hpp"
 
-struct CooPoint {
-    int x, y, z;
+struct HicooPoint {
+    unsigned char x, y, z;
+    unsigned char UNUSED; // for packing
     float value;
 };
 
-enum PointSorting {
-    UNSORTED,
-    XYZ,
-    Z_MORTON
-};
-
+struct HicooBlock {
+    unsigned long long blockAddress;
+    unsigned int blockX, blockY, blockZ;
+    unsigned int UNUSED; // for packing
+}
 
 struct COOTensor {
-    Point* points;
+    HicooPoint* points;
+    HicooBlock* blocks;
     PointSorting sorting;
-    int num_elements;
+    unsigned long long num_elements;
+    unsigned long long num_blocks;
 };
 
 #endif
