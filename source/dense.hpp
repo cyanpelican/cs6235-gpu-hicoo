@@ -21,24 +21,13 @@ struct DenseTensor {
     /* utility functions */
 
     // dangerous; deletes everything
-    void freeAllArrays() {
-        free(points_h);
-        cudaErrorCheck(cudaFree(tensor.points_d));
-    }
+    void freeAllArrays();
 
     // safely uploads to gpu
-    void uploadToDevice() {
-        cudaErrorCheck(cudaFree(tensor.points_d));
-        cudaErrorCheck(cudaMalloc((void **) &d_weight, sizeof(float)));
-        cudaErrorCheck(cudaMemcpy(points_d, points_h, sizeof(DensePoint) * num_elements, cudaMemcpyHostToDevice));
-    }
+    void uploadToDevice();
 
     // safely downloads from gpu
-    void downloadToHost() {
-        free(points_h);
-        points_h = malloc(sizeof(DensePoint) * num_elements);
-        cudaErrorCheck(cudaMemcpy(points_d, points_h, sizeof(DensePoint) * num_elements, cudaMemcpyDeviceToHost));
-    }
+    void downloadToHost();
 
 
     /* compute functions */
@@ -67,24 +56,13 @@ struct DenseMatrix {
     /* utility functions */
 
     // dangerous; deletes everything
-    void freeAllArrays() {
-        free(points_h);
-        cudaErrorCheck(cudaFree(tensor.points_d));
-    }
+    void freeAllArrays();
 
     // safely uploads to gpu
-    void uploadToDevice() {
-        cudaErrorCheck(cudaFree(tensor.points_d));
-        cudaErrorCheck(cudaMalloc((void **) &d_weight, sizeof(float)));
-        cudaErrorCheck(cudaMemcpy(points_d, points_h, sizeof(CooPoint) * num_elements, cudaMemcpyHostToDevice));
-    }
+    void uploadToDevice();
 
     // safely downloads from gpu
-    void downloadToHost() {
-        free(points_h);
-        points_h = malloc(sizeof(CooPoint) * num_elements);
-        cudaErrorCheck(cudaMemcpy(points_d, points_h, sizeof(CooPoint) * num_elements, cudaMemcpyDeviceToHost));
-    }
+    void downloadToHost();
 
 
     /* compute functions */
@@ -165,4 +143,3 @@ struct DenseMatrixManager {
 };
 
 #endif
-
