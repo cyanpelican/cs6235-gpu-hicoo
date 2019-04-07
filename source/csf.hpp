@@ -9,8 +9,10 @@ struct CSFPoint {
 
 
 struct CSFTensor {
-    CSFPoint* points;
-    unsigned int* fiberAddresses; // should be length (numFibers+1); fiber ends are stored implicitly
+    CSFPoint* points_h;
+    CSFPoint* points_d;
+    unsigned int* fiberAddresses_h; // should be length (numFibers+1); fiber ends are stored implicitly
+    unsigned int* fiberAddresses_d;
     unsigned int numFibers;
     unsigned int width, height, depth;
     unsigned int mode;

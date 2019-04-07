@@ -3,14 +3,16 @@
 #define DENSE_HPP
 
 struct DenseTensor {
-    float* values;
+    float* values_h;
+    float* values_d;
     unsigned int width, height, depth;
 };
 
 
 
 struct DenseMatrix {
-    float* values;
+    float* values_h;
+    float* values_d;
     unsigned int height, width;
 };
 

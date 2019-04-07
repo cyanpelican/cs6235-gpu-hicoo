@@ -16,8 +16,10 @@ struct HicooBlock {
 }
 
 struct COOTensor {
-    HicooPoint* points;
-    HicooBlock* blocks;
+    HicooPoint* points_h;
+    HicooPoint* points_d;
+    HicooBlock* blocks_h;
+    HicooBlock* blocks_d;
     PointSorting sorting;
     unsigned long long num_elements;
     unsigned long long num_blocks;

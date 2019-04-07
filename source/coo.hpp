@@ -16,7 +16,8 @@ enum PointSorting {
 
 
 struct COOTensor {
-    CooPoint* points;
+    CooPoint* points_h;
+    CooPoint* points_d;
     PointSorting sorting;
     unsigned long long num_elements;
 };
