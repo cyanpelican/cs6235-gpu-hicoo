@@ -17,7 +17,23 @@ void CooTensor::downloadToHost() {
     cudaErrorCheck(cudaMemcpy(points_h, points_d, sizeof(CooPoint) * num_elements, cudaMemcpyDeviceToHost));
 }
 
-DenseMatrixManager CooTensor::mttkrp(DenseMatrix d, DenseMatrix c) {
+DenseMatrixManager CooTensor::mttkrp_naive_cpu(DenseMatrix d, DenseMatrix c) {
+    DenseMatrixManager ret;
+
+    // TODO
+
+    return ret;
+}
+
+DenseMatrixManager CooTensor::mttkrp_naive_gpu(DenseMatrix d, DenseMatrix c) {
+    DenseMatrixManager ret;
+
+    // TODO
+
+    return ret;
+}
+
+DenseMatrixManager CooTensor::mttkrp_fast(DenseMatrix d, DenseMatrix c) {
     DenseMatrixManager ret;
 
     // TODO

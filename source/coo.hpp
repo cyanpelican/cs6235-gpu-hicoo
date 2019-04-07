@@ -47,7 +47,9 @@ struct CooTensor {
 
     /* compute functions */
     // A(i,j) = B(i,k,l) * D(l,j) * C(k,j);
-    DenseMatrixManager mttkrp(DenseMatrix d, DenseMatrix c);
+    DenseMatrixManager mttkrp_naive_cpu(DenseMatrix d, DenseMatrix c);
+    DenseMatrixManager mttkrp_naive_gpu(DenseMatrix d, DenseMatrix c);
+    DenseMatrixManager mttkrp_fast(DenseMatrix d, DenseMatrix c);
     // TODO
 };
 

@@ -19,7 +19,23 @@ void HicooTensor::downloadToHost() {
     cudaErrorCheck(cudaMemcpy(points_h, points_d, sizeof(HicooPoint) * num_elements, cudaMemcpyDeviceToHost));
 }
 
-DenseMatrixManager HicooTensor::mttkrp(DenseMatrix d, DenseMatrix c) {
+DenseMatrixManager HicooTensor::mttkrp_naive_cpu(DenseMatrix d, DenseMatrix c) {
+    DenseMatrixManager ret;
+
+    // TODO
+
+    return ret;
+}
+
+DenseMatrixManager HicooTensor::mttkrp_naive_gpu(DenseMatrix d, DenseMatrix c) {
+    DenseMatrixManager ret;
+
+    // TODO
+
+    return ret;
+}
+
+DenseMatrixManager HicooTensor::mttkrp_fast(DenseMatrix d, DenseMatrix c) {
     DenseMatrixManager ret;
 
     // TODO
