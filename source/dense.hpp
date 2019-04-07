@@ -30,6 +30,15 @@ struct DenseTensor {
     // safely downloads from gpu
     void downloadToHost();
 
+    // a safe function to get an element on either host or device; TODO - test
+    float& operator[](unsigned int i, unsigned int j, unsigned int k) {
+        #ifdef __CUDA_ARCH__
+            return values_d[i*height*width + j*width + k];
+        #else
+            return values_h[i*height*width + j*width + k];
+        #endif
+    }
+
 
     /* compute functions */
     // A(i,j) = B(i,k,l) * D(l,j) * C(k,j);
@@ -59,6 +68,24 @@ struct DenseMatrix {
 
 
     /* utility functions */
+
+    // dangerous; deletes everything
+    void freeAllArrays();
+
+    // safely uploads to gpu
+    void uploadToDevice();
+
+    // safely downloads from gpu
+    void downloadToHost();
+
+    // a safe function to get an element on either host or device; TODO - test
+    float& operator[](unsigned int i, unsigned int j) {
+        #ifdef __CUDA_ARCH__
+            return values_d[i*width + j];
+        #else
+            return values_h[i*width + j];
+        #endif
+    }
 
     // dangerous; deletes everything
     void freeAllArrays();
