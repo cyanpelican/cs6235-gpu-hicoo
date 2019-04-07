@@ -1,4 +1,7 @@
 
+#ifndef COO_HPP
+#define COO_HPP
+
 struct CooPoint {
     int x, y, z;
     float value;
@@ -15,3 +18,5 @@ struct COOTensor {
     PointSorting sorting;
     int num_elements;
 };
+
+#endif
