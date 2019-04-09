@@ -45,7 +45,7 @@ struct DenseTensor {
 
     void setSize(unsigned int width, unsigned int height, unsigned int depth) {
         freeAllArrays();
-        values_h = malloc(sizeof(float) * width*height*depth);
+        values_h = (float*)malloc(sizeof(float) * width*height*depth);
         this->width = width;
         this->height = height;
         this->depth = depth;
@@ -100,7 +100,7 @@ struct DenseMatrix {
 
     void setSize(unsigned int width, unsigned int height) {
         freeAllArrays();
-        values_h = malloc(sizeof(float) * width*height);
+        values_h = (float*)malloc(sizeof(float) * width*height);
         this->values_d = nullptr;
         this->width = width;
         this->height = height;

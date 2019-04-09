@@ -55,10 +55,10 @@ struct HicooTensor {
 
     void setSize(unsigned int numBlocks, unsigned int numPoints) {
         freeAllArrays();
-        points_h = malloc(sizeof(HicooPoint) * numPoints);
-        blocks_h = malloc(sizeof(HicooBlock) * numBlocks);
+        points_h = (HicooPoint*)malloc(sizeof(HicooPoint) * numPoints);
+        blocks_h = (HicooBlock*)malloc(sizeof(HicooBlock) * numBlocks);
         this->numBlocks = numPoints;
-        numPoints->numPoints = numPoints
+        this->numPoints = numPoints;
     }
 
 

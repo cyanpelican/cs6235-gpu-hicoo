@@ -48,7 +48,7 @@ struct CooTensor {
 
     void setSize(int numPoints) {
         freeAllArrays();
-        points_h = malloc(sizeof(CooPoint) * numPoints);
+        points_h = (CooPoint*)malloc(sizeof(CooPoint) * numPoints);
         this->numElements = numPoints;
         this->sorting = sorting;
     }
