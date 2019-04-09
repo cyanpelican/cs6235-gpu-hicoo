@@ -17,15 +17,18 @@ struct CsfTensor {
     CsfPoint* points_d;
     unsigned int* fiberAddresses_h; // should be length (numFibers+1); fiber ends are stored implicitly
     unsigned int* fiberAddresses_d;
-    unsigned int numFibers;
     unsigned int width, height, depth;
     unsigned int mode;
 
     CsfTensor() {
         points_h = nullptr;
         points_d = nullptr;
-        sorting = UNSORTED;
-        num_elements = 0;
+        fiberAddresses_h = nullptr;
+        fiberAddresses_d = nullptr;
+        width = 0;
+        height = 0;
+        depth = 0;
+        mode = 0;
     }
     ~CsfTensor() {
         // handled by an owner
@@ -42,6 +45,19 @@ struct CsfTensor {
 
     // safely downloads from gpu
     void downloadToHost();
+
+    unsigned int numPoints() {
+        return fiberAddresses_h[numFibers()];
+    }
+    unsigned int numFibers() {
+        if(mode == 0) {
+            return height * depth;
+        } else if(mode == 1) {
+            return width * depth;
+        } else {
+            return width * height;
+        }
+    }
 
 
     /* compute functions */
@@ -70,11 +86,16 @@ struct CsfTensorUnique {
 // However, when performing compute, just pass CsfTensors, since they're lighter.
 // The operator() is overloaded, so it's possible to also use/pass these as if they're CsfTensors
 struct CsfTensorManager {
-    std::shared_ptr<CsfTensorUnique> tensor(new CsfTensorUnique());
+    std::shared_ptr<CsfTensorUnique> tensor;
+
+    CsfTensorManager():
+      tensor(new CsfTensorUnique())
+    {
+    }
 
     /* utility functions */
 
-    CsfTensor operator() {
+    CsfTensor operator()() {
         return tensor->tensor;
     }
 

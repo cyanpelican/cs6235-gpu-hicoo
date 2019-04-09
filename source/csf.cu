@@ -10,14 +10,20 @@ void CsfTensor::freeAllArrays() {
 
 void CsfTensor::uploadToDevice() {
     cudaErrorCheck(cudaFree(points_d));
-    cudaErrorCheck(cudaMalloc((void **) &d_weight, sizeof(float)));
-    cudaErrorCheck(cudaMemcpy(points_d, points_h, sizeof(CsfPoint) * num_elements, cudaMemcpyHostToDevice));
+    cudaErrorCheck(cudaMalloc((void **) &points_d, sizeof(CsfPoint) * numPoints()));
+    cudaErrorCheck(cudaMemcpy(points_d, points_h, sizeof(CsfPoint) * numPoints(), cudaMemcpyHostToDevice));
+    cudaErrorCheck(cudaFree(fiberAddresses_d));
+    cudaErrorCheck(cudaMalloc((void **) &fiberAddresses_d, sizeof(CsfPoint) * (numFibers()+1)));
+    cudaErrorCheck(cudaMemcpy(fiberAddresses_d, fiberAddresses_h, sizeof(CsfPoint) * (numFibers()+1), cudaMemcpyHostToDevice));
 }
 
 void CsfTensor::downloadToHost() {
     free(points_h);
-    points_h = malloc(sizeof(CsfPoint) * num_elements);
-    cudaErrorCheck(cudaMemcpy(points_h, points_d, sizeof(CsfPoint) * num_elements, cudaMemcpyDeviceToHost));
+    points_h = (CsfPoint*)malloc(sizeof(CsfPoint) * numPoints());
+    cudaErrorCheck(cudaMemcpy(points_h, points_d, sizeof(CsfPoint) * numPoints(), cudaMemcpyDeviceToHost));
+    free(fiberAddresses_h);
+    fiberAddresses_h = (unsigned int*)malloc(sizeof(unsigned int) * (numFibers()+1));
+    cudaErrorCheck(cudaMemcpy(fiberAddresses_h, fiberAddresses_d, sizeof(CsfPoint) * (numFibers()+1), cudaMemcpyDeviceToHost));
 }
 
 DenseMatrixManager CsfTensor::mttkrp_naive_cpu(DenseMatrix d, DenseMatrix c) {
