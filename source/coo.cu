@@ -4,6 +4,8 @@
 void CooTensor::freeAllArrays() {
     free(points_h);
     cudaErrorCheck(cudaFree(points_d));
+    points_h = nullptr;
+    points_d = nullptr;
 }
 
 void CooTensor::uploadToDevice() {

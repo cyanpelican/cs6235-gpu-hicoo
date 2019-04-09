@@ -24,6 +24,8 @@ void DenseTensor::downloadToHost() {
 void DenseMatrix::freeAllArrays() {
     free(values_h);
     cudaErrorCheck(cudaFree(values_d));
+    values_h = nullptr;
+    values_d = nullptr;
 }
 
 // safely uploads to gpu
@@ -54,7 +56,7 @@ DenseMatrixManager DenseTensor::mttkrp_naive_cpu(DenseMatrix d, DenseMatrix c) {
         for(int j = 0; j < J; j++) {
             for(int k = 0; k < K; k++) {
               for(int l = 0; l < L; l++) {
-                  a.access(i, j) += access(i,j,k) * d.access(l,j) * c.access(k,j);
+                  a.access(i, j) += access(i,k,l) * d.access(l,j) * c.access(k,j);
               }
             }
         }

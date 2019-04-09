@@ -6,6 +6,10 @@ void CsfTensor::freeAllArrays() {
     free(fiberAddresses_h);
     cudaErrorCheck(cudaFree(points_d));
     cudaErrorCheck(cudaFree(fiberAddresses_d));
+    points_h = nullptr;
+    fiberAddresses_h = nullptr;
+    points_d = nullptr;
+    fiberAddresses_d = nullptr;
 }
 
 void CsfTensor::uploadToDevice() {

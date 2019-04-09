@@ -43,6 +43,13 @@ struct DenseTensor {
         #endif
     }
 
+    void setSize(unsigned int width, unsigned int height, unsigned int depth) {
+        freeAllArrays();
+        values_h = malloc(sizeof(float) * width*height*depth);
+        this->width = width;
+        this->height = height;
+        this->depth = depth;
+    }
 
     /* compute functions */
     // A(i,j) = B(i,k,l) * D(l,j) * C(k,j);
@@ -58,7 +65,7 @@ struct DenseTensor {
 struct DenseMatrix {
     float* values_h;
     float* values_d;
-    unsigned int height, width;
+    unsigned int width, height;
 
     DenseMatrix() {
         values_h = nullptr;
@@ -91,6 +98,13 @@ struct DenseMatrix {
         #endif
     }
 
+    void setSize(unsigned int width, unsigned int height) {
+        freeAllArrays();
+        values_h = malloc(sizeof(float) * width*height);
+        this->values_d = nullptr;
+        this->width = width;
+        this->height = height;
+    }
 
     /* compute functions */
     // TODO

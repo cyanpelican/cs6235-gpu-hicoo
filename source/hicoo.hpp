@@ -53,6 +53,14 @@ struct HicooTensor {
     // safely downloads from gpu
     void downloadToHost();
 
+    void setSize(unsigned int numBlocks, unsigned int numPoints) {
+        freeAllArrays();
+        points_h = malloc(sizeof(HicooPoint) * numPoints);
+        blocks_h = malloc(sizeof(HicooBlock) * numBlocks);
+        this->numBlocks = numPoints;
+        numPoints->numPoints = numPoints
+    }
+
 
     /* compute functions */
     // A(i,j) = B(i,k,l) * D(l,j) * C(k,j);

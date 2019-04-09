@@ -46,6 +46,13 @@ struct CooTensor {
     // safely downloads from gpu
     void downloadToHost();
 
+    void setSize(int numPoints) {
+        freeAllArrays();
+        points_h = malloc(sizeof(CooPoint) * numPoints);
+        this->numElements = numPoints;
+        this->sorting = sorting;
+    }
+
 
     /* compute functions */
     // A(i,j) = B(i,k,l) * D(l,j) * C(k,j);

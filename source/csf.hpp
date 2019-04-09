@@ -59,6 +59,10 @@ struct CsfTensor {
         }
     }
 
+    // void setSize() {
+    //   // TODO
+    // }
+
 
     /* compute functions */
     // A(i,j) = B(i,k,l) * D(l,j) * C(k,j);

@@ -6,6 +6,10 @@ void HicooTensor::freeAllArrays() {
     free(blocks_h);
     cudaErrorCheck(cudaFree(points_d));
     cudaErrorCheck(cudaFree(blocks_d));
+    points_h = nullptr;
+    blocks_h = nullptr;
+    points_d = nullptr;
+    blocks_d = nullptr;
 }
 
 void HicooTensor::uploadToDevice() {
