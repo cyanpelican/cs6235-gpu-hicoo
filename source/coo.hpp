@@ -22,13 +22,13 @@ struct CooTensor {
     CooPoint* points_h;
     CooPoint* points_d;
     PointSorting sorting;
-    unsigned long long num_elements;
+    unsigned long long numElements;
 
     CooTensor() {
         points_h = nullptr;
         points_d = nullptr;
         sorting = UNSORTED;
-        num_elements = 0;
+        numElements = 0;
     }
     ~CooTensor() {
         // handled by an owner

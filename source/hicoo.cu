@@ -10,20 +10,20 @@ void HicooTensor::freeAllArrays() {
 
 void HicooTensor::uploadToDevice() {
     cudaErrorCheck(cudaFree(points_d));
-    cudaErrorCheck(cudaMalloc((void **) &points_d, sizeof(HicooPoint) * num_elements));
-    cudaErrorCheck(cudaMemcpy(points_d, points_h, sizeof(HicooPoint) * num_elements, cudaMemcpyHostToDevice));
+    cudaErrorCheck(cudaMalloc((void **) &points_d, sizeof(HicooPoint) * numPoints));
+    cudaErrorCheck(cudaMemcpy(points_d, points_h, sizeof(HicooPoint) * numPoints, cudaMemcpyHostToDevice));
     cudaErrorCheck(cudaFree(blocks_d));
-    cudaErrorCheck(cudaMalloc((void **) &blocks_d, sizeof(HicooBlock) * num_elements));
-    cudaErrorCheck(cudaMemcpy(blocks_d, blocks_h, sizeof(HicooBlock) * num_elements, cudaMemcpyHostToDevice));
+    cudaErrorCheck(cudaMalloc((void **) &blocks_d, sizeof(HicooBlock) * numBlocks));
+    cudaErrorCheck(cudaMemcpy(blocks_d, blocks_h, sizeof(HicooBlock) * numBlocks, cudaMemcpyHostToDevice));
 }
 
 void HicooTensor::downloadToHost() {
     free(points_h);
-    points_h = (HicooPoint*)malloc(sizeof(HicooPoint) * num_elements);
-    cudaErrorCheck(cudaMemcpy(points_h, points_d, sizeof(HicooPoint) * num_elements, cudaMemcpyDeviceToHost));
+    points_h = (HicooPoint*)malloc(sizeof(HicooPoint) * numPoints);
+    cudaErrorCheck(cudaMemcpy(points_h, points_d, sizeof(HicooPoint) * numPoints, cudaMemcpyDeviceToHost));
     free(blocks_h);
-    blocks_h = (HicooBlock*)malloc(sizeof(HicooBlock) * num_elements);
-    cudaErrorCheck(cudaMemcpy(blocks_h, blocks_d, sizeof(HicooBlock) * num_elements, cudaMemcpyDeviceToHost));
+    blocks_h = (HicooBlock*)malloc(sizeof(HicooBlock) * numBlocks);
+    cudaErrorCheck(cudaMemcpy(blocks_h, blocks_d, sizeof(HicooBlock) * numBlocks, cudaMemcpyDeviceToHost));
 }
 
 DenseMatrixManager HicooTensor::mttkrp_naive_cpu(DenseMatrix d, DenseMatrix c) {

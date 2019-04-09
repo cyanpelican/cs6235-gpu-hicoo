@@ -14,6 +14,9 @@ struct DenseTensor {
     DenseTensor() {
         values_h = nullptr;
         values_d = nullptr;
+        width = 0;
+        height = 0;
+        depth = 0;
     }
     ~DenseTensor() {
         // handled by an owner
@@ -60,6 +63,8 @@ struct DenseMatrix {
     DenseMatrix() {
         values_h = nullptr;
         values_d = nullptr;
+        width = 0;
+        height = 0;
     }
     ~DenseMatrix() {
         // handled by an owner

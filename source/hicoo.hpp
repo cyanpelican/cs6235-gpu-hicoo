@@ -25,14 +25,17 @@ struct HicooTensor {
     HicooBlock* blocks_h;
     HicooBlock* blocks_d;
     PointSorting sorting;
-    unsigned long long num_elements;
-    unsigned long long num_blocks;
+    unsigned long long numPoints;
+    unsigned long long numBlocks;
 
     HicooTensor() {
         points_h = nullptr;
         points_d = nullptr;
+        blocks_h = nullptr;
+        blocks_d = nullptr;
         sorting = UNSORTED;
-        num_elements = 0;
+        numPoints = 0;
+        numBlocks = 0;
     }
     ~HicooTensor() {
         // handled by an owner
