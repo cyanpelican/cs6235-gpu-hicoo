@@ -1,4 +1,5 @@
 #!/bin/bash
+mkdir -p old-out/
 mv slurm-*.out old-out/
 set -e # exit on error
 

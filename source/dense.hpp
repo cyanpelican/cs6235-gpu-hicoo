@@ -116,7 +116,12 @@ struct DenseTensorUnique {
 // However, when performing compute, just pass DenseTensors, since they're lighter.
 // The operator() is overloaded, so it's possible to also use/pass these as if they're DenseTensors
 struct DenseTensorManager {
-    std::shared_ptr<DenseTensorUnique> tensor(new DenseTensorUnique());
+    std::shared_ptr<DenseTensorUnique> tensor;
+
+    DenseTensorManager():
+      tensor(new DenseTensorUnique())
+    {
+    }
 
     /* utility functions */
 
@@ -150,7 +155,12 @@ struct DenseMatrixUnique {
 // However, when performing compute, just pass DenseMatrixs, since they're lighter.
 // The operator() is overloaded, so it's possible to also use/pass these as if they're DenseMatrixs
 struct DenseMatrixManager {
-    std::shared_ptr<DenseMatrixUnique> tensor(new DenseMatrixUnique());
+    std::shared_ptr<DenseMatrixUnique> tensor;
+
+    DenseMatrixManager():
+      tensor(new DenseMatrixUnique())
+    {
+    }
 
     /* utility functions */
 

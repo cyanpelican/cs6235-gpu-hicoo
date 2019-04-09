@@ -73,7 +73,12 @@ struct CooTensorUnique {
 // However, when performing compute, just pass CooTensors, since they're lighter.
 // The operator() is overloaded, so it's possible to also use/pass these as if they're CooTensors
 struct CooTensorManager {
-    std::shared_ptr<CooTensorUnique> tensor(new CooTensorUnique());
+    std::shared_ptr<CooTensorUnique> tensor;
+
+    CooTensorManager():
+      tensor(new CooTensorUnique())
+    {
+    }
 
     /* utility functions */
 
