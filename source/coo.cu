@@ -8,7 +8,7 @@ void CooTensor::freeAllArrays() {
 
 void CooTensor::uploadToDevice() {
     cudaErrorCheck(cudaFree(points_d));
-    cudaErrorCheck(cudaMalloc((void **) &points_d, sizeof(float)));
+    cudaErrorCheck(cudaMalloc((void **) &points_d, sizeof(CooPoint) * num_elements));
     cudaErrorCheck(cudaMemcpy(points_d, points_h, sizeof(CooPoint) * num_elements, cudaMemcpyHostToDevice));
 }
 

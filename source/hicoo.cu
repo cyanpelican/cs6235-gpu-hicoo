@@ -10,7 +10,7 @@ void HicooTensor::freeAllArrays() {
 
 void HicooTensor::uploadToDevice() {
     cudaErrorCheck(cudaFree(points_d));
-    cudaErrorCheck(cudaMalloc((void **) &d_weight, sizeof(float)));
+    cudaErrorCheck(cudaMalloc((void **) &d_weight, sizeof(HicooPoint) * num_elements));
     cudaErrorCheck(cudaMemcpy(points_d, points_h, sizeof(HicooPoint) * num_elements, cudaMemcpyHostToDevice));
 }
 

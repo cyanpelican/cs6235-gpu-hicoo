@@ -9,15 +9,15 @@ void DenseTensor::freeAllArrays() {
 // safely uploads to gpu
 void DenseTensor::uploadToDevice() {
     cudaErrorCheck(cudaFree(values_d));
-    cudaErrorCheck(cudaMalloc((void **) &d_weight, sizeof(float)));
-    cudaErrorCheck(cudaMemcpy(values_d, values_h, sizeof(DensePoint) * num_elements, cudaMemcpyHostToDevice));
+    cudaErrorCheck(cudaMalloc((void **) &values_d, sizeof(float) * width*height*depth));
+    cudaErrorCheck(cudaMemcpy(values_d, values_h, sizeof(float) * width*height*depth, cudaMemcpyHostToDevice));
 }
 
 // safely downloads from gpu
 void DenseTensor::downloadToHost() {
     free(values_h);
-    values_h = malloc(sizeof(DensePoint) * num_elements);
-    cudaErrorCheck(cudaMemcpy(values_d, values_h, sizeof(DensePoint) * num_elements, cudaMemcpyDeviceToHost));
+    values_h = (float*)malloc(sizeof(float) * width*height*depth);
+    cudaErrorCheck(cudaMemcpy(values_d, values_h, sizeof(float) * width*height*depth, cudaMemcpyDeviceToHost));
 }
 
 
@@ -29,30 +29,32 @@ void DenseMatrix::freeAllArrays() {
 // safely uploads to gpu
 void DenseMatrix::uploadToDevice() {
     cudaErrorCheck(cudaFree(values_d));
-    cudaErrorCheck(cudaMalloc((void **) &d_weight, sizeof(float)));
-    cudaErrorCheck(cudaMemcpy(values_d, values_h, sizeof(CooPoint) * num_elements, cudaMemcpyHostToDevice));
+    cudaErrorCheck(cudaMalloc((void **) &values_d, sizeof(float) * width*height));
+    cudaErrorCheck(cudaMemcpy(values_d, values_h, sizeof(float) * width*height, cudaMemcpyHostToDevice));
 }
 
 // safely downloads from gpu
 void DenseMatrix::downloadToHost() {
     free(values_h);
-    values_h = malloc(sizeof(CooPoint) * num_elements);
-    cudaErrorCheck(cudaMemcpy(values_d, values_h, sizeof(CooPoint) * num_elements, cudaMemcpyDeviceToHost));
+    values_h = (float*)malloc(sizeof(float) * width*height);
+    cudaErrorCheck(cudaMemcpy(values_d, values_h, sizeof(float) * width*height, cudaMemcpyDeviceToHost));
 }
 
 DenseMatrixManager DenseTensor::mttkrp_naive_cpu(DenseMatrix d, DenseMatrix c) {
     DenseMatrixManager ret;
+    DenseMatrix a = ret;
     assert(values_h != nullptr);
 
     // TODO - remalloc arrays
     assert(0);
 
     // A(i,j) = B(i,k,l) * D(l,j) * C(k,j);
+    int I = 0, J = 0, K = 0, L = 0;
     for(int i = 0; i < I; i++) {
-        for(int j = 0; j < J; l++) {
+        for(int j = 0; j < J; j++) {
             for(int k = 0; k < K; k++) {
               for(int l = 0; l < L; l++) {
-                  ret.access(i, j) += B.access(i,j,k) * D.access(l,j) * C.access(k,j);
+                  a.access(i, j) += access(i,j,k) * d.access(l,j) * c.access(k,j);
               }
             }
         }

@@ -82,7 +82,7 @@ struct CooTensorManager {
 
     /* utility functions */
 
-    CooTensor operator()() {
+    operator CooTensor() {
         return tensor->tensor;
     }
 

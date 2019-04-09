@@ -81,7 +81,7 @@ struct HicooTensorManager {
 
     /* utility functions */
 
-    HicooTensor operator()() {
+    operator HicooTensor() {
         return tensor->tensor;
     }
 

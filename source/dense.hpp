@@ -125,7 +125,7 @@ struct DenseTensorManager {
 
     /* utility functions */
 
-    DenseTensor operator()() {
+    operator DenseTensor() {
         return tensor->tensor;
     }
 
@@ -164,7 +164,7 @@ struct DenseMatrixManager {
 
     /* utility functions */
 
-    DenseMatrix operator()() {
+    operator DenseMatrix() {
         return tensor->tensor;
     }
 

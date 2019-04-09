@@ -95,7 +95,7 @@ struct CsfTensorManager {
 
     /* utility functions */
 
-    CsfTensor operator()() {
+    operator CsfTensor() {
         return tensor->tensor;
     }
 
