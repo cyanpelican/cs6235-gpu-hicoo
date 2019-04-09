@@ -16,7 +16,7 @@ struct HicooBlock {
     unsigned long long blockAddress;
     unsigned int blockX, blockY, blockZ;
     unsigned int UNUSED; // for packing
-}
+};
 
 class DenseMatrix;
 struct HicooTensor {
@@ -77,7 +77,12 @@ struct HicooTensorUnique {
 // However, when performing compute, just pass HicooTensors, since they're lighter.
 // The operator() is overloaded, so it's possible to also use/pass these as if they're HicooTensors
 struct HicooTensorManager {
-    std::shared_ptr<HicooTensorUnique> tensor(new HicooTensorUnique());
+    std::shared_ptr<HicooTensorUnique> tensor;
+
+    HicooTensorManager():
+      tensor(new HicooTensorUnique())
+    {
+    }
 
     /* utility functions */
 
