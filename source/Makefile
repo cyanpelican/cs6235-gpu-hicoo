@@ -15,3 +15,5 @@ dense.o: dense.cu
 hicoo.o: hicoo.cu
 	nvcc $(CCFLAGS) -c -o hicoo.o hicoo.cu
 
+clean:
+	rm *.o
