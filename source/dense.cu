@@ -52,7 +52,7 @@ DenseMatrixManager DenseTensor::mttkrp_naive_cpu(DenseMatrix d, DenseMatrix c) {
         for(int j = 0; j < J; l++) {
             for(int k = 0; k < K; k++) {
               for(int l = 0; l < L; l++) {
-                  ret[i, j] += B[i,j,k] * D[l,j] * C[k,j];
+                  ret.access(i, j) += B.access(i,j,k) * D.access(l,j) * C.access(k,j);
               }
             }
         }

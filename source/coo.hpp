@@ -1,7 +1,9 @@
 
 #ifndef COO_HPP
 #define COO_HPP
+#include "common.hpp"
 #include "dense.hpp"
+#include <memory>
 
 struct CooPoint {
     unsigned int x, y, z;
@@ -63,7 +65,7 @@ struct CooTensorUnique {
         // nothing exciting to do
     }
     ~CooTensorUnique() {
-        tensor.freeAllArrays()
+        tensor.freeAllArrays();
     }
 };
 
@@ -75,7 +77,7 @@ struct CooTensorManager {
 
     /* utility functions */
 
-    CooTensor operator() {
+    CooTensor operator()() {
         return tensor->tensor;
     }
 

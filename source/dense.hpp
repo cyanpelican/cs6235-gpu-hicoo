@@ -1,18 +1,19 @@
 
 #ifndef DENSE_HPP
 #define DENSE_HPP
+#include "common.hpp"
+#include <memory>
 
 class DenseMatrix;
+class DenseMatrixManager;
 struct DenseTensor {
     float* values_h;
     float* values_d;
     unsigned int width, height, depth;
 
     DenseTensor() {
-        points_h = nullptr;
-        points_d = nullptr;
-        sorting = UNSORTED;
-        num_elements = 0;
+        values_h = nullptr;
+        values_d = nullptr;
     }
     ~DenseTensor() {
         // handled by an owner
@@ -31,7 +32,7 @@ struct DenseTensor {
     void downloadToHost();
 
     // a safe function to get an element on either host or device; TODO - test
-    float& operator[](unsigned int i, unsigned int j, unsigned int k) {
+    float& access(unsigned int i, unsigned int j, unsigned int k) {
         #ifdef __CUDA_ARCH__
             return values_d[i*height*width + j*width + k];
         #else
@@ -57,10 +58,8 @@ struct DenseMatrix {
     unsigned int height, width;
 
     DenseMatrix() {
-        points_h = nullptr;
-        points_d = nullptr;
-        sorting = UNSORTED;
-        num_elements = 0;
+        values_h = nullptr;
+        values_d = nullptr;
     }
     ~DenseMatrix() {
         // handled by an owner
@@ -79,22 +78,13 @@ struct DenseMatrix {
     void downloadToHost();
 
     // a safe function to get an element on either host or device; TODO - test
-    float& operator[](unsigned int i, unsigned int j) {
+    float& access(unsigned int i, unsigned int j) {
         #ifdef __CUDA_ARCH__
             return values_d[i*width + j];
         #else
             return values_h[i*width + j];
         #endif
     }
-
-    // dangerous; deletes everything
-    void freeAllArrays();
-
-    // safely uploads to gpu
-    void uploadToDevice();
-
-    // safely downloads from gpu
-    void downloadToHost();
 
 
     /* compute functions */
@@ -118,7 +108,7 @@ struct DenseTensorUnique {
         // nothing exciting to do
     }
     ~DenseTensorUnique() {
-        tensor.freeAllArrays()
+        tensor.freeAllArrays();
     }
 };
 
@@ -130,7 +120,7 @@ struct DenseTensorManager {
 
     /* utility functions */
 
-    DenseTensor operator() {
+    DenseTensor operator()() {
         return tensor->tensor;
     }
 
@@ -152,7 +142,7 @@ struct DenseMatrixUnique {
         // nothing exciting to do
     }
     ~DenseMatrixUnique() {
-        tensor.freeAllArrays()
+        tensor.freeAllArrays();
     }
 };
 
@@ -164,7 +154,7 @@ struct DenseMatrixManager {
 
     /* utility functions */
 
-    DenseMatrix operator() {
+    DenseMatrix operator()() {
         return tensor->tensor;
     }
 

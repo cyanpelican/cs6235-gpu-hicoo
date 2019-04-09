@@ -1,8 +1,10 @@
 
 #ifndef HICOO_HPP
 #define HICOO_HPP
+#include "common.hpp"
 #include "coo.hpp"
 #include "dense.hpp"
+#include <memory>
 
 struct HicooPoint {
     unsigned char x, y, z;
@@ -67,7 +69,7 @@ struct HicooTensorUnique {
         // nothing exciting to do
     }
     ~HicooTensorUnique() {
-        tensor.freeAllArrays()
+        tensor.freeAllArrays();
     }
 };
 
@@ -79,7 +81,7 @@ struct HicooTensorManager {
 
     /* utility functions */
 
-    HicooTensor operator() {
+    HicooTensor operator()() {
         return tensor->tensor;
     }
 

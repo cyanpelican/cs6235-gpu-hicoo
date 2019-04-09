@@ -1,7 +1,9 @@
 
 #ifndef CSF_HPP
 #define CSF_HPP
+#include "common.hpp"
 #include "dense.hpp"
+#include <memory>
 
 struct CsfPoint {
     float value;
@@ -60,7 +62,7 @@ struct CsfTensorUnique {
         // nothing exciting to do
     }
     ~CsfTensorUnique() {
-        tensor.freeAllArrays()
+        tensor.freeAllArrays();
     }
 };
 
