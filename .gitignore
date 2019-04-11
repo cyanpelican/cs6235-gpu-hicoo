@@ -4,6 +4,8 @@
 *.ptx
 *.cubin
 *.fatbin
+*.o
+HiCooExperiment
 
 CMakeLists.txt
 cmake-build-debug/

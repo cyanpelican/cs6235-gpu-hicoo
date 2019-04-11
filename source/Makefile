@@ -1,10 +1,13 @@
 
 CCFLAGS=--std=c++11
 
-all: coo.o csf.o dense.o hicoo.o
+all: HiCooExperiment main.o coo.o csf.o dense.o hicoo.o
 
-main.o: main.cu
-	nvcc $(CCFLAGS) -c -o main.o main.cu
+HiCooExperiment: main.o coo.o csf.o dense.o hicoo.o
+	nvcc $(CCFLAGS) -o HiCooExperiment main.o coo.o csf.o dense.o hicoo.o
+
+main.o: main.cpp
+	nvcc $(CCFLAGS) -c -o main.o main.cpp
 
 coo.o: coo.cu
 	nvcc $(CCFLAGS) -c -o coo.o coo.cu
@@ -18,5 +21,6 @@ dense.o: dense.cu
 hicoo.o: hicoo.cu
 	nvcc $(CCFLAGS) -c -o hicoo.o hicoo.cu
 
+.PHONY: clean
 clean:
-	rm *.o
+	rm *.o HiCoo
