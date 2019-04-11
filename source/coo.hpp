@@ -76,8 +76,7 @@ struct CooTensorManager {
     std::shared_ptr<CooTensorUnique> tensor;
 
     CooTensorManager():
-      tensor(new CooTensorUnique())
-    {
+      tensor(new CooTensorUnique()) {
     }
 
     /* utility functions */
@@ -89,6 +88,7 @@ struct CooTensorManager {
 
     /* parsing, conversion & creation functions */
     // TODO
+    void create(char *tensorFileName);
 
 };
 

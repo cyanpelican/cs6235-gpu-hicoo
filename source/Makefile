@@ -3,6 +3,9 @@ CCFLAGS=--std=c++11
 
 all: coo.o csf.o dense.o hicoo.o
 
+main.o: main.cu
+	nvcc $(CCFLAGS) -c -o main.o main.cu
+
 coo.o: coo.cu
 	nvcc $(CCFLAGS) -c -o coo.o coo.cu
 
