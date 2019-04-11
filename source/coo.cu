@@ -59,7 +59,7 @@ void CooTensorManager::create(char *tensorFileName) {
 
     size_t nonZeroes = 0;
     std::string line;
-    std::ifstream myfile(matrixName);
+    std::ifstream myfile(tensorFileName);
 
     //put all the points into a vector
     while (std::getline(myfile, line)) {
@@ -81,4 +81,16 @@ void CooTensorManager::create(char *tensorFileName) {
     Coo->tensor->tensor.num_elements = nonZeroes;
     Coo->tensor->tensor.points_h = matrixPoints.data();
 
+}
+
+std::vector<double> CooTensorManager::split(const std::string *str, char delimiter) {
+    std::vector<double> internal;
+    std::stringstream ss(*str); // Turn the string into a stream.
+    std::string tok;
+
+    while(getline(ss, tok, delimiter)) {
+        internal.push_back(stod(tok));
+    }
+
+    return internal;
 }
