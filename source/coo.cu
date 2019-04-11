@@ -99,7 +99,7 @@ void CooTensorManager::create(char *tensorFileName) {
     matrixPoints.shrink_to_fit();
 
     //construct the COO object
-    tensor->tensor.num_elements = nonZeroes;
+    tensor->tensor.numElements = nonZeroes;
     tensor->tensor.points_h = matrixPoints.data();
 
 }
