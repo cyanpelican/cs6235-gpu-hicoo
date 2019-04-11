@@ -66,7 +66,6 @@ struct CooTensor {
         freeAllArrays();
         points_h = (CooPoint*)malloc(sizeof(CooPoint) * numPoints);
         this->numElements = numPoints;
-        this->sorting = sorting;
     }
 
 

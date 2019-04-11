@@ -1,5 +1,5 @@
 
-CCFLAGS=--std=c++11
+CCFLAGS=--std=c++11 -g
 
 all: HiCooExperiment main.o coo.o csf.o dense.o hicoo.o
 
@@ -23,4 +23,4 @@ hicoo.o: hicoo.cu hicoo.hpp coo.hpp common.hpp dense.hpp
 
 .PHONY: clean
 clean:
-	rm *.o HiCoo
+	rm *.o HiCooExperiment

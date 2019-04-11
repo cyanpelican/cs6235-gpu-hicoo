@@ -17,8 +17,9 @@ int main(int argc, char *argv[]) {
     }
 
     char *matrixName = argv[1];
-    CooTensorManager* Coo = new CooTensorManager();
-    Coo->create(argv[1]);
+    CooTensorManager Coo;
+    Coo.create(argv[1]);
+    std::cout << ((CooTensor)Coo).numElements << std::endl;
 
 
     return 0;
