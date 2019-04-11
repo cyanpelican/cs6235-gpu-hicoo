@@ -1,5 +1,7 @@
 #include "coo.hpp"
 #include <assert.h>
+#include "csf.hpp"
+#include "hicoo.hpp"
 
 void CooTensor::freeAllArrays() {
     free(points_h);
@@ -18,6 +20,23 @@ void CooTensor::downloadToHost() {
     free(points_h);
     points_h = (CooPoint*)malloc(sizeof(CooPoint) * numElements);
     cudaErrorCheck(cudaMemcpy(points_h, points_d, sizeof(CooPoint) * numElements, cudaMemcpyDeviceToHost));
+}
+
+
+HicooTensorManager CooTensor::toHicoo() {
+    HicooTensorManager ret;
+    assert(0);
+    return ret;
+}
+DenseTensorManager CooTensor::toDense() {
+    DenseTensorManager ret;
+    assert(0);
+    return ret;
+}
+CsfTensorManager CooTensor::toCsf() {
+    DenseTensorManager ret;
+    assert(0);
+    return ret;
 }
 
 

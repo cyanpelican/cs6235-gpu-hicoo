@@ -1,5 +1,6 @@
 #include "hicoo.hpp"
 #include <assert.h>
+#include "coo.hpp"
 
 void HicooTensor::freeAllArrays() {
     free(points_h);
@@ -29,6 +30,14 @@ void HicooTensor::downloadToHost() {
     blocks_h = (HicooBlock*)malloc(sizeof(HicooBlock) * numBlocks);
     cudaErrorCheck(cudaMemcpy(blocks_h, blocks_d, sizeof(HicooBlock) * numBlocks, cudaMemcpyDeviceToHost));
 }
+
+
+CooTensorManager HicooTensor::toCoo() {
+    CooTensorManager ret;
+    assert(0);
+    return ret;
+}
+
 
 DenseMatrixManager HicooTensor::mttkrp_naive_cpu(DenseMatrix d, DenseMatrix c) {
     DenseMatrixManager ret;

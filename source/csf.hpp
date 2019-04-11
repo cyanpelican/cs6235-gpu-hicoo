@@ -74,6 +74,10 @@ struct CsfTensor {
     // }
 
 
+    /* conversion function */
+    CooTensorManager toCoo();
+
+
     /* compute functions */
     // A(i,j) = B(i,k,l) * D(l,j) * C(k,j);
     DenseMatrixManager mttkrp_naive_cpu(DenseMatrix d, DenseMatrix c);

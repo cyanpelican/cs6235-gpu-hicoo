@@ -18,6 +18,9 @@ enum PointSorting {
 };
 
 class DenseMatrix;
+class HicooTensorManager;
+class DenseTensorManager;
+class CsfTensorManager;
 struct CooTensor {
     CooPoint* points_h;
     CooPoint* points_d;
@@ -61,6 +64,12 @@ struct CooTensor {
         this->numElements = numPoints;
         this->sorting = sorting;
     }
+
+
+    /* conversion functions */
+    HicooTensorManager toHicoo();
+    DenseTensorManager toDense();
+    CsfTensorManager   toCsf();
 
 
     /* compute functions */

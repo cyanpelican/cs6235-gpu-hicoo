@@ -1,5 +1,6 @@
 #include "dense.hpp"
 #include <assert.h>
+#include "coo.hpp"
 
 void DenseTensor::freeAllArrays() {
     free(values_h);
@@ -41,6 +42,14 @@ void DenseMatrix::downloadToHost() {
     values_h = (float*)malloc(sizeof(float) * width*height);
     cudaErrorCheck(cudaMemcpy(values_d, values_h, sizeof(float) * width*height, cudaMemcpyDeviceToHost));
 }
+
+
+CooTensorManager DenseTensor::toCoo() {
+    CooTensorManager ret;
+    assert(0);
+    return ret;
+}
+
 
 DenseMatrixManager DenseTensor::mttkrp_naive_cpu(DenseMatrix d, DenseMatrix c) {
     DenseMatrixManager ret;

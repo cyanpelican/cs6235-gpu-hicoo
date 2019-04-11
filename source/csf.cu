@@ -1,5 +1,6 @@
 #include "csf.hpp"
 #include <assert.h>
+#include "coo.hpp"
 
 void CsfTensor::freeAllArrays() {
     free(points_h);
@@ -29,6 +30,14 @@ void CsfTensor::downloadToHost() {
     fiberAddresses_h = (unsigned int*)malloc(sizeof(unsigned int) * (numFibers()+1));
     cudaErrorCheck(cudaMemcpy(fiberAddresses_h, fiberAddresses_d, sizeof(CsfPoint) * (numFibers()+1), cudaMemcpyDeviceToHost));
 }
+
+
+CooTensorManager CsfTensor::toCoo() {
+    CooTensorManager ret;
+    assert(0);
+    return ret;
+}
+
 
 DenseMatrixManager CsfTensor::mttkrp_naive_cpu(DenseMatrix d, DenseMatrix c) {
     DenseMatrixManager ret;
