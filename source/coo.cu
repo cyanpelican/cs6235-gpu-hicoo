@@ -5,13 +5,15 @@
 
 void CooTensor::freeAllArrays() {
     free(points_h);
-    cudaErrorCheck(cudaFree(points_d));
+    if(points_d != nullptr) // Because the docs lie: "If devPtr is 0, no operation is performed."
+        cudaErrorCheck(cudaFree(points_d));
     points_h = nullptr;
     points_d = nullptr;
 }
 
 void CooTensor::uploadToDevice() {
-    cudaErrorCheck(cudaFree(points_d));
+    if(points_d != nullptr) // Because the docs lie: "If devPtr is 0, no operation is performed."
+        cudaErrorCheck(cudaFree(points_d));
     cudaErrorCheck(cudaMalloc((void **) &points_d, sizeof(CooPoint) * numElements));
     cudaErrorCheck(cudaMemcpy(points_d, points_h, sizeof(CooPoint) * numElements, cudaMemcpyHostToDevice));
 }

@@ -4,12 +4,14 @@
 
 void DenseTensor::freeAllArrays() {
     free(values_h);
-    cudaErrorCheck(cudaFree(values_d));
+    if(values_d != nullptr) // Because the docs lie: "If devPtr is 0, no operation is performed."
+        cudaErrorCheck(cudaFree(values_d));
 }
 
 // safely uploads to gpu
 void DenseTensor::uploadToDevice() {
-    cudaErrorCheck(cudaFree(values_d));
+    if(values_d != nullptr) // Because the docs lie: "If devPtr is 0, no operation is performed."
+        cudaErrorCheck(cudaFree(values_d));
     cudaErrorCheck(cudaMalloc((void **) &values_d, sizeof(float) * width*height*depth));
     cudaErrorCheck(cudaMemcpy(values_d, values_h, sizeof(float) * width*height*depth, cudaMemcpyHostToDevice));
 }
@@ -24,14 +26,16 @@ void DenseTensor::downloadToHost() {
 
 void DenseMatrix::freeAllArrays() {
     free(values_h);
-    cudaErrorCheck(cudaFree(values_d));
+    if(values_d != nullptr) // Because the docs lie: "If devPtr is 0, no operation is performed."
+        cudaErrorCheck(cudaFree(values_d));
     values_h = nullptr;
     values_d = nullptr;
 }
 
 // safely uploads to gpu
 void DenseMatrix::uploadToDevice() {
-    cudaErrorCheck(cudaFree(values_d));
+    if(values_d != nullptr) // Because the docs lie: "If devPtr is 0, no operation is performed."
+        cudaErrorCheck(cudaFree(values_d));
     cudaErrorCheck(cudaMalloc((void **) &values_d, sizeof(float) * width*height));
     cudaErrorCheck(cudaMemcpy(values_d, values_h, sizeof(float) * width*height, cudaMemcpyHostToDevice));
 }

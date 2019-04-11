@@ -5,8 +5,10 @@
 void HicooTensor::freeAllArrays() {
     free(points_h);
     free(blocks_h);
-    cudaErrorCheck(cudaFree(points_d));
-    cudaErrorCheck(cudaFree(blocks_d));
+    if(points_d != nullptr) // Because the docs lie: "If devPtr is 0, no operation is performed."
+        cudaErrorCheck(cudaFree(points_d));
+    if(blocks_d != nullptr) // Because the docs lie: "If devPtr is 0, no operation is performed."
+        cudaErrorCheck(cudaFree(blocks_d));
     points_h = nullptr;
     blocks_h = nullptr;
     points_d = nullptr;
@@ -14,10 +16,12 @@ void HicooTensor::freeAllArrays() {
 }
 
 void HicooTensor::uploadToDevice() {
-    cudaErrorCheck(cudaFree(points_d));
+    if(points_d != nullptr) // Because the docs lie: "If devPtr is 0, no operation is performed."
+        cudaErrorCheck(cudaFree(points_d));
     cudaErrorCheck(cudaMalloc((void **) &points_d, sizeof(HicooPoint) * numPoints));
     cudaErrorCheck(cudaMemcpy(points_d, points_h, sizeof(HicooPoint) * numPoints, cudaMemcpyHostToDevice));
-    cudaErrorCheck(cudaFree(blocks_d));
+    if(blocks_d != nullptr) // Because the docs lie: "If devPtr is 0, no operation is performed."
+        cudaErrorCheck(cudaFree(blocks_d));
     cudaErrorCheck(cudaMalloc((void **) &blocks_d, sizeof(HicooBlock) * numBlocks));
     cudaErrorCheck(cudaMemcpy(blocks_d, blocks_h, sizeof(HicooBlock) * numBlocks, cudaMemcpyHostToDevice));
 }

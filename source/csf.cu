@@ -5,8 +5,10 @@
 void CsfTensor::freeAllArrays() {
     free(points_h);
     free(fiberAddresses_h);
-    cudaErrorCheck(cudaFree(points_d));
-    cudaErrorCheck(cudaFree(fiberAddresses_d));
+    if(points_d != nullptr) // Because the docs lie: "If devPtr is 0, no operation is performed."
+        cudaErrorCheck(cudaFree(points_d));
+    if(fiberAddresses_d != nullptr) // Because the docs lie: "If devPtr is 0, no operation is performed."
+        cudaErrorCheck(cudaFree(fiberAddresses_d));
     points_h = nullptr;
     fiberAddresses_h = nullptr;
     points_d = nullptr;
@@ -14,10 +16,12 @@ void CsfTensor::freeAllArrays() {
 }
 
 void CsfTensor::uploadToDevice() {
-    cudaErrorCheck(cudaFree(points_d));
+    if(points_d != nullptr) // Because the docs lie: "If devPtr is 0, no operation is performed."
+        cudaErrorCheck(cudaFree(points_d));
     cudaErrorCheck(cudaMalloc((void **) &points_d, sizeof(CsfPoint) * numPoints()));
     cudaErrorCheck(cudaMemcpy(points_d, points_h, sizeof(CsfPoint) * numPoints(), cudaMemcpyHostToDevice));
-    cudaErrorCheck(cudaFree(fiberAddresses_d));
+    if(fiberAddresses_d != nullptr) // Because the docs lie: "If devPtr is 0, no operation is performed."
+        cudaErrorCheck(cudaFree(fiberAddresses_d));
     cudaErrorCheck(cudaMalloc((void **) &fiberAddresses_d, sizeof(CsfPoint) * (numFibers()+1)));
     cudaErrorCheck(cudaMemcpy(fiberAddresses_d, fiberAddresses_h, sizeof(CsfPoint) * (numFibers()+1), cudaMemcpyHostToDevice));
 }
