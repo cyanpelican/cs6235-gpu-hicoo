@@ -47,11 +47,14 @@ DenseMatrixManager DenseTensor::mttkrp_naive_cpu(DenseMatrix d, DenseMatrix c) {
     DenseMatrix a = ret;
     assert(values_h != nullptr);
 
-    // TODO - remalloc arrays
-    assert(0);
-
     // A(i,j) = B(i,k,l) * D(l,j) * C(k,j);
-    int I = 0, J = 0, K = 0, L = 0;
+    int I = this->width, J = d.height, K = this->height, L = this->depth;
+    assert(d.width  == L);
+    assert(c.width  == K);
+    assert(c.height == J);
+
+    a.setSize(I, J);
+
     for(int i = 0; i < I; i++) {
         for(int j = 0; j < J; j++) {
             for(int k = 0; k < K; k++) {
