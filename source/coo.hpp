@@ -4,6 +4,10 @@
 #include "common.hpp"
 #include "dense.hpp"
 #include <memory>
+#include <fstream>
+#include <iostream>
+#include <vector>
+#include <sstream>
 
 struct CooPoint {
     unsigned int x, y, z;
