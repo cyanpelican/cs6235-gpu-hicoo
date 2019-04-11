@@ -46,6 +46,15 @@ struct CooTensor {
     // safely downloads from gpu
     void downloadToHost();
 
+    // a safe function to get an element on either host or device; TODO - test
+    CooPoint& access(unsigned int element) {
+        #ifdef __CUDA_ARCH__
+            return points_d[element];
+        #else
+            return points_h[element];
+        #endif
+    }
+
     void setSize(int numPoints) {
         freeAllArrays();
         points_h = (CooPoint*)malloc(sizeof(CooPoint) * numPoints);

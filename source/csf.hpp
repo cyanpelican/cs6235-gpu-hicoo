@@ -59,6 +59,16 @@ struct CsfTensor {
         }
     }
 
+    // // a safe function to get an element on either host or device; TODO
+    // float& access() {
+    //     #ifdef __CUDA_ARCH__
+    //         return values_d[];
+    //     #else
+    //         return values_h[];
+    //     #endif
+    // }
+
+
     // void setSize() {
     //   // TODO
     // }

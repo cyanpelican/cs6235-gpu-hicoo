@@ -53,6 +53,25 @@ struct HicooTensor {
     // safely downloads from gpu
     void downloadToHost();
 
+    // a safe function to get a block on either host or device; TODO - test
+    HicooBlock& access_block(unsigned int blockIndex) {
+        #ifdef __CUDA_ARCH__
+            return blocks_d[blockIndex];
+        #else
+            return blocks_h[blockIndex];
+        #endif
+    }
+
+    // a safe function to get an element on either host or device; TODO - test
+    HicooPoint& access_point(unsigned long long pointIndex) {
+        #ifdef __CUDA_ARCH__
+            return points_d[pointIndex];
+        #else
+            return points_h[pointIndex];
+        #endif
+    }
+
+
     void setSize(unsigned int numBlocks, unsigned int numPoints) {
         freeAllArrays();
         points_h = (HicooPoint*)malloc(sizeof(HicooPoint) * numPoints);
