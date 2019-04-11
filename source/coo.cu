@@ -74,3 +74,44 @@ DenseMatrixManager CooTensor::mttkrp_fast(DenseMatrix d, DenseMatrix c) {
 
     return ret;
 }
+
+void CooTensorManager::create(char *tensorFileName) {
+    std::vector<CooPoint> matrixPoints;
+
+    size_t nonZeroes = 0;
+    std::string line;
+    std::ifstream myfile(tensorFileName);
+
+    //put all the points into a vector
+    while (std::getline(myfile, line)) {
+        ++nonZeroes;
+        CooPoint currentPoint;
+        std::vector<double> splitLine = split(&line, ' ');
+        currentPoint.x = (unsigned int) splitLine[0];
+        currentPoint.y = (unsigned int) splitLine[1];
+        currentPoint.z = (unsigned int) splitLine[2];
+        currentPoint.value = (float) splitLine[3];
+
+        //This assumes there are 3 dimensions followed by one value
+        matrixPoints.push_back(currentPoint);
+    }
+
+    matrixPoints.shrink_to_fit();
+
+    //construct the COO object
+    tensor->tensor.num_elements = nonZeroes;
+    tensor->tensor.points_h = matrixPoints.data();
+
+}
+
+std::vector<double> CooTensorManager::split(const std::string *str, char delimiter) {
+    std::vector<double> internal;
+    std::stringstream ss(*str); // Turn the string into a stream.
+    std::string tok;
+
+    while(getline(ss, tok, delimiter)) {
+        internal.push_back(stod(tok));
+    }
+
+    return internal;
+}

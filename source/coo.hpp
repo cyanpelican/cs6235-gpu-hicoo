@@ -4,6 +4,10 @@
 #include "common.hpp"
 #include "dense.hpp"
 #include <memory>
+#include <fstream>
+#include <iostream>
+#include <vector>
+#include <sstream>
 
 struct CooPoint {
     unsigned int x, y, z;
@@ -101,8 +105,7 @@ struct CooTensorManager {
     std::shared_ptr<CooTensorUnique> tensor;
 
     CooTensorManager():
-      tensor(new CooTensorUnique())
-    {
+      tensor(new CooTensorUnique()) {
     }
 
     /* utility functions */
@@ -114,6 +117,8 @@ struct CooTensorManager {
 
     /* parsing, conversion & creation functions */
     // TODO
+    void create(char *tensorFileName);
+    std::vector<double> split(const std::string *str, char delimiter);
 
 };
 
