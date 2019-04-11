@@ -34,7 +34,7 @@ DenseTensorManager CooTensor::toDense() {
     return ret;
 }
 CsfTensorManager CooTensor::toCsf() {
-    DenseTensorManager ret;
+    CsfTensorManager ret;
     assert(0);
     return ret;
 }

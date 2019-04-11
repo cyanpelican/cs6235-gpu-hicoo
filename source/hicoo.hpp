@@ -19,6 +19,7 @@ struct HicooBlock {
 };
 
 class DenseMatrix;
+class CooMatrixManager;
 struct HicooTensor {
     HicooPoint* points_h;
     HicooPoint* points_d;

@@ -6,6 +6,7 @@
 
 class DenseMatrix;
 class DenseMatrixManager;
+class CooTensorManager;
 struct DenseTensor {
     float* values_h;
     float* values_d;
