@@ -67,6 +67,10 @@ struct CooTensor {
         points_h = (CooPoint*)malloc(sizeof(CooPoint) * numPoints);
         this->numElements = numPoints;
     }
+    
+    unsigned long long getTotalMemory() {
+        return sizeof(CooPoint) * numPoints + sizeof(CooTensor);
+    }
 
 
     /* conversion functions */

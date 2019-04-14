@@ -72,6 +72,10 @@ struct CsfTensor {
     // void setSize() {
     //   // TODO
     // }
+    
+    //unsigned long long getTotalMemory() {
+    //    return sizeof(CooPoint) * numPoints + sizeof(CooTensor);
+    //}
 
 
     /* conversion function */

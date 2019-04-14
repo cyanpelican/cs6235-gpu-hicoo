@@ -51,6 +51,10 @@ struct DenseTensor {
         this->height = height;
         this->depth = depth;
     }
+    
+    unsigned long long getTotalMemory() {
+        return sizeof(float) * width*height*depth + sizeof(DenseTensor);
+    }
 
 
     /* conversion function */
