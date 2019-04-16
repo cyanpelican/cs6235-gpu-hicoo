@@ -24,10 +24,11 @@ struct HicooTensor {
     HicooPoint* points_h;
     HicooPoint* points_d;
     HicooBlock* blocks_h;
-    HicooBlock* blocks_d;
+    HicooBlock* blocks_d; // REMEMBER - there is one extra block to point to the end of points.
     PointSorting sorting;
     unsigned long long numPoints;
     unsigned long long numBlocks;
+    // TODO - other things like sizes
 
     HicooTensor() {
         points_h = nullptr;
