@@ -74,7 +74,7 @@ struct CooTensor {
 
 
     /* conversion functions */
-    HicooTensorManager toHicoo();
+    HicooTensorManager toHicoo(int blockWidth = 2, int blockHeight = 2, int blockDepth = 2);
     DenseTensorManager toDense();
     CsfTensorManager   toCsf();
 

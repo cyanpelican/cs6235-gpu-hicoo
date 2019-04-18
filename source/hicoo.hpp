@@ -86,18 +86,13 @@ struct HicooTensor {
     // a safe function to get an element on either host or device; TODO - test
     HicooPoint& access_pointInBlock(unsigned int blockIndex, unsigned long long pointIndex) {
         return access_point(pointIndex + access_block(blockIndex).blockAddress);
-        #ifdef __CUDA_ARCH__
-            return points_d[pointIndex];
-        #else
-            return points_h[pointIndex];
-        #endif
     }
 
 
     void setSize(unsigned int numBlocks, unsigned int numPoints) {
         freeAllArrays();
         points_h = (HicooPoint*)malloc(sizeof(HicooPoint) * numPoints);
-        blocks_h = (HicooBlock*)malloc(sizeof(HicooBlock) * (numBlocks+1);
+        blocks_h = (HicooBlock*)malloc(sizeof(HicooBlock) * (numBlocks+1));
         this->numBlocks = numBlocks;
         this->numPoints = numPoints;
     }

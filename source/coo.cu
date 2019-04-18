@@ -2,6 +2,7 @@
 #include <assert.h>
 #include "csf.hpp"
 #include "hicoo.hpp"
+#include <map>
 
 void CooTensor::freeAllArrays() {
     free(points_h);
@@ -32,17 +33,17 @@ HicooTensorManager CooTensor::toHicoo(int blockWidth, int blockHeight, int block
     // build an std::map of everything
     std::map<HicooBlock, std::vector<HicooPoint>> hicooMap;
     for(int i = 0; i < numElements; i++) {
-        CooPoint p : access(i);
+        CooPoint p = access(i);
 
-        HicooBlock block = {blockAddress = 0,
-            blockX = (p.x)/blockWidth, blockX = (p.y)/blockHeight, blockX = (p.z)/blockDepth,
-            UNUSED = 0};
+        HicooBlock block = {/*blockAddress =*/ 0,
+            /*blockX =*/ (p.x)/blockWidth, /*blockX =*/ (p.y)/blockHeight, /*blockX =*/ (p.z)/blockDepth,
+            /*UNUSED =*/ 0};
 
-        HicooPoint hp = {x = (p.x)%blockWidth, y = (p.y)%blockHeight, z = (p.z)%blockDepth,
-            UNUSED = 0,
-            value = p.value};
+        HicooPoint hp = {/*x =*/ (unsigned char)((p.x)%blockWidth), /*y =*/ (unsigned char)((p.y)%blockHeight), /*z =*/ (unsigned char)((p.z)%blockDepth),
+            /*UNUSED =*/ 0,
+            /*value =*/ p.value};
 
-        hicooMap[block].push_back(hp)
+        hicooMap[block].push_back(hp);
     }
 
     // TODO - put everything into
@@ -51,8 +52,9 @@ HicooTensorManager CooTensor::toHicoo(int blockWidth, int blockHeight, int block
     unsigned int blockIndex = 0;
     unsigned long long pointIndex = 0;
     for(std::pair<HicooBlock, std::vector<HicooPoint>> pair : hicooMap) {
+        retTensor.blocks_h[blockIndex] = pair.first;
         retTensor.blocks_h[blockIndex].blockAddress = pointIndex;
-        for(HicooPoint p : pair) {
+        for(HicooPoint p : pair.second) {
             retTensor.points_d[pointIndex++] = p;
         }
         blockIndex++;
@@ -60,10 +62,10 @@ HicooTensorManager CooTensor::toHicoo(int blockWidth, int blockHeight, int block
 
     // final element off the end of the list
     retTensor.blocks_h[blockIndex].blockAddress = pointIndex;
-    retTensor.blocks_h[blockIndex].blockX = -1;
-    retTensor.blocks_h[blockIndex].blockY = -1;
-    retTensor.blocks_h[blockIndex].blockZ = -1;
-    retTensor.blocks_h[blockIndex].UNUSED = -1;
+    retTensor.blocks_h[blockIndex].blockX = 0xFFFFFFFF;
+    retTensor.blocks_h[blockIndex].blockY = 0xFFFFFFFF;
+    retTensor.blocks_h[blockIndex].blockZ = 0xFFFFFFFF;
+    retTensor.blocks_h[blockIndex].UNUSED = 0xFFFFFFFF;
 
 
     return ret;
@@ -73,8 +75,8 @@ DenseTensorManager CooTensor::toDense() {
     ((DenseTensor)ret).setSize(width, height, depth);
 
     for(int i = 0; i < numElements; i++) {
-        CooPoint p : access(i);
-        ret.access(p.x, p.y, p.z) = p.value;
+        CooPoint p = access(i);
+        ((DenseTensor)ret).access(p.x, p.y, p.z) = p.value;
     }
 
     return ret;
