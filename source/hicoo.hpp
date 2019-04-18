@@ -81,6 +81,10 @@ struct HicooTensor {
         this->numBlocks = numPoints;
         this->numPoints = numPoints;
     }
+    
+    unsigned long long getTotalMemory() {
+        return sizeof(HicooPoint) * numPoints + sizeof(HicooBlock) * numBlocks + sizeof(HicooTensor);
+    }
 
 
     /* conversion function */
