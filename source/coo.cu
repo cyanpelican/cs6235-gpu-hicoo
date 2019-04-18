@@ -25,14 +25,58 @@ void CooTensor::downloadToHost() {
 }
 
 
-HicooTensorManager CooTensor::toHicoo() {
+HicooTensorManager CooTensor::toHicoo(int blockWidth, int blockHeight, int blockDepth) {
     HicooTensorManager ret;
-    assert(0);
+    HicooTensor retTensor = ret;
+
+    // build an std::map of everything
+    std::map<HicooBlock, std::vector<HicooPoint>> hicooMap;
+    for(int i = 0; i < numElements; i++) {
+        CooPoint p : access(i);
+
+        HicooBlock block = {blockAddress = 0,
+            blockX = (p.x)/blockWidth, blockX = (p.y)/blockHeight, blockX = (p.z)/blockDepth,
+            UNUSED = 0};
+
+        HicooPoint hp = {x = (p.x)%blockWidth, y = (p.y)%blockHeight, z = (p.z)%blockDepth,
+            UNUSED = 0,
+            value = p.value};
+
+        hicooMap[block].push_back(hp)
+    }
+
+    // TODO - put everything into
+    retTensor.setSize(hicooMap.size(), numElements);
+
+    unsigned int blockIndex = 0;
+    unsigned long long pointIndex = 0;
+    for(std::pair<HicooBlock, std::vector<HicooPoint>> pair : hicooMap) {
+        retTensor.blocks_h[blockIndex].blockAddress = pointIndex;
+        for(HicooPoint p : pair) {
+            retTensor.points_d[pointIndex++] = p;
+        }
+        blockIndex++;
+    }
+
+    // final element off the end of the list
+    retTensor.blocks_h[blockIndex].blockAddress = pointIndex;
+    retTensor.blocks_h[blockIndex].blockX = -1;
+    retTensor.blocks_h[blockIndex].blockY = -1;
+    retTensor.blocks_h[blockIndex].blockZ = -1;
+    retTensor.blocks_h[blockIndex].UNUSED = -1;
+
+
     return ret;
 }
 DenseTensorManager CooTensor::toDense() {
     DenseTensorManager ret;
-    assert(0);
+    ((DenseTensor)ret).setSize(width, height, depth);
+
+    for(int i = 0; i < numElements; i++) {
+        CooPoint p : access(i);
+        ret.access(p.x, p.y, p.z) = p.value;
+    }
+
     return ret;
 }
 CsfTensorManager CooTensor::toCsf() {

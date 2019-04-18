@@ -30,12 +30,16 @@ struct CooTensor {
     CooPoint* points_d;
     PointSorting sorting;
     unsigned long long numElements;
+    unsigned int width, height, depth;
 
     CooTensor() {
         points_h = nullptr;
         points_d = nullptr;
         sorting = UNSORTED;
         numElements = 0;
+        width = 0;
+        height = 0;
+        depth = 0;
     }
     ~CooTensor() {
         // handled by an owner

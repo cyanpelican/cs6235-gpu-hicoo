@@ -2,6 +2,26 @@
 #include <assert.h>
 #include "coo.hpp"
 
+bool HicooBlock::operator<(const HicooBlock& b) {
+    if(blockX < b.blockX) {
+        return true;
+    } else if(blockX > b.blockX) {
+        return false;
+    }
+    if(blockY < b.blockY) {
+        return true;
+    } else if(blockY > b.blockY) {
+        return false;
+    }
+    if(blockZ < b.blockZ) {
+        return true;
+    } else if(blockZ > b.blockZ) {
+        return false;
+    }
+
+    return false;
+}
+
 void HicooTensor::freeAllArrays() {
     free(points_h);
     free(blocks_h);
@@ -22,8 +42,8 @@ void HicooTensor::uploadToDevice() {
     cudaErrorCheck(cudaMemcpy(points_d, points_h, sizeof(HicooPoint) * numPoints, cudaMemcpyHostToDevice));
     if(blocks_d != nullptr) // Because the docs lie: "If devPtr is 0, no operation is performed."
         cudaErrorCheck(cudaFree(blocks_d));
-    cudaErrorCheck(cudaMalloc((void **) &blocks_d, sizeof(HicooBlock) * numBlocks));
-    cudaErrorCheck(cudaMemcpy(blocks_d, blocks_h, sizeof(HicooBlock) * numBlocks, cudaMemcpyHostToDevice));
+    cudaErrorCheck(cudaMalloc((void **) &blocks_d, sizeof(HicooBlock) * (numBlocks+1)));
+    cudaErrorCheck(cudaMemcpy(blocks_d, blocks_h, sizeof(HicooBlock) * (numBlocks+1), cudaMemcpyHostToDevice));
 }
 
 void HicooTensor::downloadToHost() {
@@ -31,8 +51,8 @@ void HicooTensor::downloadToHost() {
     points_h = (HicooPoint*)malloc(sizeof(HicooPoint) * numPoints);
     cudaErrorCheck(cudaMemcpy(points_h, points_d, sizeof(HicooPoint) * numPoints, cudaMemcpyDeviceToHost));
     free(blocks_h);
-    blocks_h = (HicooBlock*)malloc(sizeof(HicooBlock) * numBlocks);
-    cudaErrorCheck(cudaMemcpy(blocks_h, blocks_d, sizeof(HicooBlock) * numBlocks, cudaMemcpyDeviceToHost));
+    blocks_h = (HicooBlock*)malloc(sizeof(HicooBlock) * (numBlocks+1));
+    cudaErrorCheck(cudaMemcpy(blocks_h, blocks_d, sizeof(HicooBlock) * (numBlocks+1), cudaMemcpyDeviceToHost));
 }
 
 
