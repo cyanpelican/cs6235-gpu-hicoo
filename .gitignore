@@ -7,6 +7,7 @@
 *.fatbin
 *.o
 HiCooExperiment
+nell-2.tns
 
 CMakeLists.txt
 cmake-build-debug/
