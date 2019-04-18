@@ -58,7 +58,7 @@ struct DenseTensor {
 
 
     /* conversion function */
-    CooTensorManager toCoo();
+    CooTensorManager toCoo(float epsilon = 1e-4);
 
 
     /* compute functions */

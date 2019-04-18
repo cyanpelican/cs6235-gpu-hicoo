@@ -30,12 +30,16 @@ struct CooTensor {
     CooPoint* points_d;
     PointSorting sorting;
     unsigned long long numElements;
+    unsigned int width, height, depth;
 
     CooTensor() {
         points_h = nullptr;
         points_d = nullptr;
         sorting = UNSORTED;
         numElements = 0;
+        width = 0;
+        height = 0;
+        depth = 0;
     }
     ~CooTensor() {
         // handled by an owner
@@ -62,7 +66,7 @@ struct CooTensor {
         #endif
     }
 
-    void setSize(int numPoints) {
+    void setSize(int numPoints, int width, int height, int depth) {
         freeAllArrays();
         points_h = (CooPoint*)malloc(sizeof(CooPoint) * numPoints);
         this->numElements = numPoints;
@@ -74,7 +78,7 @@ struct CooTensor {
 
 
     /* conversion functions */
-    HicooTensorManager toHicoo();
+    HicooTensorManager toHicoo(int blockWidth = 2, int blockHeight = 2, int blockDepth = 2);
     DenseTensorManager toDense();
     CsfTensorManager   toCsf();
 

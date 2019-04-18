@@ -28,7 +28,8 @@ struct HicooTensor {
     PointSorting sorting;
     unsigned long long numPoints;
     unsigned long long numBlocks;
-    // TODO - other things like sizes
+    unsigned int width, height, depth;
+    unsigned int blockWidth, blockHeight, blockDepth;
 
     HicooTensor() {
         points_h = nullptr;
@@ -38,6 +39,13 @@ struct HicooTensor {
         sorting = UNSORTED;
         numPoints = 0;
         numBlocks = 0;
+
+        width = 0;
+        height = 0;
+        depth = 0;
+        blockWidth = 0;
+        blockHeight = 0;
+        blockDepth = 0;
     }
     ~HicooTensor() {
         // handled by an owner
@@ -73,12 +81,17 @@ struct HicooTensor {
         #endif
     }
 
+    // a safe function to get an element on either host or device; TODO - test
+    HicooPoint& access_pointInBlock(unsigned int blockIndex, unsigned long long pointIndex) {
+        return access_point(pointIndex + access_block(blockIndex).blockAddress);
+    }
+
 
     void setSize(unsigned int numBlocks, unsigned int numPoints) {
         freeAllArrays();
         points_h = (HicooPoint*)malloc(sizeof(HicooPoint) * numPoints);
-        blocks_h = (HicooBlock*)malloc(sizeof(HicooBlock) * numBlocks);
-        this->numBlocks = numPoints;
+        blocks_h = (HicooBlock*)malloc(sizeof(HicooBlock) * (numBlocks+1));
+        this->numBlocks = numBlocks;
         this->numPoints = numPoints;
     }
     

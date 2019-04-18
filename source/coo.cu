@@ -2,6 +2,7 @@
 #include <assert.h>
 #include "csf.hpp"
 #include "hicoo.hpp"
+#include <map>
 
 void CooTensor::freeAllArrays() {
     free(points_h);
@@ -25,14 +26,80 @@ void CooTensor::downloadToHost() {
 }
 
 
-HicooTensorManager CooTensor::toHicoo() {
+
+// for std::map / std::set insertion
+bool operator<(const HicooBlock& a, const HicooBlock& b) {
+    if(a.blockX < b.blockX) {
+        return true;
+    } else if(a.blockX > b.blockX) {
+        return false;
+    }
+    if(a.blockY < b.blockY) {
+        return true;
+    } else if(a.blockY > b.blockY) {
+        return false;
+    }
+    if(a.blockZ < b.blockZ) {
+        return true;
+    } else if(a.blockZ > b.blockZ) {
+        return false;
+    }
+
+    return false;
+}
+HicooTensorManager CooTensor::toHicoo(int blockWidth, int blockHeight, int blockDepth) {
     HicooTensorManager ret;
-    assert(0);
+    HicooTensor retTensor = ret;
+
+    // build an std::map of everything
+    std::map<HicooBlock, std::vector<HicooPoint>> hicooMap;
+    for(int i = 0; i < numElements; i++) {
+        CooPoint p = access(i);
+
+        HicooBlock block = {/*blockAddress =*/ 0,
+            /*blockX =*/ (p.x)/blockWidth, /*blockX =*/ (p.y)/blockHeight, /*blockX =*/ (p.z)/blockDepth,
+            /*UNUSED =*/ 0};
+
+        HicooPoint hp = {/*x =*/ (unsigned char)((p.x)%blockWidth), /*y =*/ (unsigned char)((p.y)%blockHeight), /*z =*/ (unsigned char)((p.z)%blockDepth),
+            /*UNUSED =*/ 0,
+            /*value =*/ p.value};
+
+        hicooMap[block].push_back(hp);
+    }
+
+    // TODO - put everything into
+    retTensor.setSize(hicooMap.size(), numElements);
+
+    unsigned int blockIndex = 0;
+    unsigned long long pointIndex = 0;
+    for(std::pair<HicooBlock, std::vector<HicooPoint>> pair : hicooMap) {
+        retTensor.blocks_h[blockIndex] = pair.first;
+        retTensor.blocks_h[blockIndex].blockAddress = pointIndex;
+        for(HicooPoint p : pair.second) {
+            retTensor.points_d[pointIndex++] = p;
+        }
+        blockIndex++;
+    }
+
+    // final element off the end of the list
+    retTensor.blocks_h[blockIndex].blockAddress = pointIndex;
+    retTensor.blocks_h[blockIndex].blockX = 0xFFFFFFFF;
+    retTensor.blocks_h[blockIndex].blockY = 0xFFFFFFFF;
+    retTensor.blocks_h[blockIndex].blockZ = 0xFFFFFFFF;
+    retTensor.blocks_h[blockIndex].UNUSED = 0xFFFFFFFF;
+
+
     return ret;
 }
 DenseTensorManager CooTensor::toDense() {
     DenseTensorManager ret;
-    assert(0);
+    ((DenseTensor)ret).setSize(width, height, depth);
+
+    for(int i = 0; i < numElements; i++) {
+        CooPoint p = access(i);
+        ((DenseTensor)ret).access(p.x, p.y, p.z) = p.value;
+    }
+
     return ret;
 }
 CsfTensorManager CooTensor::toCsf() {
@@ -113,6 +180,7 @@ void CooTensorManager::create(char *tensorFileName) {
     std::ifstream myfile(tensorFileName);
 
     //put all the points into a vector
+    int maxX = 0, maxY = 0, maxZ = 0;
     while (std::getline(myfile, line)) {
         ++nonZeroes;
         CooPoint currentPoint;
@@ -122,6 +190,10 @@ void CooTensorManager::create(char *tensorFileName) {
         currentPoint.z = (unsigned int) splitLine[2];
         currentPoint.value = (float) splitLine[3];
 
+        if(currentPoint.x > maxX) maxX = currentPoint.x;
+        if(currentPoint.y > maxY) maxY = currentPoint.y;
+        if(currentPoint.z > maxZ) maxZ = currentPoint.z;
+
         //This assumes there are 3 dimensions followed by one value
         matrixPoints.push_back(currentPoint);
     }
@@ -129,7 +201,7 @@ void CooTensorManager::create(char *tensorFileName) {
     matrixPoints.shrink_to_fit();
 
     //construct the COO object
-    tensor->tensor.setSize(nonZeroes);
+    tensor->tensor.setSize(nonZeroes, maxX, maxY, maxZ);
     memcpy(tensor->tensor.points_h, matrixPoints.data(), sizeof(CooPoint) * matrixPoints.size());
 }
 

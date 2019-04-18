@@ -48,9 +48,41 @@ void DenseMatrix::downloadToHost() {
 }
 
 
-CooTensorManager DenseTensor::toCoo() {
+CooTensorManager DenseTensor::toCoo(float epsilon) {
     CooTensorManager ret;
-    assert(0);
+    CooTensor tensor = ret;
+
+    // count NNZs
+    unsigned long long numNonzeros = 0;
+    for(int i = 0; i < depth; i++) {
+        for(int j = 0; j < height; j++) {
+            for(int k = 0; k < width; k++) {
+                if(abs(access(i, j, k)) < epsilon) {
+                    numNonzeros++;
+                }
+            }
+        }
+    }
+
+    tensor.setSize(numNonzeros, width, height, depth);
+    tensor.sorting = XYZ;
+
+    // convert
+    unsigned long long ptIdx = 0;
+    for(int i = 0; i < depth; i++) {
+        for(int j = 0; j < height; j++) {
+            for(int k = 0; k < width; k++) {
+                if(abs(access(i, j, k)) < epsilon) {
+                    tensor.access(ptIdx++).value = access(i, j, k);
+                    tensor.access(ptIdx++).x = k;
+                    tensor.access(ptIdx++).y = j;
+                    tensor.access(ptIdx++).z = i;
+                    ptIdx++;
+                }
+            }
+        }
+    }
+
     return ret;
 }
 
