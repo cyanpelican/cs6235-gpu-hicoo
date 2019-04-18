@@ -69,7 +69,7 @@ struct CooTensor {
     }
     
     unsigned long long getTotalMemory() {
-        return sizeof(CooPoint) * numPoints + sizeof(CooTensor);
+        return sizeof(CooPoint) * numElements + sizeof(CooTensor);
     }
 
 
