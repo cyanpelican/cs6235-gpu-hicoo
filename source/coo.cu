@@ -26,6 +26,27 @@ void CooTensor::downloadToHost() {
 }
 
 
+
+// for std::map / std::set insertion
+bool operator<(onst HicooBlock& a, const HicooBlock& b) {
+    if(a.blockX < b.blockX) {
+        return true;
+    } else if(a.blockX > b.blockX) {
+        return false;
+    }
+    if(a.blockY < b.blockY) {
+        return true;
+    } else if(a.blockY > b.blockY) {
+        return false;
+    }
+    if(a.blockZ < b.blockZ) {
+        return true;
+    } else if(a.blockZ > b.blockZ) {
+        return false;
+    }
+
+    return false;
+}
 HicooTensorManager CooTensor::toHicoo(int blockWidth, int blockHeight, int blockDepth) {
     HicooTensorManager ret;
     HicooTensor retTensor = ret;

@@ -16,8 +16,6 @@ struct HicooBlock {
     unsigned long long blockAddress;
     unsigned int blockX, blockY, blockZ;
     unsigned int UNUSED; // for packing
-
-    bool operator<(const HicooBlock& b); // for std::map / std::set insertion
 };
 
 class DenseMatrix;

@@ -2,25 +2,6 @@
 #include <assert.h>
 #include "coo.hpp"
 
-bool HicooBlock::operator<(const HicooBlock& b) {
-    if(blockX < b.blockX) {
-        return true;
-    } else if(blockX > b.blockX) {
-        return false;
-    }
-    if(blockY < b.blockY) {
-        return true;
-    } else if(blockY > b.blockY) {
-        return false;
-    }
-    if(blockZ < b.blockZ) {
-        return true;
-    } else if(blockZ > b.blockZ) {
-        return false;
-    }
-
-    return false;
-}
 
 void HicooTensor::freeAllArrays() {
     free(points_h);
