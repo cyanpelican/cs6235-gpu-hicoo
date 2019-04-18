@@ -28,7 +28,7 @@ void CooTensor::downloadToHost() {
 
 
 // for std::map / std::set insertion
-bool operator<(onst HicooBlock& a, const HicooBlock& b) {
+bool operator<(const HicooBlock& a, const HicooBlock& b) {
     if(a.blockX < b.blockX) {
         return true;
     } else if(a.blockX > b.blockX) {
@@ -180,6 +180,7 @@ void CooTensorManager::create(char *tensorFileName) {
     std::ifstream myfile(tensorFileName);
 
     //put all the points into a vector
+    int maxX = 0, maxY = 0, maxZ = 0;
     while (std::getline(myfile, line)) {
         ++nonZeroes;
         CooPoint currentPoint;
@@ -189,6 +190,10 @@ void CooTensorManager::create(char *tensorFileName) {
         currentPoint.z = (unsigned int) splitLine[2];
         currentPoint.value = (float) splitLine[3];
 
+        if(currentPoint.x > maxX) maxX = currentPoint.x;
+        if(currentPoint.y > maxY) maxY = currentPoint.y;
+        if(currentPoint.z > maxZ) maxZ = currentPoint.z;
+
         //This assumes there are 3 dimensions followed by one value
         matrixPoints.push_back(currentPoint);
     }
@@ -196,7 +201,7 @@ void CooTensorManager::create(char *tensorFileName) {
     matrixPoints.shrink_to_fit();
 
     //construct the COO object
-    tensor->tensor.setSize(nonZeroes);
+    tensor->tensor.setSize(nonZeroes, maxX, maxY, maxZ);
     memcpy(tensor->tensor.points_h, matrixPoints.data(), sizeof(CooPoint) * matrixPoints.size());
 }
 

@@ -66,7 +66,7 @@ struct CooTensor {
         #endif
     }
 
-    void setSize(int numPoints) {
+    void setSize(int numPoints, int width, int height, int depth) {
         freeAllArrays();
         points_h = (CooPoint*)malloc(sizeof(CooPoint) * numPoints);
         this->numElements = numPoints;
