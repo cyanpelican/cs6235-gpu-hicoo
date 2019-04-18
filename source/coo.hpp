@@ -66,6 +66,39 @@ struct CooTensor {
         #endif
     }
 
+    float access(int x, int y, int z) {
+        for (unsigned int i = 0; i < this->numElements; i++) {
+            if(access(i).x == x && access(i).y == y && access(i).z == z) {
+                #ifdef __CUDA_ARCH__
+                    return points_d[i].value;
+                #else
+                    return points_h[i].value;
+                #endif
+            }
+        }
+
+        //value not found: it's a 0
+        return 0.0;
+    }
+
+    float access_sorted(int x, int y, int z) {
+        for (unsigned int i = 0; i < this->numElements; i++) {
+            if (access(i).x == x && access(i).y == y && access(i).z == z) {
+                #ifdef __CUDA_ARCH__
+                    return points_d[i].value;
+                #else
+                    return points_h[i].value;
+                #endif
+            }
+            //or is it the z we should be checking...?
+            if (access(i).x > x)
+                break;
+        }
+
+        //value not found: it's a 0
+        return 0.0;
+    }
+
     void setSize(int numPoints, int width, int height, int depth) {
         freeAllArrays();
         points_h = (CooPoint*)malloc(sizeof(CooPoint) * numPoints);
