@@ -125,7 +125,6 @@ struct CooTensorManager {
     /* parsing, conversion & creation functions */
     // TODO
     void create(char *tensorFileName);
-    std::vector<double> split(const std::string *str, char delimiter);
 
 };
 
