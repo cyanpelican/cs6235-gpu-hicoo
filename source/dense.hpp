@@ -36,12 +36,12 @@ struct DenseTensor {
     void downloadToHost();
 
     // a safe function to get an element on either host or device; TODO - test
-    __device__ float& access(unsigned int i, unsigned int j, unsigned int k) {
-        return values_d[i*height*width + j*width + k];
-    }
-
-    __host__ float& access(unsigned int i, unsigned int j, unsigned int k) {
-        return values_h[i*height*width + j*width + k];
+    float& access(unsigned int i, unsigned int j, unsigned int k) {
+        #ifdef __CUDA_ARCH__
+            return values_d[i*height*width + j*width + k];
+        #else
+            return values_h[i*height*width + j*width + k];
+        #endif
     }
 
     void setSize(unsigned int width, unsigned int height, unsigned int depth) {
@@ -100,12 +100,12 @@ struct DenseMatrix {
     void downloadToHost();
 
     // a safe function to get an element on either host or device; TODO - test
-    __device__ float& access(unsigned int i, unsigned int j) {
-        return values_d[i*width + j];
-    }
-
-    __host__ float& access(unsigned int i, unsigned int j) {
-        return values_h[i*width + j];
+    float& access(unsigned int i, unsigned int j) {
+        #ifdef __CUDA_ARCH__
+            return values_d[i*width + j];
+        #else
+            return values_h[i*width + j];
+        #endif
     }
 
     void setSize(unsigned int width, unsigned int height) {

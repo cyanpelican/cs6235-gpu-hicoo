@@ -60,12 +60,12 @@ struct CsfTensor {
     }
 
     // // a safe function to get an element on either host or device; TODO
-    // __device__ float& access() {
-    //     return values_d[];
-    // }
-    //
-    // __host__ float& access() {
-    //     return values_h[];
+    // float& access() {
+    //     #ifdef __CUDA_ARCH__
+    //         return values_d[];
+    //     #else
+    //         return values_h[];
+    //     #endif
     // }
 
 
