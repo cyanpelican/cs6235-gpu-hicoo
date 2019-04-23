@@ -8,6 +8,7 @@
 #include <iostream>
 #include <vector>
 #include <sstream>
+#include <assert.h>
 
 struct CooPoint {
     unsigned int x, y, z;

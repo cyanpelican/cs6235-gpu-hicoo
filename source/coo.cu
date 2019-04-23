@@ -1,5 +1,4 @@
 #include "coo.hpp"
-#include <assert.h>
 #include "csf.hpp"
 #include "hicoo.hpp"
 #include <map>

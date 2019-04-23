@@ -1,5 +1,4 @@
 #include "dense.hpp"
-#include <assert.h>
 #include "coo.hpp"
 
 void DenseTensor::freeAllArrays() {

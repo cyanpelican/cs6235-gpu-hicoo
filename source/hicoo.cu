@@ -1,5 +1,4 @@
 #include "hicoo.hpp"
-#include <assert.h>
 #include "coo.hpp"
 
 

@@ -5,6 +5,7 @@
 #include "coo.hpp"
 #include "dense.hpp"
 #include <memory>
+#include <assert.h>
 
 struct HicooPoint {
     unsigned char x, y, z;

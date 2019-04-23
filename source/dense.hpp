@@ -3,6 +3,7 @@
 #define DENSE_HPP
 #include "common.hpp"
 #include <memory>
+#include <assert.h>
 
 class DenseMatrix;
 class DenseMatrixManager;
