@@ -174,20 +174,9 @@ DenseMatrixManager CooTensor::mttkrp_naive_cpu(DenseMatrix d, DenseMatrix c) {
     return ret;
 }
 
-//wrapper function for the sake of convenience
-DenseMatrixManager CooTensor::mttkrp_naive_gpu_wrapper(DenseMatrix d, DenseMatrix c) {
-    this->uploadToDevice();
 
-    DenseMatrixManager ret;
-
-    this->mttkrp_naive_gpu(this, d, c, ret)
-
-//    this->downloadToHost(); //but like, why?
-    return ret;
-}
-
-
-__global__ void CooTensor::mttkrp_naive_gpu(CooTensor cooTensor, DenseMatrix d, DenseMatrix c, DenseMatrixManager ret) {
+//Not declared as part of the class... Cuda doesn't like it's kernels as part of OOP
+__global__ void mttkrp_naive_gpu(CooTensor cooTensor, DenseMatrix d, DenseMatrix c, DenseMatrixManager ret) {
     assert(cooTensor.points_d != nullptr);
     //check for compatible dimensions
     assert(cooTensor.width == d.width);
@@ -215,11 +204,23 @@ __global__ void CooTensor::mttkrp_naive_gpu(CooTensor cooTensor, DenseMatrix d, 
     }
 
     __syncthreads();
-    return ret;
-
-    }
+    
+    // ret has already been written to. Now just return
 }
 
+
+//wrapper function for the sake of convenience
+DenseMatrixManager CooTensor::mttkrp_naive_gpu_wrapper(DenseMatrix d, DenseMatrix c) {
+    this->uploadToDevice();
+
+    DenseMatrixManager ret;
+
+    mttkrp_naive_gpu<<<ceil(this->numElements/d.height), d.height>>>(this, d, c, ret);
+    cudaDeviceSynchronize();
+
+//    this->downloadToHost(); //but like, why? The result is alread in ret. We might want to free though
+    return ret;
+}
 
 
 DenseMatrixManager CooTensor::mttkrp_fast(DenseMatrix d, DenseMatrix c) {
