@@ -183,8 +183,6 @@ __global__ void mttkrp_naive_gpu(CooTensor cooTensor, DenseMatrix d, DenseMatrix
     assert(cooTensor.width == d.width);
     assert(cooTensor.depth == c.width);
 
-    ret.setSize(d.height, cooTensor.height);
-
     if(blockDim.x * blockIdx.x + threadIdx.x < cooTensor.height * d.height) {
         //https://stackoverflow.com/a/29148148
         int index = blockDim.x * blockIdx.x + threadIdx.x;
@@ -214,6 +212,7 @@ DenseMatrixManager CooTensor::mttkrp_naive_gpu_wrapper(DenseMatrix d, DenseMatri
     this->uploadToDevice();
 
     DenseMatrixManager ret;
+    ret.tensor->tensor.setSize(d.height, this->height);
     ret.tensor->tensor.uploadToDevice();
     d.uploadToDevice();
     c.uploadToDevice();
