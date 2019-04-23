@@ -59,7 +59,7 @@ struct CooTensor {
     void downloadToHost();
 
     // a safe function to get an element on either host or device; TODO - test
-    CooPoint& access(unsigned int element) {
+    __host__ __device__ CooPoint& access(unsigned int element) {
         #ifdef __CUDA_ARCH__
             return points_d[element];
         #else
@@ -67,7 +67,7 @@ struct CooTensor {
         #endif
     }
 
-    float access(int x, int y, int z) {
+    __host__ __device__ float access(int x, int y, int z) {
         for (unsigned int i = 0; i < this->numElements; i++) {
             if(access(i).x == x && access(i).y == y && access(i).z == z) {
                 #ifdef __CUDA_ARCH__
@@ -82,7 +82,7 @@ struct CooTensor {
         return 0.0;
     }
 
-    float access_sorted(int x, int y, int z) {
+    __host__ __device__ float access_sorted(int x, int y, int z) {
         for (unsigned int i = 0; i < this->numElements; i++) {
             if (access(i).x == x && access(i).y == y && access(i).z == z) {
                 #ifdef __CUDA_ARCH__
