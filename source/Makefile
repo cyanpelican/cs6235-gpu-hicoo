@@ -6,8 +6,8 @@ all: HiCooExperiment main.o coo.o csf.o dense.o hicoo.o
 HiCooExperiment: main.o coo.o csf.o dense.o hicoo.o
 	nvcc $(CCFLAGS) -o HiCooExperiment main.o coo.o csf.o dense.o hicoo.o
 
-main.o: main.cpp
-	nvcc $(CCFLAGS) -c -o main.o main.cpp
+main.o: main.cu
+	nvcc $(CCFLAGS) -c -o main.o main.cu
 
 coo.o: coo.cu coo.hpp common.hpp dense.hpp csf.hpp hicoo.hpp
 	nvcc $(CCFLAGS) -c -o coo.o coo.cu
