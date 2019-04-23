@@ -111,6 +111,7 @@ CsfTensorManager CooTensor::toCsf() {
 
 DenseMatrixManager CooTensor::mttkrp_naive_cpu(DenseMatrix d, DenseMatrix c) {
     //order of dimensions goes height, width , depth
+    //todo: double check this. It might be x,y,z: width, height, depth
 
     assert(this->points_h != nullptr);
     //check for compatible dimensions
@@ -160,7 +161,7 @@ DenseMatrixManager CooTensor::mttkrp_naive_cpu(DenseMatrix d, DenseMatrix c) {
     for (unsigned int i = 0; i < this->height; i++) {
         for (unsigned int k = 0; k < this->width; k++) {
             for (unsigned int l = 0; l < this->depth; l++) {
-                for (unsigned int j = 0; j < ; j++) {
+                for (unsigned int j = 0; j < d.height; j++) {
                     ret.tensor->tensor.access(i,j) = ret.tensor->tensor.access(i,j) + this->access(i,k,l) * d.access(l,j) * c.access(k,j);
                 }
             }
