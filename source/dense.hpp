@@ -118,6 +118,7 @@ struct DenseMatrix {
 
     /* compute functions */
     // TODO
+    //  - have a create function, even an all 1's dense matrix will do
 };
 
 

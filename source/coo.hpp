@@ -1,13 +1,14 @@
 
 #ifndef COO_HPP
 #define COO_HPP
-#include "common.hpp"
-#include "dense.hpp"
+
 #include <memory>
 #include <fstream>
 #include <iostream>
 #include <vector>
 #include <sstream>
+#include "common.hpp"
+#include "dense.hpp"
 
 struct CooPoint {
     unsigned int x, y, z;
@@ -119,7 +120,9 @@ struct CooTensor {
     /* compute functions */
     // A(i,j) = B(i,k,l) * D(l,j) * C(k,j);
     DenseMatrixManager mttkrp_naive_cpu(DenseMatrix d, DenseMatrix c);
-    DenseMatrixManager mttkrp_naive_gpu(DenseMatrix d, DenseMatrix c);
+    DenseMatrixManager mttkrp_naive_gpu_wrapper(DenseMatrix d, DenseMatrix c);
+//    __global__ void mttkrp_naive_gpu(CooTensor cooTensor, DenseMatrix d, DenseMatrix c, DenseMatrixManager ret);
+    void mttkrp_naive_gpu(CooTensor cooTensor, DenseMatrix d, DenseMatrix c, DenseMatrixManager ret);
     DenseMatrixManager mttkrp_fast(DenseMatrix d, DenseMatrix c);
     // TODO
 };
