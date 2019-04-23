@@ -35,7 +35,7 @@ void DenseTensor::downloadToHost() {
     freeHostArrays();
     values_h = (float*)malloc(sizeof(float) * width*height*depth);
     assert(values_h != nullptr);
-    cudaErrorCheck(cudaMemcpy(values_d, values_h, sizeof(float) * width*height*depth, cudaMemcpyDeviceToHost));
+    cudaErrorCheck(cudaMemcpy(values_h, values_d, sizeof(float) * width*height*depth, cudaMemcpyDeviceToHost));
 }
 
 
@@ -73,7 +73,7 @@ void DenseMatrix::downloadToHost() {
     freeHostArrays();
     values_h = (float*)malloc(sizeof(float) * width*height);
     assert(values_h != nullptr);
-    cudaErrorCheck(cudaMemcpy(values_d, values_h, sizeof(float) * width*height, cudaMemcpyDeviceToHost));
+    cudaErrorCheck(cudaMemcpy(values_h, values_d, sizeof(float) * width*height, cudaMemcpyDeviceToHost));
 }
 
 
@@ -87,7 +87,7 @@ CooTensorManager DenseTensor::toCoo(float epsilon) {
     for(int i = 0; i < depth; i++) {
         for(int j = 0; j < height; j++) {
             for(int k = 0; k < width; k++) {
-                if(abs(access(k, j, i)) < epsilon) {
+                if(abs(access(k, j, i)) > epsilon) {
                     numNonzeros++;
                 }
             }
@@ -104,7 +104,7 @@ CooTensorManager DenseTensor::toCoo(float epsilon) {
     for(int i = 0; i < depth; i++) {
         for(int j = 0; j < height; j++) {
             for(int k = 0; k < width; k++) {
-                if(abs(access(k, j, i)) < epsilon) {
+                if(abs(access(k, j, i)) > epsilon) {
                     tensor.access(ptIdx).value = access(i, j, k);
                     tensor.access(ptIdx).x = k;
                     tensor.access(ptIdx).y = j;

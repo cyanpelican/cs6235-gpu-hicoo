@@ -172,7 +172,7 @@ struct CooTensorManager {
 
     /* parsing, conversion & creation functions */
     // TODO
-    void create(const char *tensorFileName);
+    void create(char *tensorFileName);
 
 };
 
