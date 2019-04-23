@@ -10,6 +10,14 @@
 #include "common.hpp"
 #include "dense.hpp"
 
+#ifdef __JETBRAINS_IDE__
+#define __host__
+#define __device__
+#define __shared__
+#define __constant__
+#define __global__
+#endif // __JETBRAINS_IDE__
+
 struct CooPoint {
     unsigned int x, y, z;
     unsigned int UNUSED; // for packing
@@ -58,23 +66,19 @@ struct CooTensor {
     // safely downloads from gpu
     void downloadToHost();
 
-    // a safe function to get an element on either host or device; TODO - test
-    CooPoint& access(unsigned int element) {
-        #ifdef __CUDA_ARCH__
-            return points_d[element];
-        #else
-            return points_h[element];
-        #endif
+    // Overloaded function to get an element on either the host or the device
+    __device__ CooPoint& access(unsigned int element) {
+        return points_d[element];
     }
 
-    float access(int x, int y, int z) {
+    __host__ CooPoint& access(unsigned int element) {
+            return points_h[element];
+    }
+
+    __device__ float access(int x, int y, int z) {
         for (unsigned int i = 0; i < this->numElements; i++) {
             if(access(i).x == x && access(i).y == y && access(i).z == z) {
-                #ifdef __CUDA_ARCH__
                     return points_d[i].value;
-                #else
-                    return points_h[i].value;
-                #endif
             }
         }
 
@@ -82,14 +86,35 @@ struct CooTensor {
         return 0.0;
     }
 
-    float access_sorted(int x, int y, int z) {
+    __host__ float access(int x, int y, int z) {
+        for (unsigned int i = 0; i < this->numElements; i++) {
+            if(access(i).x == x && access(i).y == y && access(i).z == z) {
+                return points_h[i].value;
+            }
+        }
+
+        //value not found: it's a 0
+        return 0.0;
+    }
+
+    __device__ float access_sorted(int x, int y, int z) {
         for (unsigned int i = 0; i < this->numElements; i++) {
             if (access(i).x == x && access(i).y == y && access(i).z == z) {
-                #ifdef __CUDA_ARCH__
                     return points_d[i].value;
-                #else
-                    return points_h[i].value;
-                #endif
+            }
+            //or is it the z we should be checking...?
+            if (access(i).x > x)
+                break;
+        }
+
+        //value not found: it's a 0
+        return 0.0;
+    }
+
+    __host__ float access_sorted(int x, int y, int z) {
+        for (unsigned int i = 0; i < this->numElements; i++) {
+            if (access(i).x == x && access(i).y == y && access(i).z == z) {
+                return points_h[i].value;
             }
             //or is it the z we should be checking...?
             if (access(i).x > x)
