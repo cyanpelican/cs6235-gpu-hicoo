@@ -1,5 +1,6 @@
 #include <assert.h>
 #include <map>
+#include <math.h>
 #include "coo.hpp"
 #include "csf.hpp"
 #include "hicoo.hpp"
@@ -217,7 +218,7 @@ DenseMatrixManager CooTensor::mttkrp_naive_gpu_wrapper(DenseMatrix d, DenseMatri
     d.uploadToDevice();
     c.uploadToDevice();
 
-    mttkrp_naive_gpu<<<ceil(this->numElements/d.height), d.height>>>(&this, d, c, ret.tensor->tensor);
+    mttkrp_naive_gpu<<<ceil(this->numElements/d.height), d.height>>>(*this, d, c, ret.tensor->tensor);
     cudaDeviceSynchronize();
 
     ret.tensor->tensor.downloadToHost();
