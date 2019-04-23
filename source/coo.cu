@@ -176,13 +176,13 @@ DenseMatrixManager CooTensor::mttkrp_naive_cpu(DenseMatrix d, DenseMatrix c) {
 
 
 //Not declared as part of the class... Cuda doesn't like it's kernels as part of OOP
-__global__ void mttkrp_naive_gpu(CooTensor cooTensor, DenseMatrix d, DenseMatrix c, DenseMatrixManager ret) {
+__global__ void mttkrp_naive_gpu(CooTensor cooTensor, DenseMatrix d, DenseMatrix c, DenseMatrix ret) {
     assert(cooTensor.points_d != nullptr);
     //check for compatible dimensions
     assert(cooTensor.width == d.width);
     assert(cooTensor.depth == c.width);
 
-    ret.tensor->tensor.setSize(d.height, cooTensor.height);
+    ret.setSize(d.height, cooTensor.height);
 
     if(blockDim.x * blockIdx.x + threadIdx.x < cooTensor.height * d.height) {
         //https://stackoverflow.com/a/29148148
@@ -196,8 +196,7 @@ __global__ void mttkrp_naive_gpu(CooTensor cooTensor, DenseMatrix d, DenseMatrix
         for (unsigned int k = 0; k < cooTensor.width; k++) {
             for (unsigned int l = 0; l < cooTensor.depth; l++) {
                 //access will differentiate between host and device on its own
-                ret.tensor->tensor.access(i, j) = ret.tensor->tensor.access(i, j) +
-                                                  cooTensor.access(i, k, l) * d.access(l, j) * c.access(k, j);
+                ret.access(i, j) = ret.access(i, j) + cooTensor.access(i, k, l) * d.access(l, j) * c.access(k, j);
             }
         }
 
@@ -214,11 +213,17 @@ DenseMatrixManager CooTensor::mttkrp_naive_gpu_wrapper(DenseMatrix d, DenseMatri
     this->uploadToDevice();
 
     DenseMatrixManager ret;
+    ret.tensor->tensor.uploadToDevice();
+    d.uploadToDevice();
+    c.uploadToDevice();
 
-    mttkrp_naive_gpu<<<ceil(this->numElements/d.height), d.height>>>(this, d, c, ret);
+    mttkrp_naive_gpu<<<ceil(this->numElements/d.height), d.height>>>(&this, d, c, ret.tensor->tensor);
     cudaDeviceSynchronize();
 
-//    this->downloadToHost(); //but like, why? The result is alread in ret. We might want to free though
+    ret.tensor->tensor.downloadToHost();
+    //todo: free the mem on the gpu?
+
+//    this->downloadToHost(); //but like, why? The result is already in ret.
     return ret;
 }
 
