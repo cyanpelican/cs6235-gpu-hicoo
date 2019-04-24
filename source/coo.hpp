@@ -1,13 +1,14 @@
 
 #ifndef COO_HPP
 #define COO_HPP
-#include "common.hpp"
-#include "dense.hpp"
+
 #include <memory>
 #include <fstream>
 #include <iostream>
 #include <vector>
 #include <sstream>
+#include "common.hpp"
+#include "dense.hpp"
 
 struct CooPoint {
     unsigned int x, y, z;
@@ -58,7 +59,7 @@ struct CooTensor {
     void downloadToHost();
 
     // a safe function to get an element on either host or device; TODO - test
-    CooPoint& access(unsigned int element) {
+    __host__ __device__ CooPoint& access(unsigned int element) {
         #ifdef __CUDA_ARCH__
             return points_d[element];
         #else
@@ -66,7 +67,7 @@ struct CooTensor {
         #endif
     }
 
-    float access(int x, int y, int z) {
+    __host__ __device__ float access(int x, int y, int z) {
         for (unsigned int i = 0; i < this->numElements; i++) {
             if(access(i).x == x && access(i).y == y && access(i).z == z) {
                 #ifdef __CUDA_ARCH__
@@ -81,7 +82,7 @@ struct CooTensor {
         return 0.0;
     }
 
-    float access_sorted(int x, int y, int z) {
+    __host__ __device__ float access_sorted(int x, int y, int z) {
         for (unsigned int i = 0; i < this->numElements; i++) {
             if (access(i).x == x && access(i).y == y && access(i).z == z) {
                 #ifdef __CUDA_ARCH__
@@ -119,7 +120,7 @@ struct CooTensor {
     /* compute functions */
     // A(i,j) = B(i,k,l) * D(l,j) * C(k,j);
     DenseMatrixManager mttkrp_naive_cpu(DenseMatrix d, DenseMatrix c);
-    DenseMatrixManager mttkrp_naive_gpu(DenseMatrix d, DenseMatrix c);
+    DenseMatrixManager mttkrp_naive_gpu_wrapper(DenseMatrix d, DenseMatrix c);
     DenseMatrixManager mttkrp_fast(DenseMatrix d, DenseMatrix c);
     // TODO
 };

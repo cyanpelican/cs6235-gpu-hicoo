@@ -1,8 +1,10 @@
-#include "coo.hpp"
 #include <assert.h>
+#include <map>
+#include <math.h>
+#include "coo.hpp"
 #include "csf.hpp"
 #include "hicoo.hpp"
-#include <map>
+
 
 void CooTensor::freeAllArrays() {
     free(points_h);
@@ -19,6 +21,8 @@ void CooTensor::uploadToDevice() {
     cudaErrorCheck(cudaMemcpy(points_d, points_h, sizeof(CooPoint) * numElements, cudaMemcpyHostToDevice));
 }
 
+// todo: is this ever necessary? The contents of the tensor are never changed. We should probably just free the device
+//  memory
 void CooTensor::downloadToHost() {
     free(points_h);
     points_h = (CooPoint*)malloc(sizeof(CooPoint) * numElements);
@@ -111,6 +115,7 @@ CsfTensorManager CooTensor::toCsf() {
 
 DenseMatrixManager CooTensor::mttkrp_naive_cpu(DenseMatrix d, DenseMatrix c) {
     //order of dimensions goes height, width , depth
+    //todo: double check this. It might be x,y,z: width, height, depth
 
     assert(this->points_h != nullptr);
     //check for compatible dimensions
@@ -160,7 +165,7 @@ DenseMatrixManager CooTensor::mttkrp_naive_cpu(DenseMatrix d, DenseMatrix c) {
     for (unsigned int i = 0; i < this->height; i++) {
         for (unsigned int k = 0; k < this->width; k++) {
             for (unsigned int l = 0; l < this->depth; l++) {
-                for (unsigned int j = 0; j < 0 /* TODO - this was completely blank and causing compile issues */; j++) {
+                for (unsigned int j = 0; j < d.height; j++) {
                     ret.tensor->tensor.access(i,j) = ret.tensor->tensor.access(i,j) + this->access(i,k,l) * d.access(l,j) * c.access(k,j);
                 }
             }
@@ -170,17 +175,58 @@ DenseMatrixManager CooTensor::mttkrp_naive_cpu(DenseMatrix d, DenseMatrix c) {
     return ret;
 }
 
-DenseMatrixManager CooTensor::mttkrp_naive_gpu(DenseMatrix d, DenseMatrix c) {
+
+//Not declared as part of the class... Cuda doesn't like it's kernels as part of OOP
+__global__ void mttkrp_naive_gpu(CooTensor cooTensor, DenseMatrix d, DenseMatrix c, DenseMatrix ret) {
+    assert(cooTensor.points_d != nullptr);
+    //check for compatible dimensions
+    assert(cooTensor.width == d.width);
+    assert(cooTensor.depth == c.width);
+
+    if(blockDim.x * blockIdx.x + threadIdx.x < cooTensor.height * d.height) {
+        //https://stackoverflow.com/a/29148148
+        int index = blockDim.x * blockIdx.x + threadIdx.x;
+
+        unsigned int i = index % cooTensor.height;
+        unsigned int j = ((index - i) / cooTensor.height) % d.height;
+
+
+        // We parallelize the 'i' and 'j' loops
+        for (unsigned int k = 0; k < cooTensor.width; k++) {
+            for (unsigned int l = 0; l < cooTensor.depth; l++) {
+                //access will differentiate between host and device on its own
+                ret.access(i, j) = ret.access(i, j) + cooTensor.access(i, k, l) * d.access(l, j) * c.access(k, j);
+            }
+        }
+
+    }
+
+    __syncthreads();
+    
+    // ret has already been written to. Now just return
+}
+
+
+//wrapper function for the sake of convenience
+DenseMatrixManager CooTensor::mttkrp_naive_gpu_wrapper(DenseMatrix d, DenseMatrix c) {
+    this->uploadToDevice();
+
     DenseMatrixManager ret;
-    assert(points_d != nullptr);
+    ret.tensor->tensor.setSize(d.height, this->height);
+    ret.tensor->tensor.uploadToDevice();
+    d.uploadToDevice();
+    c.uploadToDevice();
 
-    // TODO
-    assert(0);
+    mttkrp_naive_gpu<<<ceil(this->numElements/d.height), d.height>>>(*this, d, c, ret.tensor->tensor);
+    cudaDeviceSynchronize();
 
-    // A(i,j) = B(i,k,l) * D(l,j) * C(k,j);
+    ret.tensor->tensor.downloadToHost();
+    //todo: free the mem on the gpu?
 
+//    this->downloadToHost(); //but like, why? The result is already in ret.
     return ret;
 }
+
 
 DenseMatrixManager CooTensor::mttkrp_fast(DenseMatrix d, DenseMatrix c) {
     DenseMatrixManager ret;

@@ -64,7 +64,7 @@ struct HicooTensor {
     void downloadToHost();
 
     // a safe function to get a block on either host or device; TODO - test
-    HicooBlock& access_block(unsigned int blockIndex) {
+    __host__ __device__ HicooBlock& access_block(unsigned int blockIndex) {
         #ifdef __CUDA_ARCH__
             return blocks_d[blockIndex];
         #else
@@ -73,7 +73,7 @@ struct HicooTensor {
     }
 
     // a safe function to get an element on either host or device; TODO - test
-    HicooPoint& access_point(unsigned long long pointIndex) {
+    __host__ __device__ HicooPoint& access_point(unsigned long long pointIndex) {
         #ifdef __CUDA_ARCH__
             return points_d[pointIndex];
         #else
