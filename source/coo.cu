@@ -80,7 +80,7 @@ HicooTensorManager CooTensor::toHicoo(int blockWidth, int blockHeight, int block
         retTensor.blocks_h[blockIndex] = pair.first;
         retTensor.blocks_h[blockIndex].blockAddress = pointIndex;
         for(HicooPoint p : pair.second) {
-            retTensor.points_d[pointIndex++] = p;
+            retTensor.points_h[pointIndex++] = p;
         }
         blockIndex++;
     }
@@ -249,13 +249,17 @@ void CooTensorManager::create(char *tensorFileName) {
     //put all the points into a vector
     int maxX = 0, maxY = 0, maxZ = 0;
     while (std::getline(myfile, line)) {
+        if(line.length() < 4 || line[0] == '#') {
+            // uselessly-short line or comment
+            continue;
+        }
         ++nonZeroes;
         CooPoint currentPoint;
-        std::vector<double> splitLine = split(&line, ' ');
-        currentPoint.x = (unsigned int) splitLine[0];
-        currentPoint.y = (unsigned int) splitLine[1];
-        currentPoint.z = (unsigned int) splitLine[2];
-        currentPoint.value = (float) splitLine[3];
+        std::stringstream ss(line); // Turn the string into a stream.
+        ss >> currentPoint.x;
+        ss >> currentPoint.y;
+        ss >> currentPoint.z;
+        ss >> currentPoint.value;
 
         if(currentPoint.x > maxX) maxX = currentPoint.x;
         if(currentPoint.y > maxY) maxY = currentPoint.y;
@@ -270,17 +274,4 @@ void CooTensorManager::create(char *tensorFileName) {
     //construct the COO object
     tensor->tensor.setSize(nonZeroes, maxX, maxY, maxZ);
     memcpy(tensor->tensor.points_h, matrixPoints.data(), sizeof(CooPoint) * matrixPoints.size());
-}
-
-std::vector<double> CooTensorManager::split(const std::string *str, char delimiter) {
-    std::vector<double> internal;
-    std::stringstream ss(*str); // Turn the string into a stream.
-
-    std::string tok;
-
-    while(getline(ss, tok, delimiter)) {
-        internal.push_back(stod(tok));
-    }
-
-    return internal;
 }
