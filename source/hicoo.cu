@@ -1,45 +1,64 @@
 #include "hicoo.hpp"
-#include <assert.h>
 #include "coo.hpp"
 
 
 void HicooTensor::freeAllArrays() {
+    DEBUG_PRINT("HT: free all arrays\n");
+    freeHostArrays();
+    freeDeviceArrays();
+}
+void HicooTensor::freeHostArrays() {
+    DEBUG_PRINT("HT: free host arrays\n");
+    DEBUG_PRINT("    - points_h = %p\n", points_h);
+    DEBUG_PRINT("    - blocks_h = %p\n", blocks_h);
     free(points_h);
     free(blocks_h);
+    points_h = nullptr;
+    blocks_h = nullptr;
+}
+void HicooTensor::freeDeviceArrays() {
+    DEBUG_PRINT("HT: free device arrays\n");
+    DEBUG_PRINT("    - points_d = %p\n", points_d);
+    DEBUG_PRINT("    - blocks_d = %p\n", blocks_d);
     if(points_d != nullptr) // Because the docs lie: "If devPtr is 0, no operation is performed."
         cudaErrorCheck(cudaFree(points_d));
     if(blocks_d != nullptr) // Because the docs lie: "If devPtr is 0, no operation is performed."
         cudaErrorCheck(cudaFree(blocks_d));
-    points_h = nullptr;
-    blocks_h = nullptr;
     points_d = nullptr;
     blocks_d = nullptr;
 }
 
 void HicooTensor::uploadToDevice() {
-    if(points_d != nullptr) // Because the docs lie: "If devPtr is 0, no operation is performed."
-        cudaErrorCheck(cudaFree(points_d));
+    DEBUG_PRINT("HT: upload to device\n");
+    freeDeviceArrays();
+
     cudaErrorCheck(cudaMalloc((void **) &points_d, sizeof(HicooPoint) * numPoints));
+    assert(points_d != nullptr);
     cudaErrorCheck(cudaMemcpy(points_d, points_h, sizeof(HicooPoint) * numPoints, cudaMemcpyHostToDevice));
-    if(blocks_d != nullptr) // Because the docs lie: "If devPtr is 0, no operation is performed."
-        cudaErrorCheck(cudaFree(blocks_d));
+
     cudaErrorCheck(cudaMalloc((void **) &blocks_d, sizeof(HicooBlock) * (numBlocks+1)));
+    assert(blocks_d != nullptr);
     cudaErrorCheck(cudaMemcpy(blocks_d, blocks_h, sizeof(HicooBlock) * (numBlocks+1), cudaMemcpyHostToDevice));
 }
 
 void HicooTensor::downloadToHost() {
-    free(points_h);
+    DEBUG_PRINT("HT: download to host\n");
+    freeHostArrays();
+
     points_h = (HicooPoint*)malloc(sizeof(HicooPoint) * numPoints);
+    assert(points_h != nullptr);
     cudaErrorCheck(cudaMemcpy(points_h, points_d, sizeof(HicooPoint) * numPoints, cudaMemcpyDeviceToHost));
-    free(blocks_h);
+
     blocks_h = (HicooBlock*)malloc(sizeof(HicooBlock) * (numBlocks+1));
+    assert(blocks_h != nullptr);
     cudaErrorCheck(cudaMemcpy(blocks_h, blocks_d, sizeof(HicooBlock) * (numBlocks+1), cudaMemcpyDeviceToHost));
 }
 
 
 CooTensorManager HicooTensor::toCoo() {
+    DEBUG_PRINT("HT: to coo\n");
     CooTensorManager ret;
-    assert(0);
+    assert(0); // TODO
     return ret;
 }
 

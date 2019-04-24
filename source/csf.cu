@@ -1,3 +1,5 @@
+// Deprecated
+
 #include "csf.hpp"
 #include <assert.h>
 #include "coo.hpp"

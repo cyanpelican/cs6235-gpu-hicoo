@@ -5,6 +5,7 @@
 #include "coo.hpp"
 #include "dense.hpp"
 #include <memory>
+#include <assert.h>
 
 struct HicooPoint {
     unsigned char x, y, z;
@@ -32,6 +33,7 @@ struct HicooTensor {
     unsigned int blockWidth, blockHeight, blockDepth;
 
     HicooTensor() {
+        DEBUG_PRINT("HT: constructor\n");
         points_h = nullptr;
         points_d = nullptr;
         blocks_h = nullptr;
@@ -56,6 +58,8 @@ struct HicooTensor {
 
     // dangerous; deletes everything
     void freeAllArrays();
+    void freeHostArrays();
+    void freeDeviceArrays();
 
     // safely uploads to gpu
     void uploadToDevice();
@@ -64,7 +68,7 @@ struct HicooTensor {
     void downloadToHost();
 
     // a safe function to get a block on either host or device; TODO - test
-    __host__ __device__ HicooBlock& access_block(unsigned int blockIndex) {
+    HicooBlock& __host__ __device__ access_block(unsigned int blockIndex) {
         #ifdef __CUDA_ARCH__
             return blocks_d[blockIndex];
         #else
@@ -73,7 +77,7 @@ struct HicooTensor {
     }
 
     // a safe function to get an element on either host or device; TODO - test
-    __host__ __device__ HicooPoint& access_point(unsigned long long pointIndex) {
+    HicooPoint& __host__ __device__ access_point(unsigned long long pointIndex) {
         #ifdef __CUDA_ARCH__
             return points_d[pointIndex];
         #else
@@ -82,21 +86,32 @@ struct HicooTensor {
     }
 
     // a safe function to get an element on either host or device; TODO - test
-    HicooPoint& access_pointInBlock(unsigned int blockIndex, unsigned long long pointIndex) {
+    HicooPoint& __host__ __device__ access_pointInBlock(unsigned int blockIndex, unsigned long long pointIndex) {
         return access_point(pointIndex + access_block(blockIndex).blockAddress);
     }
 
 
-    void setSize(unsigned int numBlocks, unsigned int numPoints) {
+    void setSize(unsigned int numBlocks, unsigned int numPoints, unsigned int width, unsigned int height, unsigned int depth, unsigned int blockWidth, unsigned int blockHeight, unsigned int blockDepth) {
+        DEBUG_PRINT("HT: set size (nb %d, np %d, w %d, h %d, d %d, bw %d, bh %d, bd %d)\n", numBlocks, numPoints, width, height, depth, blockWidth, blockHeight, blockDepth);
         freeAllArrays();
         points_h = (HicooPoint*)malloc(sizeof(HicooPoint) * numPoints);
         blocks_h = (HicooBlock*)malloc(sizeof(HicooBlock) * (numBlocks+1));
+        assert(points_h != nullptr);
+        assert(blocks_h != nullptr);
         this->numBlocks = numBlocks;
         this->numPoints = numPoints;
+
+        this->width = width;
+        this->height = height;
+        this->depth = depth;
+        this->blockWidth = blockWidth;
+        this->blockHeight = blockHeight;
+        this->blockDepth = blockDepth;
     }
-    
+
     unsigned long long getTotalMemory() {
-        return sizeof(HicooPoint) * numPoints + sizeof(HicooBlock) * numBlocks + sizeof(HicooTensor);
+        DEBUG_PRINT("HT: get total memory\n");
+        return sizeof(HicooPoint) * numPoints + sizeof(HicooBlock) * (numBlocks+1) + sizeof(HicooTensor);
     }
 
 
@@ -122,24 +137,29 @@ struct HicooTensorUnique {
         // nothing exciting to do
     }
     ~HicooTensorUnique() {
+        DEBUG_PRINT("HTU: auto-free from unique destructor\n");
         tensor.freeAllArrays();
     }
 };
 
 // NOTE - build these, not HicooTensors; this does memory management
 // However, when performing compute, just pass HicooTensors, since they're lighter.
-// The operator() is overloaded, so it's possible to also use/pass these as if they're HicooTensors
+// The cast operator is overloaded, so it's possible to also use/pass these as if they're HicooTensors
+// MAKE SURE that when you cast it, you:
+//  - keep it as a HicooTensor& [don't forget the ampersand] if you're going to modify any properties or alloc/free pointers
+//  - pass it as a HicooTensor  [no ampersand] when passing to the GPU
 struct HicooTensorManager {
     std::shared_ptr<HicooTensorUnique> tensor;
 
     HicooTensorManager():
       tensor(new HicooTensorUnique())
     {
+        DEBUG_PRINT("HTM: constructor\n");
     }
 
     /* utility functions */
 
-    operator HicooTensor() {
+    operator HicooTensor&() {
         return tensor->tensor;
     }
 
