@@ -178,12 +178,12 @@ DenseMatrixManager CooTensor::mttkrp_naive_cpu(DenseMatrix d, DenseMatrix c) {
     int index = blockDim.x * blockIdx.x + threadIdx.x;
     CooPoint point = this->access(index);
     int i = point.x;
-    int j = point.y;
+    int l = point.y;
     int k = point.z;
 
     for (int j = 0; j < J; j++) {
-        float val = this->access(thread_index) * c.access(k,j) * d.access(l, j);
-        atomicAdd(*ret.access(j, i), val);
+        float val = this->access(thread_index).value * c.access(k,j) * d.access(l, j);
+        ret.tensor->tensor.access(j, i) += val;
     }
 
 //    for (unsigned int i = 0; i < this->height; i++) {
@@ -242,22 +242,22 @@ __global__ void mttkrp_naive_gpu(CooTensor cooTensor, DenseMatrix d, DenseMatrix
 
     // A(i,j) = B(i,k,l) * D(l,j) * C(k,j);
     int I = cooTensor.depth, J = d.width, K = cooTensor.height, L = cooTensor.width;
-    int thread_index = blockDim.x * blockIdx.x + threadIdx.x
+    int thread_index = blockDim.x * blockIdx.x + threadIdx.x;
 //    DEBUG_PRINT("    - I = %d, J = %d, K = %d, L = %d\n", I, J, K, L);
 //    assert(d.height == L);
 //    assert(c.height == K);
 //    assert(c.width  == J);
 
     //for each non-zero
-    int index = blockDim.x * blockIdx.x + threadIdx.x;
+    unsigned int index = blockDim.x * blockIdx.x + threadIdx.x;
     CooPoint point = cooTensor.access(index);
     int i = point.x;
-    int j = point.y;
+    int l = point.y;
     int k = point.z;
 
     for (int j = 0; j < J; j++) {
-        float val = cooTensor.access(thread_index) * c.access(k,j) * d.access(l, j);
-        atomicAdd(*ret.access(j, i), val);
+        float val = cooTensor.access(thread_index).value * c.access(k,j) * d.access(l, j);
+        atomicAdd(&ret.access(j, i), val);
     }
 
 //    __syncthreads();
@@ -275,10 +275,10 @@ DenseMatrixManager CooTensor::mttkrp_naive_gpu_wrapper(DenseMatrix d, DenseMatri
     d.uploadToDevice();
     c.uploadToDevice();
 
-    assert(cooTensor.points_d != nullptr);
+    assert(this->points_d != nullptr);
     //check for compatible dimensions
-    assert(cooTensor.width == d.width);
-    assert(cooTensor.depth == c.width);
+    assert(this->width == d.width);
+    assert(this->depth == c.width);
 
     //todo: split up the blocks & blocks per threads appropriately
     mttkrp_naive_gpu<<<ceil(this->numElements/64.0), 64>>>(*this, d, c, ret.tensor->tensor);
