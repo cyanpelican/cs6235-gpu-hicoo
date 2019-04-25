@@ -20,5 +20,6 @@ ulimit -c unlimited -s
 #date                                    | tee -a perf.log
 
 
-echo "TODO - actually run stuff"
+./HiCooExperiment "test.dataset"
+
 #echo                                    | tee -a perf.log
