@@ -1,4 +1,3 @@
-#include <assert.h>
 #include <map>
 #include <math.h>
 #include "coo.hpp"
@@ -7,25 +6,40 @@
 
 
 void CooTensor::freeAllArrays() {
+    DEBUG_PRINT("CT: freeing all arrays\n");
+    freeHostArrays();
+    freeDeviceArrays();
+}
+void CooTensor::freeHostArrays() {
+    DEBUG_PRINT("CT: freeing host arrays\n");
+    DEBUG_PRINT("    - points_h = %p\n", points_h);
     free(points_h);
+    points_h = nullptr;
+}
+void CooTensor::freeDeviceArrays() {
+    DEBUG_PRINT("CT: freeing device arrays\n");
+    DEBUG_PRINT("    - points_d = %p\n", points_d);
     if(points_d != nullptr) // Because the docs lie: "If devPtr is 0, no operation is performed."
         cudaErrorCheck(cudaFree(points_d));
-    points_h = nullptr;
     points_d = nullptr;
 }
 
 void CooTensor::uploadToDevice() {
-    if(points_d != nullptr) // Because the docs lie: "If devPtr is 0, no operation is performed."
-        cudaErrorCheck(cudaFree(points_d));
+    DEBUG_PRINT("CT: uploading to device\n");
+    freeDeviceArrays();
+    assert(numElements != 0);
     cudaErrorCheck(cudaMalloc((void **) &points_d, sizeof(CooPoint) * numElements));
+    assert(points_d != nullptr);
     cudaErrorCheck(cudaMemcpy(points_d, points_h, sizeof(CooPoint) * numElements, cudaMemcpyHostToDevice));
 }
 
 // todo: is this ever necessary? The contents of the tensor are never changed. We should probably just free the device
 //  memory
 void CooTensor::downloadToHost() {
-    free(points_h);
+    DEBUG_PRINT("CT: downloading to host\n");
+    freeHostArrays();
     points_h = (CooPoint*)malloc(sizeof(CooPoint) * numElements);
+    assert(points_h != nullptr);
     cudaErrorCheck(cudaMemcpy(points_h, points_d, sizeof(CooPoint) * numElements, cudaMemcpyDeviceToHost));
 }
 
@@ -51,11 +65,13 @@ bool operator<(const HicooBlock& a, const HicooBlock& b) {
 
     return false;
 }
-HicooTensorManager CooTensor::toHicoo(int blockWidth, int blockHeight, int blockDepth) {
+HicooTensorManager CooTensor::toHicoo(int blockDepth, int blockHeight, int blockWidth) {
+    DEBUG_PRINT("CT: to hicoo (bd %d, bh %d, bw %d)\n", blockDepth, blockHeight, blockWidth);
     HicooTensorManager ret;
-    HicooTensor retTensor = ret;
+    HicooTensor& retTensor = ret;
 
     // build an std::map of everything
+    DEBUG_PRINT("    - building map\n");
     std::map<HicooBlock, std::vector<HicooPoint>> hicooMap;
     for(int i = 0; i < numElements; i++) {
         CooPoint p = access(i);
@@ -71,11 +87,13 @@ HicooTensorManager CooTensor::toHicoo(int blockWidth, int blockHeight, int block
         hicooMap[block].push_back(hp);
     }
 
-    // TODO - put everything into
-    retTensor.setSize(hicooMap.size(), numElements);
+    // put everything into the tensor
+    DEBUG_PRINT("    - realloc ret tensor\n");
+    retTensor.setSize(hicooMap.size(), numElements, depth, height, width, blockDepth, blockHeight, blockWidth);
 
     unsigned int blockIndex = 0;
     unsigned long long pointIndex = 0;
+    DEBUG_PRINT("    - insert to ret tensor\n");
     for(std::pair<HicooBlock, std::vector<HicooPoint>> pair : hicooMap) {
         retTensor.blocks_h[blockIndex] = pair.first;
         retTensor.blocks_h[blockIndex].blockAddress = pointIndex;
@@ -96,17 +114,22 @@ HicooTensorManager CooTensor::toHicoo(int blockWidth, int blockHeight, int block
     return ret;
 }
 DenseTensorManager CooTensor::toDense() {
+    DEBUG_PRINT("CT: to dense\n");
+    DEBUG_PRINT("    - realloc\n");
     DenseTensorManager ret;
-    ((DenseTensor)ret).setSize(width, height, depth);
+    DenseTensor& retTensor = ret;
+    retTensor.setSize(depth, height, width);
 
+    DEBUG_PRINT("    - insertion\n");
     for(int i = 0; i < numElements; i++) {
         CooPoint p = access(i);
-        ((DenseTensor)ret).access(p.x, p.y, p.z) = p.value;
+        retTensor.access(p.x, p.y, p.z) = p.value;
     }
 
     return ret;
 }
 CsfTensorManager CooTensor::toCsf() {
+    DEBUG_PRINT("CT: to csf\n");
     CsfTensorManager ret;
     assert(0);
     return ret;
@@ -277,14 +300,18 @@ DenseMatrixManager CooTensor::mttkrp_fast(DenseMatrix d, DenseMatrix c) {
     return ret;
 }
 
-void CooTensorManager::create(char *tensorFileName) {
-    std::vector<CooPoint> matrixPoints;
+void CooTensorManager::create(const char *tensorFileName) {
+    DEBUG_PRINT("CT: parsing file %s\n", tensorFileName);
+    DEBUG_PRINT("    - file validations, etc\n");
+    std::vector<CooPoint> tensorPoints;
 
     size_t nonZeroes = 0;
     std::string line;
     std::ifstream myfile(tensorFileName);
+    assert(myfile.good()); // assert file exists, etc
 
     //put all the points into a vector
+    DEBUG_PRINT("    - load all points into vector\n");
     int maxX = 0, maxY = 0, maxZ = 0;
     while (std::getline(myfile, line)) {
         if(line.length() < 4 || line[0] == '#') {
@@ -304,12 +331,15 @@ void CooTensorManager::create(char *tensorFileName) {
         if(currentPoint.z > maxZ) maxZ = currentPoint.z;
 
         //This assumes there are 3 dimensions followed by one value
-        matrixPoints.push_back(currentPoint);
+        tensorPoints.push_back(currentPoint);
     }
 
-    matrixPoints.shrink_to_fit();
+    tensorPoints.shrink_to_fit();
 
     //construct the COO object
+    DEBUG_PRINT("    - rebuild tensor from input\n");
     tensor->tensor.setSize(nonZeroes, maxX, maxY, maxZ);
-    memcpy(tensor->tensor.points_h, matrixPoints.data(), sizeof(CooPoint) * matrixPoints.size());
+    memcpy(tensor->tensor.points_h, tensorPoints.data(), sizeof(CooPoint) * tensorPoints.size());
+
+    DEBUG_PRINT("    - done; size = %d; %d x %d x %d\n", nonZeroes, maxZ, maxY, maxX);
 }

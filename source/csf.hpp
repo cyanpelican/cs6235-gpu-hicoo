@@ -1,3 +1,4 @@
+// Deprecated
 
 #ifndef CSF_HPP
 #define CSF_HPP
@@ -72,7 +73,7 @@ struct CsfTensor {
     // void setSize() {
     //   // TODO
     // }
-    
+
     //unsigned long long getTotalMemory() {
     //    return sizeof(CooPoint) * numPoints + sizeof(CooTensor);
     //}

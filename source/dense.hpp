@@ -3,6 +3,7 @@
 #define DENSE_HPP
 #include "common.hpp"
 #include <memory>
+#include <assert.h>
 
 class DenseMatrix;
 class DenseMatrixManager;
@@ -13,6 +14,7 @@ struct DenseTensor {
     unsigned int width, height, depth;
 
     DenseTensor() {
+        DEBUG_PRINT("DT: constructor\n");
         values_h = nullptr;
         values_d = nullptr;
         width = 0;
@@ -28,6 +30,8 @@ struct DenseTensor {
 
     // dangerous; deletes everything
     void freeAllArrays();
+    void freeHostArrays();
+    void freeDeviceArrays();
 
     // safely uploads to gpu
     void uploadToDevice();
@@ -45,14 +49,18 @@ struct DenseTensor {
     }
 
     void setSize(unsigned int width, unsigned int height, unsigned int depth) {
+        DEBUG_PRINT("DT: setSize (w %d, h %d, d %d)\n", width, height, depth);
         freeAllArrays();
         values_h = (float*)malloc(sizeof(float) * width*height*depth);
+        assert(values_h != nullptr);
+        memset(values_h, 0.0f, width*height*depth * sizeof(float));
         this->width = width;
         this->height = height;
         this->depth = depth;
     }
-    
+
     unsigned long long getTotalMemory() {
+        DEBUG_PRINT("DT: get total memory\n");
         return sizeof(float) * width*height*depth + sizeof(DenseTensor);
     }
 
@@ -78,6 +86,7 @@ struct DenseMatrix {
     unsigned int width, height;
 
     DenseMatrix() {
+        DEBUG_PRINT("DT: constructor\n");
         values_h = nullptr;
         values_d = nullptr;
         width = 0;
@@ -92,6 +101,8 @@ struct DenseMatrix {
 
     // dangerous; deletes everything
     void freeAllArrays();
+    void freeHostArrays();
+    void freeDeviceArrays();
 
     // safely uploads to gpu
     void uploadToDevice();
@@ -109,14 +120,21 @@ struct DenseMatrix {
     }
 
     void setSize(unsigned int width, unsigned int height) {
+        DEBUG_PRINT("DM: set size (w %d, h %d)\n", width, height);
         freeAllArrays();
         values_h = (float*)malloc(sizeof(float) * width*height);
-        this->values_d = nullptr;
+        assert(values_h != nullptr);
+        memset(values_h, 0.0f, width*height * sizeof(float));
         this->width = width;
         this->height = height;
     }
+    void setSize_d(unsigned int height, unsigned int width);
 
-    /* compute functions */
+    unsigned long long getTotalMemory() {
+        DEBUG_PRINT("DM: get total memory\n");
+        return sizeof(float) * width*height + sizeof(DenseMatrix);
+    }
+  
     // TODO
     //  - have a create function, even an all 1's dense matrix will do
 };
@@ -138,24 +156,29 @@ struct DenseTensorUnique {
         // nothing exciting to do
     }
     ~DenseTensorUnique() {
+        DEBUG_PRINT("DTU: auto-free from unique destructor\n");
         tensor.freeAllArrays();
     }
 };
 
 // NOTE - build these, not DenseTensors; this does memory management
 // However, when performing compute, just pass DenseTensors, since they're lighter.
-// The operator() is overloaded, so it's possible to also use/pass these as if they're DenseTensors
+// The cast operator is overloaded, so it's possible to also use/pass these as if they're DenseTensors
+// MAKE SURE that when you cast it, you:
+//  - keep it as a DenseTensor& [don't forget the ampersand] if you're going to modify any properties or alloc/free pointers
+//  - pass it as a DenseTensor  [no ampersand] when passing to the GPU
 struct DenseTensorManager {
     std::shared_ptr<DenseTensorUnique> tensor;
 
     DenseTensorManager():
       tensor(new DenseTensorUnique())
     {
+        DEBUG_PRINT("DTM: constructor\n");
     }
 
     /* utility functions */
 
-    operator DenseTensor() {
+    operator DenseTensor&() {
         return tensor->tensor;
     }
 
@@ -177,30 +200,31 @@ struct DenseMatrixUnique {
         // nothing exciting to do
     }
     ~DenseMatrixUnique() {
+        DEBUG_PRINT("DMU: auto-free from unique destructor\n");
         tensor.freeAllArrays();
     }
 };
 
-// NOTE - build these, not DenseMatrixs; this does memory management
+// NOTE - build these, not DenseMatrixes; this does memory management
 // However, when performing compute, just pass DenseMatrixs, since they're lighter.
-// The operator() is overloaded, so it's possible to also use/pass these as if they're DenseMatrixs
+// The cast operator is overloaded, so it's possible to also use/pass these as if they're DenseMatrixes
+// MAKE SURE that when you cast it, you:
+//  - keep it as a DenseMatrix& [don't forget the ampersand] if you're going to modify any properties or alloc/free pointers
+//  - pass it as a DenseMatrix  [no ampersand] when passing to the GPU
 struct DenseMatrixManager {
     std::shared_ptr<DenseMatrixUnique> tensor;
 
     DenseMatrixManager():
       tensor(new DenseMatrixUnique())
     {
+        DEBUG_PRINT("DMM: constructor\n");
     }
 
     /* utility functions */
 
-    operator DenseMatrix() {
+    operator DenseMatrix&() {
         return tensor->tensor;
     }
-
-
-    /* parsing, conversion & creation functions */
-    // TODO
 
 };
 

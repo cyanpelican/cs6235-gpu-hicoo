@@ -7,8 +7,10 @@
 #include <iostream>
 #include <vector>
 #include <sstream>
+#include <assert.h>
 #include "common.hpp"
 #include "dense.hpp"
+
 
 struct CooPoint {
     unsigned int x, y, z;
@@ -34,6 +36,7 @@ struct CooTensor {
     unsigned int width, height, depth;
 
     CooTensor() {
+        DEBUG_PRINT("CT: constructor\n");
         points_h = nullptr;
         points_d = nullptr;
         sorting = UNSORTED;
@@ -51,6 +54,8 @@ struct CooTensor {
 
     // dangerous; deletes everything
     void freeAllArrays();
+    void freeHostArrays();
+    void freeDeviceArrays();
 
     // safely uploads to gpu
     void uploadToDevice();
@@ -59,7 +64,7 @@ struct CooTensor {
     void downloadToHost();
 
     // a safe function to get an element on either host or device; TODO - test
-    __host__ __device__ CooPoint& access(unsigned int element) {
+    CooPoint& __host__ __device__ access(unsigned int element) {
         #ifdef __CUDA_ARCH__
             return points_d[element];
         #else
@@ -102,12 +107,18 @@ struct CooTensor {
 //    }
 
     void setSize(int numPoints, int width, int height, int depth) {
+        DEBUG_PRINT("CT: setSize (# %d, w %d, h %d, d %d)\n", numPoints, width, height, depth);
         freeAllArrays();
         points_h = (CooPoint*)malloc(sizeof(CooPoint) * numPoints);
+        assert(points_h != nullptr);
         this->numElements = numPoints;
+        this->width = width;
+        this->height = height;
+        this->depth = depth;
     }
-    
+
     unsigned long long getTotalMemory() {
+        DEBUG_PRINT("CT: get total memory\n");
         return sizeof(CooPoint) * numElements + sizeof(CooTensor);
     }
 
@@ -136,30 +147,35 @@ struct CooTensorUnique {
         // nothing exciting to do
     }
     ~CooTensorUnique() {
+        DEBUG_PRINT("CTU: auto-free from unique destructor\n");
         tensor.freeAllArrays();
     }
 };
 
 // NOTE - build these, not CooTensors; this does memory management
 // However, when performing compute, just pass CooTensors, since they're lighter.
-// The operator() is overloaded, so it's possible to also use/pass these as if they're CooTensors
+// The cast operator is overloaded, so it's possible to also use/pass these as if they're CooTensors
+// MAKE SURE that when you cast it, you:
+//  - keep it as a CooTensor& [don't forget the ampersand] if you're going to modify any properties or alloc/free pointers
+//  - pass it as a CooTensor  [no ampersand] when passing to the GPU
 struct CooTensorManager {
     std::shared_ptr<CooTensorUnique> tensor;
 
     CooTensorManager():
       tensor(new CooTensorUnique()) {
+        DEBUG_PRINT("CTM: constructor\n");
     }
 
     /* utility functions */
 
-    operator CooTensor() {
+    operator CooTensor&() {
         return tensor->tensor;
     }
 
 
     /* parsing, conversion & creation functions */
     // TODO
-    void create(char *tensorFileName);
+    void create(const char *tensorFileName);
 
 };
 
