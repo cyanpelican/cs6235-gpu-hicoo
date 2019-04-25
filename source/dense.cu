@@ -175,8 +175,8 @@ DenseMatrixManager DenseTensor::mttkrp_fast(DenseMatrix d, DenseMatrix c) {
 }
 
 
-void DenseMatrix::setSize_d(unsigned int height, unsigned int width) {
-    DEBUG_PRINT("DM: setSize_d (h %d, w %d)\n", height, width);
+void DenseMatrix::setSize_d(unsigned int width, unsigned int height) {
+    DEBUG_PRINT("DM: setSize_d (w %d, h %d)\n", width, height);
     freeDeviceArrays();
     cudaErrorCheck(cudaMalloc((void **) &values_d, sizeof(float) * width*height));
     assert(values_d != nullptr);

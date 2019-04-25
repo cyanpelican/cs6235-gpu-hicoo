@@ -12,7 +12,6 @@
 
 struct CooPoint {
     unsigned int x, y, z;
-    unsigned int UNUSED; // for packing
     float value;
 };
 
