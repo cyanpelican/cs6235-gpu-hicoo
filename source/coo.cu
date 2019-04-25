@@ -167,8 +167,7 @@ DenseMatrixManager CooTensor::mttkrp_naive_cpu(DenseMatrix d, DenseMatrix c) {
     DEBUG_PRINT("COO: mttkrp naive cpu\n");
 
     // A(i,j) = B(i,k,l) * D(l,j) * C(k,j);
-    int I = this->depth, J = d.width, K = this->height, L = this->width;
-    DEBUG_PRINT("    - I = %d, J = %d, K = %d, L = %d\n", I, J, K, L);
+    int J = d.width, K = this->height, L = this->width;
     assert(d.height == L);
     assert(c.height == K);
     assert(c.width  == J);
@@ -241,7 +240,9 @@ __global__ void mttkrp_naive_gpu(CooTensor cooTensor, DenseMatrix d, DenseMatrix
 //    DEBUG_PRINT("COO: mttkrp naive gpu\n");
 
     // A(i,j) = B(i,k,l) * D(l,j) * C(k,j);
-    int I = cooTensor.depth, J = d.width, K = cooTensor.height, L = cooTensor.width;
+//    int I = cooTensor.depth, J = d.width, K = cooTensor.height, L = cooTensor.width;
+    int J = d.width;
+    int thread_index = blockDim.x * blockIdx.x + threadIdx.x;
 //    DEBUG_PRINT("    - I = %d, J = %d, K = %d, L = %d\n", I, J, K, L);
 //    assert(d.height == L);
 //    assert(c.height == K);
