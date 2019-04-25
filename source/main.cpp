@@ -195,26 +195,6 @@ int main(int argc, char *argv[]) {
         }}
 	printf("\n");
 	//Calculate MTTKRP on GPU
-	//float gpuOut[dimSize][dimSize];
-
-
-	//Coo Test
-//	Dm = 
-//	if (cooKernal) {
-//		//Dense to Coo, repeat
-//		Dense = ((CooTensor)Coo).mttkrp_naive_cpu(D, C);
-//		//((CooTensor)Coo).points_h = &pointList;
-//	}
-//
-	//Hicoo Test
-//	if (hicooKernal) {
-//		//Coo to Hicoo, repeat
-//		//Dense = 
-//	}
-//
-	//Coo.create(argv[1]);
-//	std::cout << ((CooTensor)Coo).numElements << std::endl;
-
 
 	printf("That's a wrap\n");
 	return 0;
