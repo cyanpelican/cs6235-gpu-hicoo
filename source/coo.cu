@@ -168,22 +168,22 @@ DenseMatrixManager CooTensor::mttkrp_naive_cpu(DenseMatrix d, DenseMatrix c) {
 
     // A(i,j) = B(i,k,l) * D(l,j) * C(k,j);
     int I = this->depth, J = d.width, K = this->height, L = this->width;
-    int thread_index = blockDim.x * blockIdx.x + threadIdx.x
     DEBUG_PRINT("    - I = %d, J = %d, K = %d, L = %d\n", I, J, K, L);
     assert(d.height == L);
     assert(c.height == K);
     assert(c.width  == J);
 
     //for each non-zero
-    int index = blockDim.x * blockIdx.x + threadIdx.x;
-    CooPoint point = this->access(index);
-    int i = point.x;
-    int l = point.y;
-    int k = point.z;
+    for (int index = 0; index < this->numElements; index++) { 
+	CooPoint point = this->access(index);
+        int i = point.x;
+        int l = point.y;
+        int k = point.z;
 
-    for (int j = 0; j < J; j++) {
-        float val = this->access(thread_index).value * c.access(k,j) * d.access(l, j);
-        ret.tensor->tensor.access(j, i) += val;
+        for (int j = 0; j < J; j++) {
+            float val = point.value * c.access(k,j) * d.access(l, j);
+            ret.tensor->tensor.access(j, i) += val;
+        }
     }
 
 //    for (unsigned int i = 0; i < this->height; i++) {
@@ -242,7 +242,6 @@ __global__ void mttkrp_naive_gpu(CooTensor cooTensor, DenseMatrix d, DenseMatrix
 
     // A(i,j) = B(i,k,l) * D(l,j) * C(k,j);
     int I = cooTensor.depth, J = d.width, K = cooTensor.height, L = cooTensor.width;
-    int thread_index = blockDim.x * blockIdx.x + threadIdx.x;
 //    DEBUG_PRINT("    - I = %d, J = %d, K = %d, L = %d\n", I, J, K, L);
 //    assert(d.height == L);
 //    assert(c.height == K);
@@ -256,7 +255,7 @@ __global__ void mttkrp_naive_gpu(CooTensor cooTensor, DenseMatrix d, DenseMatrix
     int k = point.z;
 
     for (int j = 0; j < J; j++) {
-        float val = cooTensor.access(thread_index).value * c.access(k,j) * d.access(l, j);
+        float val = point.value * c.access(k,j) * d.access(l, j);
         atomicAdd(&ret.access(j, i), val);
     }
 
