@@ -165,7 +165,8 @@ int main(int argc, char *argv[]) {
 	printf("Comparing GPU Kernel Call to Ground Truth (Coo.naive_gpu vs Ground truth)... ");
 	compareOutput(retCoo.tensor->tensor, retDense.tensor->tensor);
 
-
+	printf("Comparing GPU Kernel Call to CPU Kernel Call (Coo.naive_gpu vs Coo.naive_cpu)... ");
+        compareOutput(retCoo.tensor->tensor, retDense.tensor->tensor);
 
 	printf("\n=================== Beginning Kernel Tests on HiCOO Tensor ===================\n\n");
 
