@@ -11,3 +11,5 @@ nell-2.tns
 
 CMakeLists.txt
 cmake-build-debug/
+
+slurm-*.out
