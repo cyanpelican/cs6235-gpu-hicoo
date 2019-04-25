@@ -1,7 +1,6 @@
 #include <map>
 #include <math.h>
 #include "coo.hpp"
-#include "csf.hpp"
 #include "hicoo.hpp"
 #include "common.hpp"
 
@@ -129,12 +128,6 @@ DenseTensorManager CooTensor::toDense() {
 
     return ret;
 }
-CsfTensorManager CooTensor::toCsf() {
-    DEBUG_PRINT("CT: to csf\n");
-    CsfTensorManager ret;
-    assert(0);
-    return ret;
-}
 
 
 DenseMatrixManager CooTensor::mttkrp_naive_cpu(DenseMatrix d, DenseMatrix c) {
@@ -173,7 +166,7 @@ DenseMatrixManager CooTensor::mttkrp_naive_cpu(DenseMatrix d, DenseMatrix c) {
     assert(c.width  == J);
 
     //for each non-zero
-    for (int index = 0; index < this->numElements; index++) { 
+    for (int index = 0; index < this->numElements; index++) {
 	CooPoint point = this->access(index);
         int i = point.x;
         int l = point.y;
@@ -280,7 +273,7 @@ DenseMatrixManager CooTensor::mttkrp_naive_gpu_wrapper(DenseMatrix d, DenseMatri
     cudaDeviceSynchronize();
 
     ret.tensor->tensor.downloadToHost();
-    
+
     return ret;
 }
 

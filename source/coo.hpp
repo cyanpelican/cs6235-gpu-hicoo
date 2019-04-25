@@ -26,7 +26,6 @@ enum PointSorting {
 class DenseMatrix;
 class HicooTensorManager;
 class DenseTensorManager;
-class CsfTensorManager;
 struct CooTensor {
     CooPoint* points_h;
     CooPoint* points_d;
@@ -71,7 +70,7 @@ struct CooTensor {
         #endif
     }
 
-  
+
 //    float __host__ __device__ access(int x, int y, int z) {
 //        for (unsigned int i = 0; i < this->numElements; i++) {
 //            if(access(i).x == x && access(i).y == y && access(i).z == z) {
@@ -125,7 +124,6 @@ struct CooTensor {
     /* conversion functions */
     HicooTensorManager toHicoo(int blockWidth = 2, int blockHeight = 2, int blockDepth = 2);
     DenseTensorManager toDense();
-    CsfTensorManager   toCsf();
 
 
     /* compute functions */
