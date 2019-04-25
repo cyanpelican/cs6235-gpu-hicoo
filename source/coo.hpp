@@ -14,7 +14,6 @@
 
 struct CooPoint {
     unsigned int x, y, z;
-    unsigned int UNUSED; // for packing
     float value;
 };
 
@@ -175,7 +174,7 @@ struct CooTensorManager {
 
     /* parsing, conversion & creation functions */
     // TODO
-    void create(const char *tensorFileName);
+    void create(char *tensorFileName);
 
 };
 

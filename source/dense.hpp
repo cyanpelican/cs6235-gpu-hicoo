@@ -128,7 +128,7 @@ struct DenseMatrix {
         this->width = width;
         this->height = height;
     }
-    void setSize_d(unsigned int height, unsigned int width);
+    void setSize_d(unsigned int width, unsigned int height);
 
     unsigned long long getTotalMemory() {
         DEBUG_PRINT("DM: get total memory\n");

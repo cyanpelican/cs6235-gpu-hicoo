@@ -262,7 +262,7 @@ DenseMatrixManager CooTensor::mttkrp_fast(DenseMatrix d, DenseMatrix c) {
     return ret;
 }
 
-void CooTensorManager::create(const char *tensorFileName) {
+void CooTensorManager::create(char *tensorFileName) {
     DEBUG_PRINT("CT: parsing file %s\n", tensorFileName);
     DEBUG_PRINT("    - file validations, etc\n");
     std::vector<CooPoint> tensorPoints;
