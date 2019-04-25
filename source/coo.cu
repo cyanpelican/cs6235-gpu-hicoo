@@ -242,11 +242,6 @@ __global__ void mttkrp_naive_gpu(CooTensor cooTensor, DenseMatrix d, DenseMatrix
     // A(i,j) = B(i,k,l) * D(l,j) * C(k,j);
 //    int I = cooTensor.depth, J = d.width, K = cooTensor.height, L = cooTensor.width;
     int J = d.width;
-    int thread_index = blockDim.x * blockIdx.x + threadIdx.x;
-//    DEBUG_PRINT("    - I = %d, J = %d, K = %d, L = %d\n", I, J, K, L);
-//    assert(d.height == L);
-//    assert(c.height == K);
-//    assert(c.width  == J);
 
     //for each non-zero
     unsigned int index = blockDim.x * blockIdx.x + threadIdx.x;
