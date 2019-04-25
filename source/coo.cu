@@ -3,6 +3,7 @@
 #include "coo.hpp"
 #include "csf.hpp"
 #include "hicoo.hpp"
+#include "common.hpp"
 
 
 void CooTensor::freeAllArrays() {
