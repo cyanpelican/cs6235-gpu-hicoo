@@ -112,16 +112,16 @@ DenseMatrixManager HicooTensor::mttkrp_naive_cpu(DenseMatrix d, DenseMatrix c) {
 
 
     //A(i,j) = B(i,k,l) * C(k,j) * D(l,j)
-
-    for (unsigned int i = 0; i < this->height; i++) {
-        for (unsigned int k = 0; k < this->width; k++) {
-            for (unsigned int l = 0; l < this->depth; l++) {
-                for (unsigned int j = 0; j < d.height; j++) {
-                    ret.tensor->tensor.access(i,j) = ret.tensor->tensor.access(i,j) + this->access(i,k,l) * d.access(l,j) * c.access(k,j);
-                }
-            }
-        }
-    }
+//
+//    for (unsigned int i = 0; i < this->height; i++) {
+//        for (unsigned int k = 0; k < this->width; k++) {
+//            for (unsigned int l = 0; l < this->depth; l++) {
+//                for (unsigned int j = 0; j < d.height; j++) {
+//                    ret.tensor->tensor.access(i,j) = ret.tensor->tensor.access(i,j) + this->access(i,k,l) * d.access(l,j) * c.access(k,j);
+//                }
+//            }
+//        }
+//    }
 
     return ret;
 }
