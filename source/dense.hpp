@@ -40,7 +40,7 @@ struct DenseTensor {
     void downloadToHost();
 
     // a safe function to get an element on either host or device; TODO - test
-    float& access(unsigned int k, unsigned int j, unsigned int i) {
+    __host__ __device__ float& access(unsigned int i, unsigned int j, unsigned int k) {
         #ifdef __CUDA_ARCH__
             return values_d[i*height*width + j*width + k];
         #else
@@ -111,7 +111,7 @@ struct DenseMatrix {
     void downloadToHost();
 
     // a safe function to get an element on either host or device; TODO - test
-    float& access(unsigned int j, unsigned int i) {
+    __host__ __device__ float& access(unsigned int i, unsigned int j) {
         #ifdef __CUDA_ARCH__
             return values_d[i*width + j];
         #else
@@ -134,6 +134,9 @@ struct DenseMatrix {
         DEBUG_PRINT("DM: get total memory\n");
         return sizeof(float) * width*height + sizeof(DenseMatrix);
     }
+  
+    // TODO
+    //  - have a create function, even an all 1's dense matrix will do
 };
 
 
