@@ -1,3 +1,4 @@
+// Deprecated
 
 #ifndef CSF_HPP
 #define CSF_HPP
@@ -60,7 +61,7 @@ struct CsfTensor {
     }
 
     // // a safe function to get an element on either host or device; TODO
-    // float& access() {
+    // __host__ __device__ float& access() {
     //     #ifdef __CUDA_ARCH__
     //         return values_d[];
     //     #else
@@ -72,6 +73,10 @@ struct CsfTensor {
     // void setSize() {
     //   // TODO
     // }
+
+    //unsigned long long getTotalMemory() {
+    //    return sizeof(CooPoint) * numPoints + sizeof(CooTensor);
+    //}
 
 
     /* conversion function */
