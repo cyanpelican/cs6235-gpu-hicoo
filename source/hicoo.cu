@@ -81,6 +81,7 @@ DenseMatrixManager HicooTensor::mttkrp_naive_cpu(DenseMatrixManager D, DenseMatr
      */
 
     DenseMatrixManager ret;
+    DenseMatrix& a = ret;
     DenseMatrix& c = C;
     DenseMatrix& d = D;
     assert(this->points_h != nullptr);
@@ -93,9 +94,6 @@ DenseMatrixManager HicooTensor::mttkrp_naive_cpu(DenseMatrixManager D, DenseMatr
     //Naive implementation:
 
     DEBUG_PRINT("HICOO: mttkrp naive cpu\n");
-
-    DenseMatrixManager ret;
-    DenseMatrix& a = ret;
 
     // A(i,j) = B(i,k,l) * D(l,j) * C(k,j);
     int I = this->depth, J = d.width, K = this->height, L = this->width;

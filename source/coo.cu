@@ -134,7 +134,7 @@ DenseTensorManager CooTensor::toDense() {
 }
 
 
-DenseMatrixManager CooTensor::mttkrp_naive_cpu(DenseMatrix d, DenseMatrix c) {
+DenseMatrixManager CooTensor::mttkrp_naive_cpu(DenseMatrixManager D, DenseMatrixManager C) {
     /*
       * for each non-zero
       *      i = nnz.i, l = nnz.l, k = nnz.k
