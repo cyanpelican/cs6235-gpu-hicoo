@@ -4,6 +4,7 @@
 #include "common.hpp"
 #include <memory>
 #include <assert.h>
+#include<iostream>
 
 class DenseMatrix;
 class DenseMatrixManager;
