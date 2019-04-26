@@ -1,12 +1,12 @@
 
-CCFLAGS=--std=c++11 -g
+CCFLAGS=--std=c++11 # -g
 
 all: HiCooExperiment main.o coo.o dense.o hicoo.o
 
 HiCooExperiment: main.o coo.o dense.o hicoo.o
 	nvcc $(CCFLAGS) -o HiCooExperiment main.o coo.o dense.o hicoo.o
 
-main.o: main.cu
+main.o: main.cu coo.hpp dense.hpp hicoo.hpp common.hpp
 	nvcc $(CCFLAGS) -c -o main.o main.cu
 
 coo.o: coo.cu coo.hpp common.hpp dense.hpp hicoo.hpp
