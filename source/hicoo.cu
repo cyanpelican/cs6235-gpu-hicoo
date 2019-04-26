@@ -30,6 +30,8 @@ void HicooTensor::freeDeviceArrays() {
 
 void HicooTensor::uploadToDevice() {
     DEBUG_PRINT("HT: upload to device\n");
+    assert(points_h != nullptr);
+    assert(blocks_h != nullptr);
     freeDeviceArrays();
 
     cudaErrorCheck(cudaMalloc((void **) &points_d, sizeof(HicooPoint) * numPoints));
@@ -43,6 +45,8 @@ void HicooTensor::uploadToDevice() {
 
 void HicooTensor::downloadToHost() {
     DEBUG_PRINT("HT: download to host\n");
+    assert(points_d != nullptr);
+    assert(blocks_d != nullptr);
     freeHostArrays();
 
     points_h = (HicooPoint*)malloc(sizeof(HicooPoint) * numPoints);
