@@ -135,15 +135,6 @@ DenseTensorManager CooTensor::toDense() {
 
 
 DenseMatrixManager CooTensor::mttkrp_naive_cpu(DenseMatrixManager D, DenseMatrixManager C) {
-    //order of dimensions goes height, width, depth
-
-    //assert(this->points_h != nullptr);
-    //check for compatible dimensions
-    //assert(this->width == d.width);
-    //assert(this->depth == c.width);
-
-
-
     /*
       * for each non-zero
       *      i = nnz.i, l = nnz.l, k = nnz.k
