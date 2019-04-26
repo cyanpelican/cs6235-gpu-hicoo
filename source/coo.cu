@@ -203,14 +203,16 @@ __global__ void mttkrp_naive_gpu_kernel(CooTensor cooTensor, DenseMatrix d, Dens
 
     //for each non-zero
     unsigned int index = blockDim.x * blockIdx.x + threadIdx.x;
-    CooPoint point = cooTensor.access(index);
-    int l = point.x;
-    int k = point.y;
-    int i = point.z;
+    if(index < cooTensor.numElements) {
+        CooPoint point = cooTensor.access(index);
+        int l = point.x;
+        int k = point.y;
+        int i = point.z;
 
-    for (int j = 0; j < J; j++) {
-        float val = point.value * c.access(k,j) * d.access(l, j);
-        atomicAdd(&ret.access(i, j), val);
+        for (int j = 0; j < J; j++) {
+            float val = point.value * c.access(k, j) * d.access(l, j);
+            atomicAdd(&ret.access(i, j), val);
+        }
     }
 }
 
