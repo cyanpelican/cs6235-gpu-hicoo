@@ -11,15 +11,10 @@
 #SBATCH --export=ALL
 #SBATCH --qos=soc-gpu-kp
 ulimit -c unlimited -s
-#git rev-parse --short HEAD              | tee -a perf.log
-#if [[ $(git diff --stat) != '' ]]; then
-#  echo '[[dirty]]'                      | tee -a perf.log
-#else
-#  echo 'clean state'
-#fi
-#date                                    | tee -a perf.log
 
+nvidia-smi
 
 ./HiCooExperiment "test.dataset"
 
-#echo                                    | tee -a perf.log
+
+echo TESTS COMPLETED
