@@ -162,16 +162,18 @@ DenseMatrixManager CooTensor::mttkrp_naive_cpu(DenseMatrix d, DenseMatrix c) {
 
     // A(i,j) = B(i,k,l) * D(l,j) * C(k,j);
     int I = this->depth, J = d.width, K = this->height, L = this->width;
+    DEBUG_PRINT("    - I = %d, J = %d, K = %d, L = %d\n", I, J, K, L);
     assert(d.height == L);
     assert(c.height == K);
     assert(c.width  == J);
 
 
-    a.setSize(J, I);
+    a.setSize(I, J);
 
     //for each non-zero
+    DEBUG_PRINT("    - performing operation\n");
     for (int index = 0; index < this->numElements; index++) {
-	CooPoint point = this->access(index);
+        CooPoint point = this->access(index);
         int l = point.x;
         int k = point.y;
         int i = point.z;
@@ -179,7 +181,7 @@ DenseMatrixManager CooTensor::mttkrp_naive_cpu(DenseMatrix d, DenseMatrix c) {
         for (int j = 0; j < J; j++) {
             //float val = point.value * d.access(j, l) * c.access(j, k);
             //ret.tensor->tensor.access(j, i) += val;
-	    a.access(j,i) += point.value * d.access(j, l) * c.access(j,k);
+            a.access(i,j) += point.value * d.access(l,j) * c.access(k,j);
         }
     }
 
