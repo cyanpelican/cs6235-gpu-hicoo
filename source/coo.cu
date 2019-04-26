@@ -28,6 +28,7 @@ void CooTensor::freeDeviceArrays() {
 
 void CooTensor::uploadToDevice() {
     DEBUG_PRINT("CT: uploading to device\n");
+    assert(points_h != nullptr);
     freeDeviceArrays();
     assert(numElements != 0);
     cudaErrorCheck(cudaMalloc((void **) &points_d, sizeof(CooPoint) * numElements));
@@ -39,6 +40,7 @@ void CooTensor::uploadToDevice() {
 //  memory
 void CooTensor::downloadToHost() {
     DEBUG_PRINT("CT: downloading to host\n");
+    assert(points_d != nullptr);
     freeHostArrays();
     points_h = (CooPoint*)malloc(sizeof(CooPoint) * numElements);
     assert(points_h != nullptr);
