@@ -8,6 +8,7 @@
 #include "coo.hpp"
 #include "common.hpp"
 #include "dense.hpp"
+#include "hicoo.hpp"
 
 using namespace std;
 
@@ -172,7 +173,7 @@ int main(int argc, char *argv[]) {
   }
 
   printf("Converting to hicoo\n");
-  HicooTensorManager Hicoo = Coo.tensor->toHicoo();
+  HicooTensorManager Hicoo = Coo.tensor->tensor.toHicoo();
   {
   	DenseMatrixManager retHicoo = Hicoo.tensor->tensor.mttkrp_naive_cpu(D, C);
   	printf("Testing Hicoo cpu MTTKRP... ");
