@@ -18,8 +18,10 @@
 
 
 #define cudaErrorCheck(err) \
- if(err != cudaSuccess) {\
-  printf("error in cuda call at line %d, file %s\n", __LINE__, __FILE__);\
+ { auto __err = err;\
+  if(__err != cudaSuccess) {\
+   printf("error in cuda call at line %d, file %s. Error name = %s\n", __LINE__, __FILE__, cudaGetErrorName(__err));\
+  }\
  }
 
 // set to true to enable debug prints
