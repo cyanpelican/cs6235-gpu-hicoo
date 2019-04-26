@@ -45,3 +45,5 @@
 #else
   #define DEBUG_PRINT(...) /* */
 #endif
+
+#endif //COMMON_HPP
