@@ -181,50 +181,16 @@ DenseMatrixManager CooTensor::mttkrp_naive_cpu(DenseMatrix d, DenseMatrix c) {
         int i = point.z;
 
         for (int j = 0; j < J; j++) {
-            //float val = point.value * d.access(j, l) * c.access(j, k);
-            //ret.tensor->tensor.access(j, i) += val;
             a.access(i,j) += point.value * d.access(l,j) * c.access(k,j);
         }
     }
 
     return ret;
-//    for (unsigned int i = 0; i < this->height; i++) {
-//        for (unsigned int k = 0; k < this->width; k++) {
-//            for (unsigned int l = 0; l < this->depth; l++) {
-//                for (unsigned int j = 0; j < d.height; j++) {
-//                    ret.tensor->tensor.access(i,j) = ret.tensor->tensor.access(i,j) + this->access(i,k,l) * d.access(l,j) * c.access(k,j);
-//                }
-//            }
-//        }
-//    }
-
 }
 
 
 //Not declared as part of the class... Cuda doesn't like it's kernels as part of OOP
 __global__ void mttkrp_naive_gpu(CooTensor cooTensor, DenseMatrix d, DenseMatrix c, DenseMatrix ret) {
-//    if(blockDim.x * blockIdx.x + threadIdx.x < cooTensor.height * d.height) {
-//        //https://stackoverflow.com/a/29148148
-//        int index = blockDim.x * blockIdx.x + threadIdx.x;
-//
-//        unsigned int i = index % cooTensor.height;
-//        unsigned int j = ((index - i) / cooTensor.height) % d.height;
-//
-//
-//        // We parallelize the 'i' and 'j' loops
-//        for (unsigned int k = 0; k < cooTensor.width; k++) {
-//            for (unsigned int l = 0; l < cooTensor.depth; l++) {
-//                //access will differentiate between host and device on its own
-//                ret.access(i, j) = ret.access(i, j) + cooTensor.access(i, k, l) * d.access(l, j) * c.access(k, j);
-//            }
-//        }
-//
-//    }
-//
-//    __syncthreads();
-
-
-    // -----------------------
     /*
      * for each non-zero
      *      i = nnz.i, l = nnz.l, k = nnz.k
@@ -237,27 +203,21 @@ __global__ void mttkrp_naive_gpu(CooTensor cooTensor, DenseMatrix d, DenseMatrix
     //Naive: each thread is a non-zero
     //optimization: each thread does a few R's
 
-    //Naive implementation:
-
-//    DEBUG_PRINT("COO: mttkrp naive gpu\n");
-
     // A(i,j) = B(i,k,l) * D(l,j) * C(k,j);
-//    int I = cooTensor.depth, J = d.width, K = cooTensor.height, L = cooTensor.width;
+    // int I = cooTensor.depth, J = d.width, K = cooTensor.height, L = cooTensor.width;
     int J = d.width;
 
     //for each non-zero
     unsigned int index = blockDim.x * blockIdx.x + threadIdx.x;
     CooPoint point = cooTensor.access(index);
-    int i = point.x;
-    int l = point.y;
-    int k = point.z;
+    int l = point.x;
+    int k = point.y;
+    int i = point.z;
 
     for (int j = 0; j < J; j++) {
         float val = point.value * c.access(k,j) * d.access(l, j);
-        atomicAdd(&ret.access(j, i), val);
+        atomicAdd(&ret.access(i, j), val);
     }
-
-//    __syncthreads();
 }
 
 
