@@ -2,7 +2,9 @@
 #include <math.h>
 #include "coo.hpp"
 #include "hicoo.hpp"
+#include <map>
 #include "common.hpp"
+#include <list>
 
 
 void CooTensor::freeAllArrays() {
@@ -72,7 +74,7 @@ HicooTensorManager CooTensor::toHicoo(int blockDepth, int blockHeight, int block
 
     // build an std::map of everything
     DEBUG_PRINT("    - building map\n");
-    std::map<HicooBlock, std::vector<HicooPoint>> hicooMap;
+    std::map<HicooBlock, std::list<HicooPoint>> hicooMap;
     for(int i = 0; i < numElements; i++) {
         CooPoint p = access(i);
 
@@ -94,7 +96,7 @@ HicooTensorManager CooTensor::toHicoo(int blockDepth, int blockHeight, int block
     unsigned int blockIndex = 0;
     unsigned long long pointIndex = 0;
     DEBUG_PRINT("    - insert to ret tensor\n");
-    for(std::pair<HicooBlock, std::vector<HicooPoint>> pair : hicooMap) {
+    for(const std::pair<HicooBlock, std::list<HicooPoint>>& pair : hicooMap) {
         retTensor.blocks_h[blockIndex] = pair.first;
         retTensor.blocks_h[blockIndex].blockAddress = pointIndex;
         for(HicooPoint p : pair.second) {
@@ -123,7 +125,7 @@ DenseTensorManager CooTensor::toDense() {
     DEBUG_PRINT("    - insertion\n");
     for(int i = 0; i < numElements; i++) {
         CooPoint p = access(i);
-        retTensor.access(p.x, p.y, p.z) = p.value;
+        retTensor.access(p.z, p.y, p.x) = p.value;
     }
 
     return ret;
@@ -286,6 +288,7 @@ DenseMatrixManager CooTensor::mttkrp_naive_gpu_wrapper(DenseMatrix d, DenseMatri
 
 
 DenseMatrixManager CooTensor::mttkrp_fast(DenseMatrix d, DenseMatrix c) {
+    DEBUG_PRINT("CT: fast mttkrp gpu\n");
     DenseMatrixManager ret;
 
     // TODO
@@ -334,7 +337,7 @@ void CooTensorManager::create(char *tensorFileName) {
 
     //construct the COO object
     DEBUG_PRINT("    - rebuild tensor from input\n");
-    tensor->tensor.setSize(nonZeroes, maxX, maxY, maxZ);
+    tensor->tensor.setSize(nonZeroes, maxZ, maxY, maxX);
     memcpy(tensor->tensor.points_h, tensorPoints.data(), sizeof(CooPoint) * tensorPoints.size());
 
     DEBUG_PRINT("    - done; size = %d; %d x %d x %d\n", nonZeroes, maxZ, maxY, maxX);

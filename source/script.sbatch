@@ -9,7 +9,7 @@
 #SBATCH --mem=20G
 #SBATCH --time=00:1:00
 #SBATCH --export=ALL
-#SBATCH --qos=soc-gpu-kp     
+#SBATCH --qos=soc-gpu-kp
 ulimit -c unlimited -s
 #git rev-parse --short HEAD              | tee -a perf.log
 #if [[ $(git diff --stat) != '' ]]; then
