@@ -134,9 +134,8 @@ DenseTensorManager CooTensor::toDense() {
 }
 
 
-DenseMatrixManager CooTensor::mttkrp_naive_cpu(DenseMatrix d, DenseMatrix c) {
-    //order of dimensions goes height, width , depth
-    //todo: double check this. It might be x,y,z: width, height, depth
+DenseMatrixManager CooTensor::mttkrp_naive_cpu(DenseMatrixManager d, DenseMatrixManager c) {
+    //order of dimensions goes height, width, depth
 
     //assert(this->points_h != nullptr);
     //check for compatible dimensions
@@ -192,7 +191,7 @@ DenseMatrixManager CooTensor::mttkrp_naive_cpu(DenseMatrix d, DenseMatrix c) {
 
 
 //Not declared as part of the class... Cuda doesn't like it's kernels as part of OOP
-__global__ void mttkrp_naive_gpu(CooTensor cooTensor, DenseMatrix d, DenseMatrix c, DenseMatrix ret) {
+__global__ void mttkrp_naive_gpu_kernel(CooTensor cooTensor, DenseMatrix d, DenseMatrix c, DenseMatrix ret) {
     /*
      * for each non-zero
      *      i = nnz.i, l = nnz.l, k = nnz.k
@@ -224,13 +223,12 @@ __global__ void mttkrp_naive_gpu(CooTensor cooTensor, DenseMatrix d, DenseMatrix
 
 
 //wrapper function for the sake of convenience
-DenseMatrixManager CooTensor::mttkrp_naive_gpu_wrapper(DenseMatrix d, DenseMatrix c) {
+DenseMatrixManager CooTensor::mttkrp_naive_gpu(DenseMatrixManager d, DenseMatrixManager c) {
     this->uploadToDevice();
 
     DenseMatrixManager ret;
 
     ret.tensor->tensor.setSize_d(d.height, this->height);
-    ret.tensor->tensor.uploadToDevice();
     d.uploadToDevice();
     c.uploadToDevice();
 
@@ -244,12 +242,14 @@ DenseMatrixManager CooTensor::mttkrp_naive_gpu_wrapper(DenseMatrix d, DenseMatri
     cudaDeviceSynchronize();
 
     ret.tensor->tensor.downloadToHost();
+    d.freeDeviceArrays();
+    c.freeDeviceArrays();
 
     return ret;
 }
 
 
-DenseMatrixManager CooTensor::mttkrp_fast(DenseMatrix d, DenseMatrix c) {
+DenseMatrixManager CooTensor::mttkrp_fast(DenseMatrixManager d, DenseMatrixManager c) {
     DEBUG_PRINT("CT: fast mttkrp gpu\n");
     DenseMatrixManager ret;
 

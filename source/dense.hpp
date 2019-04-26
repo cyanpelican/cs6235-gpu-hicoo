@@ -6,7 +6,6 @@
 #include <assert.h>
 #include<iostream>
 
-class DenseMatrix;
 class DenseMatrixManager;
 class CooTensorManager;
 struct DenseTensor {
@@ -72,9 +71,9 @@ struct DenseTensor {
 
     /* compute functions */
     // A(i,j) = B(i,k,l) * D(l,j) * C(k,j);
-    DenseMatrixManager mttkrp_naive_cpu(DenseMatrix d, DenseMatrix c);
-    DenseMatrixManager mttkrp_naive_gpu(DenseMatrix d, DenseMatrix c);
-    DenseMatrixManager mttkrp_fast(DenseMatrix d, DenseMatrix c);
+    DenseMatrixManager mttkrp_naive_cpu(DenseMatrixManager d, DenseMatrixManager c);
+    DenseMatrixManager mttkrp_naive_gpu(DenseMatrixManager d, DenseMatrixManager c);
+    DenseMatrixManager mttkrp_fast(DenseMatrixManager d, DenseMatrixManager c);
 };
 
 
