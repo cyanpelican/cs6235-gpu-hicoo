@@ -122,8 +122,11 @@ struct HicooTensor {
     // A(i,j) = B(i,k,l) * D(l,j) * C(k,j);
     DenseMatrixManager mttkrp_naive_cpu(DenseMatrixManager d, DenseMatrixManager c);
     DenseMatrixManager mttkrp_naive_gpu(DenseMatrixManager d, DenseMatrixManager c);
-    DenseMatrixManager mttkrp_fast(DenseMatrixManager d, DenseMatrixManager c);
-    // TODO
+
+    // Feel free to make more under your name, or do collaboration ones; just setting this up so we don't get crazy merge conflicts
+    DenseMatrixManager mttkrp_guy1(DenseMatrixManager d, DenseMatrixManager c);
+    DenseMatrixManager mttkrp_james1(DenseMatrixManager d, DenseMatrixManager c);
+    DenseMatrixManager mttkrp_kevin1(DenseMatrixManager d, DenseMatrixManager c);
 };
 
 

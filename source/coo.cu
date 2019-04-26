@@ -242,14 +242,72 @@ DenseMatrixManager CooTensor::mttkrp_naive_gpu(DenseMatrixManager D, DenseMatrix
 }
 
 
-DenseMatrixManager CooTensor::mttkrp_fast(DenseMatrixManager d, DenseMatrixManager c) {
+DenseMatrixManager CooTensor::mttkrp_guy1(DenseMatrixManager d, DenseMatrixManager c) {
     DEBUG_PRINT("CT: fast mttkrp gpu\n");
     DenseMatrixManager ret;
 
-    // TODO
+    // TODO or DELTEME
     assert(0);
 
     // A(i,j) = B(i,k,l) * D(l,j) * C(k,j);
+
+    return ret;
+}
+
+DenseMatrixManager CooTensor::mttkrp_james1(DenseMatrixManager d, DenseMatrixManager c) {
+    DEBUG_PRINT("CT: fast mttkrp gpu\n");
+    DenseMatrixManager ret;
+
+    // TODO or DELTEME
+    assert(0);
+
+    // A(i,j) = B(i,k,l) * D(l,j) * C(k,j);
+
+    return ret;
+}
+
+
+__global__ void coo_mttkrp_kevin1_kernel(DenseMatrix a, CooTensor b, DenseMatrix d, DenseMatrix c) {
+    CooPoint point = b.access(blockIdx.x);
+
+    // A(i,j) = B(i,k,l) * D(l,j) * C(k,j);
+    for(int j = threadIdx.x; j < a.width; j += 32) {
+        float val = point.value * d.access(point.x, j) * c.access(point.y, j);
+        atomicAdd(&a.access(point.z, j), val);
+    }
+}
+
+DenseMatrixManager CooTensor::mttkrp_kevin1(DenseMatrixManager D, DenseMatrixManager C) {
+    // Has each thread block mapped to a point (parallelizing blocks across J)
+    DEBUG_PRINT("CT: naive mttkrp gpu\n");
+    DEBUG_PRINT("    - asserts, initialization\n");
+    DenseMatrixManager ret;
+    DenseMatrix& a = ret;
+    DenseMatrix& c = C;
+    DenseMatrix& d = D;
+
+    assert(points_h != nullptr);
+
+    // A(i,j) = B(i,k,l) * D(l,j) * C(k,j);
+    int I = this->depth, J = d.width, K = this->height, L = this->width;
+    DEBUG_PRINT("    - I = %d, J = %d, K = %d, L = %d\n", I, J, K, L);
+    assert(d.height == L);
+    assert(c.height == K);
+    assert(c.width  == J);
+
+
+    DEBUG_PRINT("    - uploadToDevice\n");
+    this->uploadToDevice();
+    d.uploadToDevice();
+    c.uploadToDevice();
+
+    DEBUG_PRINT("    - malloc output matrix\n");
+    a.setSize_d(I, J);
+
+    DEBUG_PRINT("    - do compute on gpu\n");
+    coo_mttkrp_naive_kernel<<<numElements, 32>>>(a, *this, d, c);
+
+
 
     return ret;
 }
