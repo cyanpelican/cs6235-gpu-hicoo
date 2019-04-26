@@ -307,7 +307,7 @@ DenseMatrixManager CooTensor::mttkrp_kevin1(DenseMatrixManager D, DenseMatrixMan
     a.setSize_d(I, J);
 
     DEBUG_PRINT("    - do compute on gpu\n");
-    coo_mttkrp_naive_kernel<<<numElements, 32>>>(a, *this, d, c);
+    coo_mttkrp_kevin1_kernel<<<numElements, 32>>>(a, *this, d, c);
 
 
 

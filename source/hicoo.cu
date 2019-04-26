@@ -270,7 +270,7 @@ DenseMatrixManager HicooTensor::mttkrp_kevin1(DenseMatrixManager D, DenseMatrixM
     a.setSize_d(I, J);
 
     DEBUG_PRINT("    - do compute on gpu\n");
-    hicoo_mttkrp_naive_kernel<<<numBlocks, 32>>>(a, *this, d, c);
+    hicoo_kevin1_kernel<<<numBlocks, 32>>>(a, *this, d, c);
 
 
     return ret;
