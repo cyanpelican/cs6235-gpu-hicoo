@@ -134,9 +134,22 @@ struct DenseMatrix {
         DEBUG_PRINT("DM: get total memory\n");
         return sizeof(float) * width*height + sizeof(DenseMatrix);
     }
-  
+
     // TODO
     //  - have a create function, even an all 1's dense matrix will do
+
+    void print() {
+        std::cout << height << "(height)  by  " << width << "  matrix.\n";
+
+        for(int y = 0; y < height; y++) {
+            for(int x = 0; x < width; x++) {
+                printf("%8.2f ", access(y, x));
+            }
+            printf("\n");
+        }
+
+        std::cout << std::endl;
+    }
 };
 
 
