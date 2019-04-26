@@ -134,13 +134,11 @@ DenseMatrixManager CooTensor::mttkrp_naive_cpu(DenseMatrix d, DenseMatrix c) {
     //order of dimensions goes height, width , depth
     //todo: double check this. It might be x,y,z: width, height, depth
 
-    assert(this->points_h != nullptr);
+    //assert(this->points_h != nullptr);
     //check for compatible dimensions
-    assert(this->width == d.width);
-    assert(this->depth == c.width);
+    //assert(this->width == d.width);
+    //assert(this->depth == c.width);
 
-    DenseMatrixManager ret;
-    ret.tensor->tensor.setSize(d.height, this->height);
 
 
     /*
@@ -159,25 +157,33 @@ DenseMatrixManager CooTensor::mttkrp_naive_cpu(DenseMatrix d, DenseMatrix c) {
 
     DEBUG_PRINT("COO: mttkrp naive cpu\n");
 
+    DenseMatrixManager ret;
+    DenseMatrix& a = ret;
+
     // A(i,j) = B(i,k,l) * D(l,j) * C(k,j);
-    int J = d.width, K = this->height, L = this->width;
+    int I = this->depth, J = d.width, K = this->height, L = this->width;
     assert(d.height == L);
     assert(c.height == K);
     assert(c.width  == J);
 
+
+    a.setSize(J, I);
+
     //for each non-zero
     for (int index = 0; index < this->numElements; index++) {
 	CooPoint point = this->access(index);
-        int i = point.x;
-        int l = point.y;
-        int k = point.z;
+        int l = point.x;
+        int k = point.y;
+        int i = point.z;
 
         for (int j = 0; j < J; j++) {
-            float val = point.value * c.access(k,j) * d.access(l, j);
-            ret.tensor->tensor.access(j, i) += val;
+            //float val = point.value * d.access(j, l) * c.access(j, k);
+            //ret.tensor->tensor.access(j, i) += val;
+	    a.access(j,i) += point.value * d.access(j, l) * c.access(j,k);
         }
     }
 
+    return ret;
 //    for (unsigned int i = 0; i < this->height; i++) {
 //        for (unsigned int k = 0; k < this->width; k++) {
 //            for (unsigned int l = 0; l < this->depth; l++) {
@@ -188,7 +194,6 @@ DenseMatrixManager CooTensor::mttkrp_naive_cpu(DenseMatrix d, DenseMatrix c) {
 //        }
 //    }
 
-    return ret;
 }
 
 
