@@ -26,7 +26,6 @@ enum PointSorting {
 class DenseMatrix;
 class HicooTensorManager;
 class DenseTensorManager;
-class CsfTensorManager;
 struct CooTensor {
     CooPoint* points_h;
     CooPoint* points_d;
@@ -62,7 +61,7 @@ struct CooTensor {
     // safely downloads from gpu
     void downloadToHost();
 
-    // a safe function to get an element on either host or device; TODO - test
+    // a handy function to get an element on either host or device
     CooPoint& __host__ __device__ access(unsigned int element) {
         #ifdef __CUDA_ARCH__
             return points_d[element];
@@ -71,7 +70,7 @@ struct CooTensor {
         #endif
     }
 
-  
+
 //    float __host__ __device__ access(int x, int y, int z) {
 //        for (unsigned int i = 0; i < this->numElements; i++) {
 //            if(access(i).x == x && access(i).y == y && access(i).z == z) {
@@ -105,8 +104,8 @@ struct CooTensor {
 //        return 0.0;
 //    }
 
-    void setSize(int numPoints, int width, int height, int depth) {
-        DEBUG_PRINT("CT: setSize (# %d, w %d, h %d, d %d)\n", numPoints, width, height, depth);
+    void setSize(int numPoints, int depth, int height, int width) {
+        DEBUG_PRINT("CT: setSize (# %d, d %d, h %d, w %d)\n", numPoints, depth, height, width);
         freeAllArrays();
         points_h = (CooPoint*)malloc(sizeof(CooPoint) * numPoints);
         assert(points_h != nullptr);
@@ -125,7 +124,6 @@ struct CooTensor {
     /* conversion functions */
     HicooTensorManager toHicoo(int blockWidth = 2, int blockHeight = 2, int blockDepth = 2);
     DenseTensorManager toDense();
-    CsfTensorManager   toCsf();
 
 
     /* compute functions */

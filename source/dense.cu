@@ -87,7 +87,7 @@ CooTensorManager DenseTensor::toCoo(float epsilon) {
     for(int i = 0; i < depth; i++) {
         for(int j = 0; j < height; j++) {
             for(int k = 0; k < width; k++) {
-                if(abs(access(k, j, i)) > epsilon) {
+                if(abs(access(i, j, k)) > epsilon) {
                     numNonzeros++;
                 }
             }
@@ -104,7 +104,7 @@ CooTensorManager DenseTensor::toCoo(float epsilon) {
     for(int i = 0; i < depth; i++) {
         for(int j = 0; j < height; j++) {
             for(int k = 0; k < width; k++) {
-                if(abs(access(k, j, i)) > epsilon) {
+                if(abs(access(i, j, k)) > epsilon) {
                     tensor.access(ptIdx).value = access(i, j, k);
                     tensor.access(ptIdx).x = k;
                     tensor.access(ptIdx).y = j;
@@ -134,14 +134,14 @@ DenseMatrixManager DenseTensor::mttkrp_naive_cpu(DenseMatrix d, DenseMatrix c) {
     assert(c.width  == J);
 
     DEBUG_PRINT("    - malloc output\n");
-    a.setSize(J, I);
+    a.setSize(I, J);
 
     DEBUG_PRINT("    - compute\n");
     for(int i = 0; i < I; i++) {
         for(int j = 0; j < J; j++) {
             for(int k = 0; k < K; k++) {
               for(int l = 0; l < L; l++) {
-                  a.access(j, i) += access(l, k, i) * d.access(j, l) * c.access(j, k);
+                  a.access(i, j) += access(i,k,l) * d.access(l,j) * c.access(k,j);
               }
             }
         }
@@ -152,6 +152,7 @@ DenseMatrixManager DenseTensor::mttkrp_naive_cpu(DenseMatrix d, DenseMatrix c) {
 }
 
 DenseMatrixManager DenseTensor::mttkrp_naive_gpu(DenseMatrix d, DenseMatrix c) {
+    DEBUG_PRINT("DT: mttkrp naive gpu\n");
     DenseMatrixManager ret;
     assert(values_d != nullptr);
 
@@ -164,6 +165,7 @@ DenseMatrixManager DenseTensor::mttkrp_naive_gpu(DenseMatrix d, DenseMatrix c) {
 }
 
 DenseMatrixManager DenseTensor::mttkrp_fast(DenseMatrix d, DenseMatrix c) {
+    DEBUG_PRINT("DT: mttkrp fast\n");
     DenseMatrixManager ret;
 
     // TODO
@@ -175,8 +177,8 @@ DenseMatrixManager DenseTensor::mttkrp_fast(DenseMatrix d, DenseMatrix c) {
 }
 
 
-void DenseMatrix::setSize_d(unsigned int width, unsigned int height) {
-    DEBUG_PRINT("DM: setSize_d (w %d, h %d)\n", width, height);
+void DenseMatrix::setSize_d(unsigned int height, unsigned int width) {
+    DEBUG_PRINT("DM: setSize_d (h %d, w %d)\n", height, width);
     freeDeviceArrays();
     cudaErrorCheck(cudaMalloc((void **) &values_d, sizeof(float) * width*height));
     assert(values_d != nullptr);
