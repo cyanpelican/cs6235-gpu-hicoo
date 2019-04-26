@@ -23,7 +23,7 @@ enum PointSorting {
     Z_MORTON
 };
 
-class DenseMatrix;
+class DenseMatrixManager;
 class HicooTensorManager;
 class DenseTensorManager;
 struct CooTensor {
@@ -128,9 +128,9 @@ struct CooTensor {
 
     /* compute functions */
     // A(i,j) = B(i,k,l) * D(l,j) * C(k,j);
-    DenseMatrixManager mttkrp_naive_cpu(DenseMatrix d, DenseMatrix c);
-    DenseMatrixManager mttkrp_naive_gpu_wrapper(DenseMatrix d, DenseMatrix c);
-    DenseMatrixManager mttkrp_fast(DenseMatrix d, DenseMatrix c);
+    DenseMatrixManager mttkrp_naive_cpu(DenseMatrixManager d, DenseMatrixManager c);
+    DenseMatrixManager mttkrp_naive_gpu(DenseMatrixManager d, DenseMatrixManager c);
+    DenseMatrixManager mttkrp_fast(DenseMatrixManager d, DenseMatrixManager c);
     // TODO
 };
 
