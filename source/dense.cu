@@ -61,6 +61,7 @@ void DenseMatrix::freeDeviceArrays() {
 // safely uploads to gpu
 void DenseMatrix::uploadToDevice() {
     DEBUG_PRINT("DM: upload to device\n");
+    assert(values_h != nullptr);
     freeDeviceArrays();
     cudaErrorCheck(cudaMalloc((void **) &values_d, sizeof(float) * width*height));
     assert(values_d != nullptr);
@@ -70,6 +71,7 @@ void DenseMatrix::uploadToDevice() {
 // safely downloads from gpu
 void DenseMatrix::downloadToHost() {
     DEBUG_PRINT("DM: download to host\n");
+    assert(values_d != nullptr);
     freeHostArrays();
     values_h = (float*)malloc(sizeof(float) * width*height);
     assert(values_h != nullptr);
