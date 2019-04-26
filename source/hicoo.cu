@@ -142,6 +142,7 @@ DenseMatrixManager HicooTensor::mttkrp_naive_gpu(DenseMatrixManager D, DenseMatr
     d.uploadToDevice();
 
     assert(this->points_d != nullptr);
+    assert(this->blocks_d != nullptr);
     //check for compatible dimensions
     assert(this->width == d.width);
     assert(this->depth == c.width);
@@ -171,34 +172,27 @@ __global__ void mttkrp_naive_gpu_kernel(HicooTensor hicooTensor, DenseMatrix d, 
 
     DenseMatrix& a = ret;
 
-    assert(hicooTensor.points_h != nullptr);
-    assert(hicooTensor.blocks_h != nullptr);
-
     //Naive: each thread is a block
     unsigned int index = blockDim.x * blockIdx.x + threadIdx.x;
     if(index < hicooTensor.numBlocks) {
         // A(i,j) = B(i,k,l) * D(l,j) * C(k,j);
         int J = d.width, K = hicooTensor.height, L = hicooTensor.width; //I = hicooTensor.depth
-        
-	assert(d.height == L);
-        assert(c.height == K);
-        assert(c.width == J);
+    
 
         //each thread gets a block
-        for (int b = 0; b < hicooTensor.numBlocks; b++) {
-            HicooBlock block = hicooTensor.access_block(b);
-            unsigned long long startBlockAddress = block.blockAddress;
-            unsigned long long endBlockAddress = hicooTensor.access_block(b + 1).blockAddress;
-            for (unsigned long long index = startBlockAddress; index < endBlockAddress; index++) {
-                HicooPoint point = hicooTensor.access_point(index);
+        HicooBlock block = hicooTensor.access_block(index);
+        unsigned long long startBlockAddress = block.blockAddress;
+        unsigned long long endBlockAddress = hicooTensor.access_block(b + 1).blockAddress;
+        for (unsigned long long index = startBlockAddress; index < endBlockAddress; index++) {
+            HicooPoint point = hicooTensor.access_point(index);
 
-                int l = block.blockX * hicooTensor.blockWidth + point.x;
-                int k = block.blockY * hicooTensor.blockHeight + point.y;
-                int i = block.blockZ * hicooTensor.blockDepth + point.z;
+            int l = block.blockX * hicooTensor.blockWidth + point.x;
+            int k = block.blockY * hicooTensor.blockHeight + point.y;
+            int i = block.blockZ * hicooTensor.blockDepth + point.z;
 
-                for (int j = 0; j < J; j++) {
-                    a.access(i, j) += point.value * d.access(l, j) * c.access(k, j);
-                }
+            for (int j = 0; j < J; j++) {
+                float val = point.value * d.access(l, j) * c.access(k, j);
+                atomicAdd(&a.access(i,j), val);
             }
         }
     }
