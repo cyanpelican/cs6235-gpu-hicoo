@@ -8,6 +8,7 @@
 #include "coo.hpp"
 #include "common.hpp"
 #include "dense.hpp"
+#include "hicoo.hpp"
 
 using namespace std;
 
@@ -53,7 +54,7 @@ int main(int argc, char *argv[]) {
 	printf("Creating TensorManager Objects... ");
 	CooTensorManager Coo;
 	DenseTensorManager B;
-	//HiooTensorManager Hicoo
+	HicooTensorManager Hicoo;
 	printf("Done.\n");
 	
 
@@ -77,7 +78,9 @@ int main(int argc, char *argv[]) {
 	}
 	printf("Done.\n");
 
-	/*=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-   MATLAB TENSOR / MATRICES -=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
+	/*=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-   MATLAB TENSOR / MATRIX VALIDATION CODE =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
+	
+	// STRUCTURE OF MATLAB TENSOR:
 
 	// y = i, x = j, z = k;
 	//    /    j
@@ -88,6 +91,7 @@ int main(int argc, char *argv[]) {
 	//   ============/
 	
 
+	/*
 	DenseTensorManager matlab;
 	matlab.tensor->tensor.setSize(3,3,3);
 
@@ -99,7 +103,7 @@ int main(int argc, char *argv[]) {
 	matlab.tensor->tensor.access(0,1,1) = 0.2911;
 	matlab.tensor->tensor.access(0,1,2) = 0.2135;
 
-	matlab.tensor->tensor.access(0,2,0) = 0.2345 ;
+	matlab.tensor->tensor.access(0,2,0) = 0.2345;
 	matlab.tensor->tensor.access(0,2,1) = 0.2098;
 	matlab.tensor->tensor.access(0,2,2) = 0.1484;
 	
@@ -161,8 +165,32 @@ int main(int argc, char *argv[]) {
 	    }
 	    printf("\n");
 	}
+	
+	/* =========   OUTPUT FROM ABOVE CALC    =========
+
+	1.175773 1.701301 0.298766 
+	1.466742 1.484061 0.644793 
+	1.824243 1.883446 0.592149 
+	
+	/* =========   MTTKRP CODE FROM MATLAB:  =========
+
+	n = 1
+	KRP = khatrirao(D,C); %<--Khatri-Rao product, omitting U{2}
+	M = permute(X.data, [n:size(X,n), 1:n-1]);
+	M = reshape(M,size(X,n),[]); %<--Matricized tensor data
+	M*KRP
+
+	ans =
+
+    	1.1757    1.7013    0.2988
+    	1.4666    1.4841    0.6449
+    	1.8243    1.8836    0.5922
+	
 
 	exit(0);
+
+	=================================================*/
+
 	/*-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
 
 	printf("Creating Random Dense Matrices (D,C) for testing... ");
@@ -177,30 +205,12 @@ int main(int argc, char *argv[]) {
 	}
 	printf("Done.\n");
 
-
-	printf("Creating DenseMatrixManager for return Matrix (A)... ");
-	DenseMatrixManager retDense;
-	retDense.tensor->tensor.setSize(dimSize,dimSize);
-	printf("Done.\n");
-	printf("Creating CooMatrixManager for return Matrix (A)... ");
-        DenseMatrixManager retCoo;
-	printf("Done.\n");
-
-
 	printf("\n=================== Beginning Kernel Tests on COO Tensor ===================\n\n");
 	printf("Testing Dense Kernel Access function... ");
 	float retValue = B.tensor->tensor.access(testI,testJ,testK);
 	if (retValue == testValue) { printf("Passed. (%f and %f)\n",testValue,retValue); }
 	else { printf("Failed. (Expected %f, returned %f)\n",testValue, retValue); }
 	
-	printf("Calculating MTTKRP (Dense)  value based on naive CPU Kernel (Ground Truth)... ");
-	for (unsigned int i = 0; i < dimSize; i++) {
-	for (unsigned int k = 0; k < dimSize; k++) {
-        for (unsigned int l = 0; l < dimSize; l++) {
-        for (unsigned int j = 0; j < d.height; j++) {
-           retDense.tensor->tensor.access(i,j) = retDense.tensor->tensor.access(i,j) + B.tensor->tensor.access(i,k,l) * d.access(l,j) * c.access(k,j);
-        }}}}
-	printf("Done.\n");
 	
 
 	printf("Creating CooTensor from known data for comparison... ");
@@ -233,87 +243,70 @@ int main(int argc, char *argv[]) {
 	else { printf("Passed.\n"); }
 
 
+	//DenseMatixManager Variables
+	printf("Creating DenseMatrixManager for Dense return Matrix (A)... ");
+        DenseMatrixManager retDense;
+        retDense.tensor->tensor.setSize(dimSize,dimSize);
+        printf("Done.\n");
+        printf("Creating DenseMatrixManager(s) for COO return Matrix (A)... ");
+        DenseMatrixManager retCooCPU;
+	DenseMatrixManager retCooGPU;
+        printf("Done.\n");
+	printf("Creating DenseMatrixManager for HiCOO return Matrix (A)... ");
+        DenseMatrixManager retHiCooCPU;
+	DenseMatrixManager retHiCooGPU;
+        printf("Done.\n");
 
+
+	printf("Calculating MTTKRP (Dense)  value based on naive CPU Kernel (Ground Truth)... ");
+        for (unsigned int i = 0; i < dimSize; i++) {
+        for (unsigned int k = 0; k < dimSize; k++) {
+        for (unsigned int l = 0; l < dimSize; l++) {
+        for (unsigned int j = 0; j < d.height; j++) {
+           retDense.tensor->tensor.access(i,j) = retDense.tensor->tensor.access(i,j) + B.tensor->tensor.access(i,k,l) * d.access(l,j) * c.access(k,j);
+        }}}}
+        printf("Done.\n");		
 	printf("Calculating MTTKRP (Coo) using implemented CPU kernel function call... ");	
-	retCoo = Coo.tensor->tensor.mttkrp_naive_cpu(d, c);
+	retCooCPU = Coo.tensor->tensor.mttkrp_naive_cpu(d, c);
 	printf("Done.\n");
-
+	printf("\nCalculating MTTKRP (Coo) using implemented GPU kernel function call... ");
+        retCooGPU = Coo.tensor->tensor.mttkrp_naive_gpu_wrapper(d,c); //COO GPU KERNEL
+        printf("Done\n");
 
 	printf("Comparing Dense implementation to CPU Kernel Call (Ground truth vs Coo.naive_cpu)... ");        
-	compareOutput(retDense.tensor->tensor, retCoo.tensor->tensor);
+	compareOutput(retDense.tensor->tensor, retCooCPU.tensor->tensor);
 
 	printf("Comparing Kevin's Dense implementation to CPU Kernel Call (Dense.naive_cpu vs Coo.naive_cpu)... ");
 	DenseMatrixManager retDenseK = B.tensor->tensor.mttkrp_naive_cpu(d,c);
-	compareOutput(retDenseK.tensor->tensor, retCoo.tensor->tensor);
-
-	printf("GROUND TRUTH ESTABLISHED\n");		
-	printf("\nCalculating MTTKRP (Coo) using implemented GPU kernel function call... ");
-	retCoo = Coo.tensor->tensor.mttkrp_naive_gpu_wrapper(d,c); //COO GPU KERNEL
-	printf("Done\n");
-	
+	compareOutput(retDenseK.tensor->tensor, retCooCPU.tensor->tensor);
+			
 	printf("Comparing GPU Kernel Call to Ground Truth (Coo.naive_gpu vs Ground truth)... ");
-	compareOutput(retCoo.tensor->tensor, retDense.tensor->tensor);
+	compareOutput(retCooGPU.tensor->tensor, retDense.tensor->tensor);
 
-	retDense = Coo.tensor->tensor.mttkrp_naive_cpu(d, c); 
 	printf("Comparing GPU Kernel Call to CPU Kernel Call (Coo.naive_gpu vs Coo.naive_cpu)... ");
-        compareOutput(retCoo.tensor->tensor, retDense.tensor->tensor);
+        compareOutput(retCooGPU.tensor->tensor, retCooCPU.tensor->tensor);
 
 	printf("\n=================== Beginning Kernel Tests on HiCOO Tensor ===================\n\n");
 
 
-	/*printf("Creating HiCOO Tensor from known data for comparison... ");
-        srand(RANDOM_SEED);
-        for (int i = 0; i < dimSize; i++) {
-        for (int j = 0; j < dimSize; j++) {
-        for (int k = 0; k < dimSize; k++) {
-           int idx = i*dimSize*dimSize + j*dimSize + k;
-           CooPoint p;
-           p.x = k; p.y = j; p.z = i;
-           p.value = rand() / (float) RAND_MAX;
-           if(p.value > 1e-4) Coo.tensor->tensor.access(idx) = p;
-        }}}
+	printf("Testing COO -> HiCOO Tensor conversion function... ");
+	Hicoo = Coo.tensor->tensor.toHicoo();
+	printf("Done.\n");
+
+
+        printf("Calculating MTTKRP (HiCOO) using implemented CPU kernel function call... ");
+        retHiCooCPU = Hicoo.tensor->tensor.mttkrp_naive_cpu(d, c);
         printf("Done.\n");
 
+	printf("TODO: Calculate MTTKRP (HiCOO) using implemented GPU kernel function call\n");
 
-        printf("Testing Dense to Coo conversion function... ");
-        CooTensorManager CooComp = B.tensor->tensor.toCoo();
-        bool mismatch = 0;
-        for (int idx = 0; idx < dimSize*dimSize*dimSize; idx++) {
-                CooPoint a, b;
-                a = Coo.tensor->tensor.access(idx);
-                b = CooComp.tensor->tensor.access(idx);
-                if (a.x != b.x || a.y != b.y || a.z != b.z || a.value != b.value) {
-                        mismatch = 1;
-                        printf("    idx: %d  x: %d/%d  y: %d/%d  z: %d/%d  val: %d/%d\n",idx,a.x,b.x,a.y,b.y,a.z,b.z,a.value,b.value);
-                }
-        }
-        if (mismatch) { printf("... Failed.\n"); }
-        else { printf("Passed.\n"); }
-
-
-
-        printf("Calculating MTTKRP (Coo) using implemented CPU kernel function call... ");
-        retCoo = Coo.tensor->tensor.mttkrp_naive_cpu(d, c);
-        printf("Done.\n");
-
-
-        printf("Comparing Dense implementation to CPU Kernel Call (Ground truth vs Coo.naive_cpu)... ");
-        compareOutput(retDense.tensor->tensor, retCoo.tensor->tensor);
-
-        printf("Comparing Kevin's Dense implementation to CPU Kernel Call (Dense.naive_cpu vs Coo.naive_cpu)... ");
-        DenseMatrixManager retDenseK = B.tensor->tensor.mttkrp_naive_cpu(d,c);
-        compareOutput(retDenseK.tensor->tensor, retCoo.tensor->tensor);
-
-        printf("GROUND TRUTH ESTABLISHED\n");
-        printf("\nCalculating MTTKRP (Coo) using implemented GPU kernel function call... ")
-        retCoo = Coo.tensor->tensor.mttkrp_naive_gpu_wrapper(d,c);
-        printf("Done\n");
-
-        printf("Comparing GPU Kernel Call to Ground Truth (Coo.naive_gpu vs Ground truth)... ");
-        compareOutput(retCoo.tensor->tensor, retDense.tensor->tensor);	
-	*/
-
+        printf("Comparing Dense implementation to CPU Kernel Call (Ground truth vs HiCoo.naive_cpu)... ");
+        compareOutput(retDense.tensor->tensor, retHiCooCPU.tensor->tensor);
 	
+	printf("TODO: Compare GPU Kernel Call to CPU Kernel Call (HiCoo.naive_gpu vs HiCoo.naive_cpu\n");
+
+
+
 	printf("That's a wrap\n");
 	return 0;
 }
