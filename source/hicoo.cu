@@ -176,13 +176,13 @@ __global__ void mttkrp_naive_gpu_kernel(HicooTensor hicooTensor, DenseMatrix d, 
     unsigned int index = blockDim.x * blockIdx.x + threadIdx.x;
     if(index < hicooTensor.numBlocks) {
         // A(i,j) = B(i,k,l) * D(l,j) * C(k,j);
-        int J = d.width, K = hicooTensor.height, L = hicooTensor.width; //I = hicooTensor.depth
+        int J = d.width;// K = hicooTensor.height, L = hicooTensor.width, I = hicooTensor.depth
     
 
         //each thread gets a block
         HicooBlock block = hicooTensor.access_block(index);
         unsigned long long startBlockAddress = block.blockAddress;
-        unsigned long long endBlockAddress = hicooTensor.access_block(b + 1).blockAddress;
+        unsigned long long endBlockAddress = hicooTensor.access_block(index + 1).blockAddress;
         for (unsigned long long index = startBlockAddress; index < endBlockAddress; index++) {
             HicooPoint point = hicooTensor.access_point(index);
 
