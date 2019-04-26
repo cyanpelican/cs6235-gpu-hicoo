@@ -26,7 +26,6 @@ void compareOutput(DenseMatrix a, DenseMatrix b) {
             if (abs(a.access(i,j) - b.access(i,j)) > 1e-4) {
                 printf("\n    Outputs do not match at index (%d,%d): %f vs %f", i,j, a.access(i,j), b.access(i,j));
                 success = 0;
-		break;
             }
         }
     }
