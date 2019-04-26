@@ -134,7 +134,7 @@ DenseTensorManager CooTensor::toDense() {
 }
 
 
-DenseMatrixManager CooTensor::mttkrp_naive_cpu(DenseMatrixManager d, DenseMatrixManager c) {
+DenseMatrixManager CooTensor::mttkrp_naive_cpu(DenseMatrixManager D, DenseMatrixManager C) {
     //order of dimensions goes height, width, depth
 
     //assert(this->points_h != nullptr);
@@ -162,6 +162,8 @@ DenseMatrixManager CooTensor::mttkrp_naive_cpu(DenseMatrixManager d, DenseMatrix
 
     DenseMatrixManager ret;
     DenseMatrix& a = ret;
+    DenseMatrix& c = C;
+    DenseMatrix& d = D;
 
     // A(i,j) = B(i,k,l) * D(l,j) * C(k,j);
     int I = this->depth, J = d.width, K = this->height, L = this->width;
@@ -223,10 +225,12 @@ __global__ void mttkrp_naive_gpu_kernel(CooTensor cooTensor, DenseMatrix d, Dens
 
 
 //wrapper function for the sake of convenience
-DenseMatrixManager CooTensor::mttkrp_naive_gpu(DenseMatrixManager d, DenseMatrixManager c) {
+DenseMatrixManager CooTensor::mttkrp_naive_gpu(DenseMatrixManager D, DenseMatrixManager C) {
     this->uploadToDevice();
 
     DenseMatrixManager ret;
+    DenseMatrix& c = C;
+    DenseMatrix& d = D;
 
     ret.tensor->tensor.setSize_d(d.height, this->height);
     d.uploadToDevice();
@@ -242,8 +246,6 @@ DenseMatrixManager CooTensor::mttkrp_naive_gpu(DenseMatrixManager d, DenseMatrix
     cudaDeviceSynchronize();
 
     ret.tensor->tensor.downloadToHost();
-    d.freeDeviceArrays();
-    c.freeDeviceArrays();
 
     return ret;
 }
