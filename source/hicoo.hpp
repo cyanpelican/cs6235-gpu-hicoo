@@ -67,7 +67,7 @@ struct HicooTensor {
     // safely downloads from gpu
     void downloadToHost();
 
-    // a safe function to get a block on either host or device; TODO - test
+    // a handy function to get a block on either host or device
     HicooBlock& __host__ __device__ access_block(unsigned int blockIndex) {
         #ifdef __CUDA_ARCH__
             return blocks_d[blockIndex];
@@ -76,7 +76,7 @@ struct HicooTensor {
         #endif
     }
 
-    // a safe function to get an element on either host or device; TODO - test
+    // a handy function to get an element on either host or device
     HicooPoint& __host__ __device__ access_point(unsigned long long pointIndex) {
         #ifdef __CUDA_ARCH__
             return points_d[pointIndex];
@@ -85,14 +85,14 @@ struct HicooTensor {
         #endif
     }
 
-    // a safe function to get an element on either host or device; TODO - test
+    // a handy function to get an element on either host or device
     HicooPoint& __host__ __device__ access_pointInBlock(unsigned int blockIndex, unsigned long long pointIndex) {
         return access_point(pointIndex + access_block(blockIndex).blockAddress);
     }
 
 
-    void setSize(unsigned int numBlocks, unsigned int numPoints, unsigned int width, unsigned int height, unsigned int depth, unsigned int blockWidth, unsigned int blockHeight, unsigned int blockDepth) {
-        DEBUG_PRINT("HT: set size (nb %d, np %d, w %d, h %d, d %d, bw %d, bh %d, bd %d)\n", numBlocks, numPoints, width, height, depth, blockWidth, blockHeight, blockDepth);
+    void setSize(unsigned int numBlocks, unsigned int numPoints, unsigned int depth, unsigned int height, unsigned int width, unsigned int blockDepth, unsigned int blockHeight, unsigned int blockWidth) {
+        DEBUG_PRINT("HT: set size (nb %d, np %d, d %d, h %d, w %d, bd %d, bh %d, bw %d)\n", numBlocks, numPoints, depth, height, width, blockDepth, blockHeight, blockWidth);
         freeAllArrays();
         points_h = (HicooPoint*)malloc(sizeof(HicooPoint) * numPoints);
         blocks_h = (HicooBlock*)malloc(sizeof(HicooBlock) * (numBlocks+1));
