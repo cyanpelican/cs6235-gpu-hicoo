@@ -39,8 +39,8 @@ struct DenseTensor {
     // safely downloads from gpu
     void downloadToHost();
 
-    // a safe function to get an element on either host or device; TODO - test
-    __host__ __device__ float& access(unsigned int i, unsigned int j, unsigned int k) {
+    // a handy function to get an element on either host or device
+    float& __host__ __device__ access(unsigned int i, unsigned int j, unsigned int k) {
         #ifdef __CUDA_ARCH__
             return values_d[i*height*width + j*width + k];
         #else
@@ -48,8 +48,8 @@ struct DenseTensor {
         #endif
     }
 
-    void setSize(unsigned int width, unsigned int height, unsigned int depth) {
-        DEBUG_PRINT("DT: setSize (w %d, h %d, d %d)\n", width, height, depth);
+    void setSize(unsigned int depth, unsigned int height, unsigned int width) {
+        DEBUG_PRINT("DT: setSize (d %d, h %d, w %d)\n", depth, height, width);
         freeAllArrays();
         values_h = (float*)malloc(sizeof(float) * width*height*depth);
         assert(values_h != nullptr);
@@ -74,7 +74,6 @@ struct DenseTensor {
     DenseMatrixManager mttkrp_naive_cpu(DenseMatrix d, DenseMatrix c);
     DenseMatrixManager mttkrp_naive_gpu(DenseMatrix d, DenseMatrix c);
     DenseMatrixManager mttkrp_fast(DenseMatrix d, DenseMatrix c);
-    // TODO
 };
 
 
@@ -110,8 +109,8 @@ struct DenseMatrix {
     // safely downloads from gpu
     void downloadToHost();
 
-    // a safe function to get an element on either host or device; TODO - test
-    __host__ __device__ float& access(unsigned int i, unsigned int j) {
+    // a handy function to get an element on either host or device
+    float& __host__ __device__ access(unsigned int i, unsigned int j) {
         #ifdef __CUDA_ARCH__
             return values_d[i*width + j];
         #else
@@ -119,8 +118,8 @@ struct DenseMatrix {
         #endif
     }
 
-    void setSize(unsigned int width, unsigned int height) {
-        DEBUG_PRINT("DM: set size (w %d, h %d)\n", width, height);
+    void setSize(unsigned int height, unsigned int width) {
+        DEBUG_PRINT("DM: set size (h %d, w %d)\n", height, width);
         freeAllArrays();
         values_h = (float*)malloc(sizeof(float) * width*height);
         assert(values_h != nullptr);
@@ -128,13 +127,13 @@ struct DenseMatrix {
         this->width = width;
         this->height = height;
     }
-    void setSize_d(unsigned int width, unsigned int height);
+    void setSize_d(unsigned int height, unsigned int width);
 
     unsigned long long getTotalMemory() {
         DEBUG_PRINT("DM: get total memory\n");
         return sizeof(float) * width*height + sizeof(DenseMatrix);
     }
-  
+
     // TODO
     //  - have a create function, even an all 1's dense matrix will do
 };
