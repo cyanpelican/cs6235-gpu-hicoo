@@ -155,21 +155,35 @@ int main(int argc, char *argv[]) {
 	printf("Comparing Dense implementation to CPU Kernel Call (Ground truth vs Coo.naive_cpu)... ");
 	compareOutput(retDense.tensor->tensor, retCoo.tensor->tensor);
 
-	printf("Comparing Kevin's Dense implementation to CPU Kernel Call (Dense.naive_cpu vs Coo.naive_cpu)... ");
-	DenseMatrixManager retDenseK = B.tensor->tensor.mttkrp_naive_cpu(D,C);
-	compareOutput(retDenseK.tensor->tensor, retCoo.tensor->tensor);
+  {
+  	printf("Comparing Kevin's Dense implementation to CPU Kernel Call (Dense.naive_cpu vs Coo.naive_cpu)... ");
+  	DenseMatrixManager retDenseK = B.tensor->tensor.mttkrp_naive_cpu(D,C);
+  	compareOutput(retDenseK.tensor->tensor, retCoo.tensor->tensor);
+  }
 
 	printf("GROUND TRUTH ESTABLISHED\n");
-	printf("\nCalculating MTTKRP (Coo) using implemented GPU kernel function call... ");
-	retCoo = Coo.tensor->tensor.mttkrp_naive_gpu(D,C); //COO GPU KERNEL
-	printf("Done\n");
 
-	printf("Comparing GPU Kernel Call to Ground Truth (Coo.naive_gpu vs Ground truth)... ");
-	compareOutput(retCoo.tensor->tensor, retDense.tensor->tensor);
+	{
+    printf("\nCalculating MTTKRP (Coo) using implemented GPU kernel function call... ");
+  	DenseMatrixManager retCooGpu = Coo.tensor->tensor.mttkrp_naive_gpu(D,C); //COO GPU KERNEL
 
-	retDense = Coo.tensor->tensor.mttkrp_naive_cpu(D, C);
-	printf("Comparing GPU Kernel Call to CPU Kernel Call (Coo.naive_gpu vs Coo.naive_cpu)... ");
-        compareOutput(retCoo.tensor->tensor, retDense.tensor->tensor);
+    printf("Comparing GPU Kernel Call to Ground Truth (Coo.naive_gpu vs Ground truth)... ");
+  	compareOutput(retCoo.tensor->tensor, retCooGpu.tensor->tensor);
+  }
+
+  printf("Converting to hicoo\n");
+  HicooTensorManager Hicoo = Coo.tensor->toHicoo();
+  {
+  	DenseMatrixManager retHicoo = Hicoo.tensor->tensor.mttkrp_naive_cpu(D, C);
+  	printf("Testing Hicoo cpu MTTKRP... ");
+    compareOutput(retCoo.tensor->tensor, retHicoo.tensor->tensor);
+  }
+
+  {
+  	DenseMatrixManager retHicoo = Hicoo.tensor->tensor.mttkrp_naive_gpu(D, C);
+  	printf("Testing Hicoo gpu MTTKRP... ");
+    compareOutput(retCoo.tensor->tensor, retHicoo.tensor->tensor);
+  }
 
 	printf("\n=================== Beginning Kernel Tests on HiCOO Tensor ===================\n\n");
 
