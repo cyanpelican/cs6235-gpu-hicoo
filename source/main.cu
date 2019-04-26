@@ -260,7 +260,7 @@ int main(int argc, char *argv[]) {
 	DenseMatrixManager retCooCPU = Coo.tensor->tensor.mttkrp_naive_cpu(D, C);
 	printf("Done.\n");
 	printf("\nCalculating MTTKRP (Coo) using implemented GPU kernel function call... ");
-        retCooGPU = Coo.tensor->tensor.mttkrp_naive_gpu_wrapper(d,c); //COO GPU KERNEL
+        DenseMatrixManager retCooGPU = Coo.tensor->tensor.mttkrp_naive_gpu(d,c); //COO GPU KERNEL
         printf("Done\n");
 
   
@@ -281,39 +281,22 @@ int main(int argc, char *argv[]) {
   	compareOutput(retCooCPU.tensor->tensor, retCooGpu.tensor->tensor);
   }
 
+
+	printf("\n=================== Beginning Kernel Tests on HiCOO Tensor ===================\n\n");
+
   printf("Converting to hicoo\n");
-  HicooTensorManager Hicoo = Coo.tensor->tensor.toHicoo();
+  Hicoo = Coo.tensor->tensor.toHicoo();
   {
   	DenseMatrixManager retHicoo = Hicoo.tensor->tensor.mttkrp_naive_cpu(D, C);
-  	printf("Testing Hicoo cpu MTTKRP... ");
+        printf("Calculating MTTKRP (HiCOO) using implemented CPU kernel function call... ");
     compareOutput(retCooCPU.tensor->tensor, retHicoo.tensor->tensor);
   }
 
   {
   	DenseMatrixManager retHicoo = Hicoo.tensor->tensor.mttkrp_naive_gpu(D, C);
-  	printf("Testing Hicoo gpu MTTKRP... ");
+        printf("Comparing Coo implementation to CPU Kernel Call (Ground truth vs HiCoo.naive_cpu)... ");
     compareOutput(retCooCPU.tensor->tensor, retHicoo.tensor->tensor);
   }
-
-	printf("\n=================== Beginning Kernel Tests on HiCOO Tensor ===================\n\n");
-
-
-	printf("Testing COO -> HiCOO Tensor conversion function... ");
-	Hicoo = Coo.tensor->tensor.toHicoo();
-	printf("Done.\n");
-
-
-        printf("Calculating MTTKRP (HiCOO) using implemented CPU kernel function call... ");
-        retHiCooCPU = Hicoo.tensor->tensor.mttkrp_naive_cpu(d, c);
-        printf("Done.\n");
-
-	printf("TODO: Calculate MTTKRP (HiCOO) using implemented GPU kernel function call\n");
-
-        printf("Comparing Dense implementation to CPU Kernel Call (Ground truth vs HiCoo.naive_cpu)... ");
-        compareOutput(retDense.tensor->tensor, retHiCooCPU.tensor->tensor);
-	
-	printf("TODO: Compare GPU Kernel Call to CPU Kernel Call (HiCoo.naive_gpu vs HiCoo.naive_cpu\n");
-
 
 	printf("That's a wrap\n");
 	return 0;
