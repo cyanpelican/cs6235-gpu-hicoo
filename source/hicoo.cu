@@ -108,7 +108,7 @@ DenseMatrixManager HicooTensor::mttkrp_naive_cpu(DenseMatrixManager D, DenseMatr
     //for each non-zero
     DEBUG_PRINT("    - performing operation\n");
 
-    for (int b = 0; b < this->numBlocks - 1; b++) {
+    for (int b = 0; b < this->numBlocks; b++) {
         HicooBlock block = this->access_block(b);
         unsigned long long startBlockAddress = block.blockAddress;
         unsigned long long endBlockAddress = this->access_block(b+1).blockAddress;
