@@ -1,6 +1,9 @@
 
 #ifndef COMMON_HPP
 #define COMMON_HPP
+#include <chrono>
+#include <ctime>
+#include <iostream>
 
 // This is just to get CLion happy
 // I'll try not to stage it, so if you see this, feel free to throw all the
@@ -20,14 +23,27 @@
  }
 
 // set to true to enable debug prints
-#define DEBUG_PRINT_ENABLE false
+#define DEBUG_PRINT_ENABLE true
 
 #if DEBUG_PRINT_ENABLE
- #define DEBUG_PRINT(...) printf("\tDEBUG %s : %d:::   ", __FILE__, __LINE__);\
-  printf( __VA_ARGS__ );\
-  fflush(stdout)
+  inline void __print_debug_header(std::string file, unsigned int line) {
+    // time-as-string from https://stackoverflow.com/questions/16357999/current-date-and-time-as-string
+    //  and https://stackoverflow.com/questions/14370279/prevent-endline-after-printing-system-time
+    auto t = std::time(nullptr);
+    auto tm = std::localtime(&t);
+    char* timeStr = asctime(tm);
+
+    timeStr[strlen(timeStr)-1] = 0;
+
+    std::cout << "\tDEBUG " << timeStr <<
+        " : \t" << file << " : " << line << ":::  \t ";
+  }
+  #define DEBUG_PRINT(...) \
+    __print_debug_header(__FILE__, __LINE__);\
+    printf( __VA_ARGS__ );\
+    fflush(stdout)
 #else
-#define DEBUG_PRINT(...) /* */
+  #define DEBUG_PRINT(...) /* */
 #endif
 
-#endif
+#endif //COMMON_HPP
