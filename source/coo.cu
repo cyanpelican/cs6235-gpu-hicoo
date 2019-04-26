@@ -133,16 +133,6 @@ DenseTensorManager CooTensor::toDense() {
 
 
 DenseMatrixManager CooTensor::mttkrp_naive_cpu(DenseMatrix d, DenseMatrix c) {
-    //order of dimensions goes height, width , depth
-    //todo: double check this. It might be x,y,z: width, height, depth
-
-    //assert(this->points_h != nullptr);
-    //check for compatible dimensions
-    //assert(this->width == d.width);
-    //assert(this->depth == c.width);
-
-
-
     /*
       * for each non-zero
       *      i = nnz.i, l = nnz.l, k = nnz.k
@@ -188,6 +178,8 @@ DenseMatrixManager CooTensor::mttkrp_naive_cpu(DenseMatrix d, DenseMatrix c) {
     }
 
     return ret;
+
+    //old taco-inspired kernel:
 //    for (unsigned int i = 0; i < this->height; i++) {
 //        for (unsigned int k = 0; k < this->width; k++) {
 //            for (unsigned int l = 0; l < this->depth; l++) {
