@@ -134,9 +134,8 @@ DenseTensorManager CooTensor::toDense() {
 }
 
 
-DenseMatrixManager CooTensor::mttkrp_naive_cpu(DenseMatrix d, DenseMatrix c) {
-    //order of dimensions goes height, width , depth
-    //todo: double check this. It might be x,y,z: width, height, depth
+DenseMatrixManager CooTensor::mttkrp_naive_cpu(DenseMatrixManager D, DenseMatrixManager C) {
+    //order of dimensions goes height, width, depth
 
     //assert(this->points_h != nullptr);
     //check for compatible dimensions
@@ -163,6 +162,8 @@ DenseMatrixManager CooTensor::mttkrp_naive_cpu(DenseMatrix d, DenseMatrix c) {
 
     DenseMatrixManager ret;
     DenseMatrix& a = ret;
+    DenseMatrix& c = C;
+    DenseMatrix& d = D;
 
     // A(i,j) = B(i,k,l) * D(l,j) * C(k,j);
     int I = this->depth, J = d.width, K = this->height, L = this->width;
@@ -192,7 +193,7 @@ DenseMatrixManager CooTensor::mttkrp_naive_cpu(DenseMatrix d, DenseMatrix c) {
 
 
 //Not declared as part of the class... Cuda doesn't like it's kernels as part of OOP
-__global__ void mttkrp_naive_gpu(CooTensor cooTensor, DenseMatrix d, DenseMatrix c, DenseMatrix ret) {
+__global__ void mttkrp_naive_gpu_kernel(CooTensor cooTensor, DenseMatrix d, DenseMatrix c, DenseMatrix ret) {
     /*
      * for each non-zero
      *      i = nnz.i, l = nnz.l, k = nnz.k
@@ -224,13 +225,14 @@ __global__ void mttkrp_naive_gpu(CooTensor cooTensor, DenseMatrix d, DenseMatrix
 
 
 //wrapper function for the sake of convenience
-DenseMatrixManager CooTensor::mttkrp_naive_gpu_wrapper(DenseMatrix d, DenseMatrix c) {
+DenseMatrixManager CooTensor::mttkrp_naive_gpu(DenseMatrixManager D, DenseMatrixManager C) {
     this->uploadToDevice();
 
     DenseMatrixManager ret;
+    DenseMatrix& c = C;
+    DenseMatrix& d = D;
 
     ret.tensor->tensor.setSize_d(d.height, this->height);
-    ret.tensor->tensor.uploadToDevice();
     d.uploadToDevice();
     c.uploadToDevice();
 
@@ -240,7 +242,7 @@ DenseMatrixManager CooTensor::mttkrp_naive_gpu_wrapper(DenseMatrix d, DenseMatri
     assert(this->depth == c.width);
 
     //todo: split up the blocks & blocks per threads appropriately
-    mttkrp_naive_gpu<<<ceil(this->numElements/64.0), 64>>>(*this, d, c, ret.tensor->tensor);
+    mttkrp_naive_gpu_kernel<<<ceil(this->numElements/64.0), 64>>>(*this, d, c, ret);
     cudaDeviceSynchronize();
 
     ret.tensor->tensor.downloadToHost();
@@ -249,7 +251,7 @@ DenseMatrixManager CooTensor::mttkrp_naive_gpu_wrapper(DenseMatrix d, DenseMatri
 }
 
 
-DenseMatrixManager CooTensor::mttkrp_fast(DenseMatrix d, DenseMatrix c) {
+DenseMatrixManager CooTensor::mttkrp_fast(DenseMatrixManager d, DenseMatrixManager c) {
     DEBUG_PRINT("CT: fast mttkrp gpu\n");
     DenseMatrixManager ret;
 

@@ -121,11 +121,13 @@ CooTensorManager DenseTensor::toCoo(float epsilon) {
 }
 
 
-DenseMatrixManager DenseTensor::mttkrp_naive_cpu(DenseMatrix d, DenseMatrix c) {
+DenseMatrixManager DenseTensor::mttkrp_naive_cpu(DenseMatrixManager D, DenseMatrixManager C) {
     DEBUG_PRINT("DT: mttkrp naive cpu\n");
     DEBUG_PRINT("    - asserts, initialization\n");
     DenseMatrixManager ret;
     DenseMatrix& a = ret;
+    DenseMatrix& c = C;
+    DenseMatrix& d = D;
     assert(values_h != nullptr);
 
     // A(i,j) = B(i,k,l) * D(l,j) * C(k,j);
@@ -153,7 +155,7 @@ DenseMatrixManager DenseTensor::mttkrp_naive_cpu(DenseMatrix d, DenseMatrix c) {
     return ret;
 }
 
-DenseMatrixManager DenseTensor::mttkrp_naive_gpu(DenseMatrix d, DenseMatrix c) {
+DenseMatrixManager DenseTensor::mttkrp_naive_gpu(DenseMatrixManager d, DenseMatrixManager c) {
     DEBUG_PRINT("DT: mttkrp naive gpu\n");
     DenseMatrixManager ret;
     assert(values_d != nullptr);
@@ -166,7 +168,7 @@ DenseMatrixManager DenseTensor::mttkrp_naive_gpu(DenseMatrix d, DenseMatrix c) {
     return ret;
 }
 
-DenseMatrixManager DenseTensor::mttkrp_fast(DenseMatrix d, DenseMatrix c) {
+DenseMatrixManager DenseTensor::mttkrp_fast(DenseMatrixManager d, DenseMatrixManager c) {
     DEBUG_PRINT("DT: mttkrp fast\n");
     DenseMatrixManager ret;
 

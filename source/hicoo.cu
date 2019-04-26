@@ -67,8 +67,10 @@ CooTensorManager HicooTensor::toCoo() {
 }
 
 
-DenseMatrixManager HicooTensor::mttkrp_naive_cpu(DenseMatrix d, DenseMatrix c) {
+DenseMatrixManager HicooTensor::mttkrp_naive_cpu(DenseMatrixManager D, DenseMatrixManager C) {
     DenseMatrixManager ret;
+    DenseMatrix& c = C;
+    DenseMatrix& d = D;
     assert(this->points_h != nullptr);
     assert(points_h != nullptr);
     assert(blocks_h != nullptr);
@@ -130,8 +132,10 @@ DenseMatrixManager HicooTensor::mttkrp_naive_cpu(DenseMatrix d, DenseMatrix c) {
     return ret;
 }
 
-DenseMatrixManager HicooTensor::mttkrp_naive_gpu(DenseMatrix d, DenseMatrix c) {
+DenseMatrixManager HicooTensor::mttkrp_naive_gpu(DenseMatrixManager D, DenseMatrixManager C) {
     DenseMatrixManager ret;
+    DenseMatrix& c = C;
+    DenseMatrix& d = D;
     assert(points_d != nullptr);
     assert(blocks_d != nullptr);
 
@@ -143,8 +147,10 @@ DenseMatrixManager HicooTensor::mttkrp_naive_gpu(DenseMatrix d, DenseMatrix c) {
     return ret;
 }
 
-DenseMatrixManager HicooTensor::mttkrp_fast(DenseMatrix d, DenseMatrix c) {
+DenseMatrixManager HicooTensor::mttkrp_fast(DenseMatrixManager D, DenseMatrixManager C) {
     DenseMatrixManager ret;
+    DenseMatrix& c = C;
+    DenseMatrix& d = D;
 
     // TODO
     assert(0);
