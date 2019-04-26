@@ -109,7 +109,7 @@ int main(int argc, char *argv[]) {
 	for (unsigned int k = 0; k < dimSize; k++) {
         for (unsigned int l = 0; l < dimSize; l++) {
         for (unsigned int j = 0; j < d.height; j++) {
-           retDense.tensor->tensor.access(j,i) = retDense.tensor->tensor.access(j,i) + B.tensor->tensor.access(l,k,i) * d.access(j,l) * c.access(j,k);
+           retDense.tensor->tensor.access(j,i) = retDense.tensor->tensor.access(i,j) + B.tensor->tensor.access(i,k,l) * d.access(l,j) * c.access(k,j);
         }}}}
 	printf("Done.\n");
 	
