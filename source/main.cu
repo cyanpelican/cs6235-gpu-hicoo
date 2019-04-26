@@ -260,7 +260,7 @@ int main(int argc, char *argv[]) {
 	DenseMatrixManager retCooCPU = Coo.tensor->tensor.mttkrp_naive_cpu(D, C);
 	printf("Done.\n");
 	printf("\nCalculating MTTKRP (Coo) using implemented GPU kernel function call... ");
-        DenseMatrixManager retCooGPU = Coo.tensor->tensor.mttkrp_naive_gpu(d,c); //COO GPU KERNEL
+        DenseMatrixManager retCooGPU = Coo.tensor->tensor.mttkrp_naive_gpu(D, C); //COO GPU KERNEL
         printf("Done\n");
 
   
@@ -294,7 +294,7 @@ int main(int argc, char *argv[]) {
 
   {
   	DenseMatrixManager retHicoo = Hicoo.tensor->tensor.mttkrp_naive_gpu(D, C);
-        printf("Comparing Coo implementation to CPU Kernel Call (Ground truth vs HiCoo.naive_cpu)... ");
+        printf("Comparing Hicoo implementation to CPU Kernel Call (Ground truth vs HiCoo.naive_cpu)... ");
     compareOutput(retCooCPU.tensor->tensor, retHicoo.tensor->tensor);
   }
 

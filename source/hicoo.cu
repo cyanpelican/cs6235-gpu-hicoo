@@ -127,20 +127,75 @@ DenseMatrixManager HicooTensor::mttkrp_naive_cpu(DenseMatrixManager D, DenseMatr
 
     return ret;
 }
+__global__ void mttkrp_naive_gpu_kernel(HicooTensor hicooTensor, DenseMatrix d, DenseMatrix c, DenseMatrix ret);
 
+//wrapper function for the sake of convenience
 DenseMatrixManager HicooTensor::mttkrp_naive_gpu(DenseMatrixManager D, DenseMatrixManager C) {
+    this->uploadToDevice();
+
     DenseMatrixManager ret;
     DenseMatrix& c = C;
     DenseMatrix& d = D;
-    assert(points_d != nullptr);
-    assert(blocks_d != nullptr);
 
-    // TODO
-    assert(0);
+    ret.tensor->tensor.setSize_d(this->depth, d.width);
+    c.uploadToDevice();
+    d.uploadToDevice();
 
-    // A(i,j) = B(i,k,l) * D(l,j) * C(k,j);
+    assert(this->points_d != nullptr);
+    assert(this->blocks_d != nullptr);
+    //check for compatible dimensions
+    assert(this->width == d.width);
+    assert(this->depth == c.width);
+
+    //todo: split up the blocks & blocks per threads appropriately
+    mttkrp_naive_gpu_kernel<<<ceil(this->numBlocks/64.0), 64>>>(*this, d, c, ret);
+    cudaDeviceSynchronize();
+
+    ret.tensor->tensor.downloadToHost();
 
     return ret;
+}
+
+//Not declared as part of the class... Cuda doesn't like it's kernels as part of OOP
+__global__ void mttkrp_naive_gpu_kernel(HicooTensor hicooTensor, DenseMatrix d, DenseMatrix c, DenseMatrix ret) {
+    /*
+     * for each block (except the last)
+     *      for each element starting at block address and ending at next block address
+     *          l = blockX * blockWidth + pointX
+     *          k = blockY * blockHeight + pointY
+     *          i = blockZ * blockDepth + pointZ
+     *
+     *          for j = 1..j
+     *              A(i,j) += point.val * C(k,j) + D(l,j)
+     * return A
+     */
+
+    DenseMatrix& a = ret;
+
+    //Naive: each thread is a block
+    unsigned int index = blockDim.x * blockIdx.x + threadIdx.x;
+    if(index < hicooTensor.numBlocks) {
+        // A(i,j) = B(i,k,l) * D(l,j) * C(k,j);
+        int J = d.width;// K = hicooTensor.height, L = hicooTensor.width, I = hicooTensor.depth
+    
+
+        //each thread gets a block
+        HicooBlock block = hicooTensor.access_block(index);
+        unsigned long long startBlockAddress = block.blockAddress;
+        unsigned long long endBlockAddress = hicooTensor.access_block(index + 1).blockAddress;
+        for (unsigned long long index = startBlockAddress; index < endBlockAddress; index++) {
+            HicooPoint point = hicooTensor.access_point(index);
+
+            int l = block.blockX * hicooTensor.blockWidth + point.x;
+            int k = block.blockY * hicooTensor.blockHeight + point.y;
+            int i = block.blockZ * hicooTensor.blockDepth + point.z;
+
+            for (int j = 0; j < J; j++) {
+                float val = point.value * d.access(l, j) * c.access(k, j);
+                atomicAdd(&a.access(i,j), val);
+            }
+        }
+    }
 }
 
 DenseMatrixManager HicooTensor::mttkrp_fast(DenseMatrixManager D, DenseMatrixManager C) {
