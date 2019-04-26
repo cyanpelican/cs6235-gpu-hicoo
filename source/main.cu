@@ -161,7 +161,7 @@ int main(int argc, char *argv[]) {
 
 	printf("GROUND TRUTH ESTABLISHED\n");
 	printf("\nCalculating MTTKRP (Coo) using implemented GPU kernel function call... ");
-	retCoo = Coo.tensor->tensor.mttkrp_naive_gpu_wrapper(D,C); //COO GPU KERNEL
+	retCoo = Coo.tensor->tensor.mttkrp_naive_gpu(D,C); //COO GPU KERNEL
 	printf("Done\n");
 
 	printf("Comparing GPU Kernel Call to Ground Truth (Coo.naive_gpu vs Ground truth)... ");

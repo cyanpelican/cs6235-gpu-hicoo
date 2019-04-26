@@ -242,7 +242,7 @@ DenseMatrixManager CooTensor::mttkrp_naive_gpu(DenseMatrixManager D, DenseMatrix
     assert(this->depth == c.width);
 
     //todo: split up the blocks & blocks per threads appropriately
-    mttkrp_naive_gpu<<<ceil(this->numElements/64.0), 64>>>(*this, d, c, ret.tensor->tensor);
+    mttkrp_naive_gpu_kernel<<<ceil(this->numElements/64.0), 64>>>(*this, d, c, ret);
     cudaDeviceSynchronize();
 
     ret.tensor->tensor.downloadToHost();
