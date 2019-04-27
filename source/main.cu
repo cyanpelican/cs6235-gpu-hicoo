@@ -23,7 +23,8 @@ void compareOutput(DenseMatrix a, DenseMatrix b) {
     bool success = 1;
     for (int i = 0; i < dimSizeI; i++) {
         for (int j = 0; j < dimSizeJ; j++) {
-            if (abs(a.access(i,j) - b.access(i,j)) > 1e-4) {
+            float mag = abs(a.access(i, j)) + 1e-4;
+            if(abs(a.access(i, j) - b.access(i, j)) > mag * 1e-5) {
                 printf("\n    Outputs do not match at index (%d,%d): %f vs %f", i,j, a.access(i,j), b.access(i,j));
                 success = 0;
             }
