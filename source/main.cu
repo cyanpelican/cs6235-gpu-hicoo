@@ -33,6 +33,122 @@ void compareOutput(DenseMatrix a, DenseMatrix b) {
     else { printf("      FAILED :|\n"); }
 }
 
+void validateGroundTruth() {
+
+/*=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-   MATLAB TENSOR / MATRIX VALIDATION CODE =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
+
+        // STRUCTURE OF MATLAB TENSOR:
+
+        // y = i, x = j, z = k;
+        //    /    j
+        //   ============//
+        //   ============//
+        // i ============// k
+        //   ============//
+        //   ============/
+
+
+        /*
+        DenseTensorManager matlab;
+        matlab.tensor->tensor.setSize(3,3,3);
+
+        matlab.tensor->tensor.access(0,0,0) = 0.8311;
+        matlab.tensor->tensor.access(0,0,1) = 0.3952;
+        matlab.tensor->tensor.access(0,0,2) = 0.4412;
+
+        matlab.tensor->tensor.access(0,1,0) = 0.5568;
+        matlab.tensor->tensor.access(0,1,1) = 0.2911;
+        matlab.tensor->tensor.access(0,1,2) = 0.2135;
+
+        matlab.tensor->tensor.access(0,2,0) = 0.2345;
+        matlab.tensor->tensor.access(0,2,1) = 0.2098;
+        matlab.tensor->tensor.access(0,2,2) = 0.1484;
+        
+        matlab.tensor->tensor.access(1,0,0) = 0.2844;
+        matlab.tensor->tensor.access(1,0,1) = 0.2804;
+        matlab.tensor->tensor.access(1,0,2) = 0.0949;
+
+        matlab.tensor->tensor.access(1,1,0) = 0.3379;
+        matlab.tensor->tensor.access(1,1,1) = 0.9659;
+        matlab.tensor->tensor.access(1,1,2) = 0.7877;
+
+        matlab.tensor->tensor.access(1,2,0) = 0.4038;
+        matlab.tensor->tensor.access(1,2,1) = 0.0240;
+        matlab.tensor->tensor.access(1,2,2) = 0.6363;
+
+        matlab.tensor->tensor.access(2,0,0) = 0.3720;
+        matlab.tensor->tensor.access(2,0,1) = 0.6422;
+        matlab.tensor->tensor.access(2,0,2) = 0.0034;
+
+        matlab.tensor->tensor.access(2,1,0) = 0.9030;
+        matlab.tensor->tensor.access(2,1,1) = 0.4056;
+        matlab.tensor->tensor.access(2,1,2) = 0.8192;
+
+        matlab.tensor->tensor.access(2,2,0) = 0.3261;
+        matlab.tensor->tensor.access(2,2,1) = 0.7646;
+        matlab.tensor->tensor.access(2,2,2) = 0.5833;
+
+        
+        DenseMatrix mD, mC;
+        mD.setSize(3,3);
+        mC.setSize(3,3);
+
+	mD.access(0,0) = 0.2061;
+        mD.access(0,1) = 0.8238;
+        mD.access(0,2) = 0.0042;
+        mD.access(1,0) = 0.7055;
+        mD.access(1,1) = 0.7682;
+        mD.access(1,2) = 0.4294;
+        mD.access(2,0) = 0.9975;
+        mD.access(2,1) = 0.3894;
+        mD.access(2,2) = 0.3276;
+
+        mC.access(0,0) = 0.7853;
+        mC.access(0,1) = 0.9508;
+        mC.access(0,2) = 0.3240;
+        mC.access(1,0) = 0.4353;
+        mC.access(1,1) = 0.7073;
+        mC.access(1,2) = 0.7889;
+        mC.access(2,0) = 0.7104;
+        mC.access(2,1) = 0.1381;
+        mC.access(2,2) = 0.2877;
+
+        DenseMatrixManager matlabComp = matlab.tensor->tensor.mttkrp_naive_cpu(mD,mC);
+        printf("Output of MTTKRP on Dense Matrix from MATLAB values:\n");
+
+        for (int i = 0; i < 3; i++) {
+            for (int j = 0; j < 3; j++) {
+                printf("%f ", matlabComp.tensor->tensor.access(i,j));
+            }
+            printf("\n");
+        }
+        
+        /* =========   OUTPUT FROM ABOVE CALC    =========
+
+        1.175773 1.701301 0.298766 
+        1.466742 1.484061 0.644793 
+        1.824243 1.883446 0.592149 
+        
+        /* =========   MTTKRP CODE FROM MATLAB:  =========
+
+        n = 1
+        KRP = khatrirao(D,C); %<--Khatri-Rao product, omitting U{2}
+        M = permute(X.data, [n:size(X,n), 1:n-1]);
+        M = reshape(M,size(X,n),[]); %<--Matricized tensor data
+        M*KRP
+
+        ans =
+
+        1.1757    1.7013    0.2988
+        1.4666    1.4841    0.6449
+        1.8243    1.8836    0.5922
+        
+
+        exit(0);
+
+        =================================================*/
+}
+
 int main(int argc, char *argv[]) {
 	if (argc != 2) {
 		fprintf(stderr, "Usage: <program name> <sparse matrix file name>\n");
@@ -77,120 +193,6 @@ int main(int argc, char *argv[]) {
 	}
 	printf("Done.\n");
 
-	/*=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-   MATLAB TENSOR / MATRIX VALIDATION CODE =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
-	
-	// STRUCTURE OF MATLAB TENSOR:
-
-	// y = i, x = j, z = k;
-	//    /    j
-	//   ============//
-	//   ============//
-	// i ============// k
-	//   ============//
-	//   ============/
-	
-
-	/*
-	DenseTensorManager matlab;
-	matlab.tensor->tensor.setSize(3,3,3);
-
-	matlab.tensor->tensor.access(0,0,0) = 0.8311;
-	matlab.tensor->tensor.access(0,0,1) = 0.3952;
-	matlab.tensor->tensor.access(0,0,2) = 0.4412;
-
-	matlab.tensor->tensor.access(0,1,0) = 0.5568;
-	matlab.tensor->tensor.access(0,1,1) = 0.2911;
-	matlab.tensor->tensor.access(0,1,2) = 0.2135;
-
-	matlab.tensor->tensor.access(0,2,0) = 0.2345;
-	matlab.tensor->tensor.access(0,2,1) = 0.2098;
-	matlab.tensor->tensor.access(0,2,2) = 0.1484;
-	
-	matlab.tensor->tensor.access(1,0,0) = 0.2844;
-	matlab.tensor->tensor.access(1,0,1) = 0.2804;
-	matlab.tensor->tensor.access(1,0,2) = 0.0949;
-
-	matlab.tensor->tensor.access(1,1,0) = 0.3379;
-	matlab.tensor->tensor.access(1,1,1) = 0.9659;
-	matlab.tensor->tensor.access(1,1,2) = 0.7877;
-
-	matlab.tensor->tensor.access(1,2,0) = 0.4038;
-	matlab.tensor->tensor.access(1,2,1) = 0.0240;
-	matlab.tensor->tensor.access(1,2,2) = 0.6363;
-
-	matlab.tensor->tensor.access(2,0,0) = 0.3720;
-	matlab.tensor->tensor.access(2,0,1) = 0.6422;
-	matlab.tensor->tensor.access(2,0,2) = 0.0034;
-
-	matlab.tensor->tensor.access(2,1,0) = 0.9030;
-	matlab.tensor->tensor.access(2,1,1) = 0.4056;
-	matlab.tensor->tensor.access(2,1,2) = 0.8192;
-
-	matlab.tensor->tensor.access(2,2,0) = 0.3261;
-	matlab.tensor->tensor.access(2,2,1) = 0.7646;
-	matlab.tensor->tensor.access(2,2,2) = 0.5833;
-
-	
-	DenseMatrix mD, mC;
-	mD.setSize(3,3);
-	mC.setSize(3,3);
-
-	mD.access(0,0) = 0.2061;
-        mD.access(0,1) = 0.8238;
-        mD.access(0,2) = 0.0042;
-        mD.access(1,0) = 0.7055;
-        mD.access(1,1) = 0.7682;
-        mD.access(1,2) = 0.4294;
-        mD.access(2,0) = 0.9975;
-        mD.access(2,1) = 0.3894;
-        mD.access(2,2) = 0.3276;
-
-	mC.access(0,0) = 0.7853;
-        mC.access(0,1) = 0.9508;
-        mC.access(0,2) = 0.3240;
-        mC.access(1,0) = 0.4353;
-        mC.access(1,1) = 0.7073;
-        mC.access(1,2) = 0.7889;
-        mC.access(2,0) = 0.7104;
-        mC.access(2,1) = 0.1381;
-        mC.access(2,2) = 0.2877;
-
-	DenseMatrixManager matlabComp = matlab.tensor->tensor.mttkrp_naive_cpu(mD,mC);
-	printf("Output of MTTKRP on Dense Matrix from MATLAB values:\n");
-
-	for (int i = 0; i < 3; i++) {
-	    for (int j = 0; j < 3; j++) {
-		printf("%f ", matlabComp.tensor->tensor.access(i,j));
-	    }
-	    printf("\n");
-	}
-	
-	/* =========   OUTPUT FROM ABOVE CALC    =========
-
-	1.175773 1.701301 0.298766 
-	1.466742 1.484061 0.644793 
-	1.824243 1.883446 0.592149 
-	
-	/* =========   MTTKRP CODE FROM MATLAB:  =========
-
-	n = 1
-	KRP = khatrirao(D,C); %<--Khatri-Rao product, omitting U{2}
-	M = permute(X.data, [n:size(X,n), 1:n-1]);
-	M = reshape(M,size(X,n),[]); %<--Matricized tensor data
-	M*KRP
-
-	ans =
-
-    	1.1757    1.7013    0.2988
-    	1.4666    1.4841    0.6449
-    	1.8243    1.8836    0.5922
-	
-
-	exit(0);
-
-	=================================================*/
-
-	/*-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
 
 	printf("Creating Random Dense Matrices (D,C) for testing... ");
 	DenseMatrixManager D,C;
