@@ -352,29 +352,29 @@ void validateGroundTruth() {
     matlab.tensor->tensor.access(2,2,2) = 0.5833;
 
 
-    DenseMatrix mD, mC;
-    mD.setSize(3,3);
-    mC.setSize(3,3);
+    DenseMatrixManager mD, mC;
+    mD.tensor->tensor.setSize(3,3);
+    mC.tensor->tensor.setSize(3,3);
 
-    mD.access(0,0) = 0.2061;
-    mD.access(0,1) = 0.8238;
-    mD.access(0,2) = 0.0042;
-    mD.access(1,0) = 0.7055;
-    mD.access(1,1) = 0.7682;
-    mD.access(1,2) = 0.4294;
-    mD.access(2,0) = 0.9975;
-    mD.access(2,1) = 0.3894;
-    mD.access(2,2) = 0.3276;
+    mD.tensor->tensor.access(0,0) = 0.2061;
+    mD.tensor->tensor.access(0,1) = 0.8238;
+    mD.tensor->tensor.access(0,2) = 0.0042;
+    mD.tensor->tensor.access(1,0) = 0.7055;
+    mD.tensor->tensor.access(1,1) = 0.7682;
+    mD.tensor->tensor.access(1,2) = 0.4294;
+    mD.tensor->tensor.access(2,0) = 0.9975;
+    mD.tensor->tensor.access(2,1) = 0.3894;
+    mD.tensor->tensor.access(2,2) = 0.3276;
 
-    mC.access(0,0) = 0.7853;
-    mC.access(0,1) = 0.9508;
-    mC.access(0,2) = 0.3240;
-    mC.access(1,0) = 0.4353;
-    mC.access(1,1) = 0.7073;
-    mC.access(1,2) = 0.7889;
-    mC.access(2,0) = 0.7104;
-    mC.access(2,1) = 0.1381;
-    mC.access(2,2) = 0.2877;
+    mC.tensor->tensor.access(0,0) = 0.7853;
+    mC.tensor->tensor.access(0,1) = 0.9508;
+    mC.tensor->tensor.access(0,2) = 0.3240;
+    mC.tensor->tensor.access(1,0) = 0.4353;
+    mC.tensor->tensor.access(1,1) = 0.7073;
+    mC.tensor->tensor.access(1,2) = 0.7889;
+    mC.tensor->tensor.access(2,0) = 0.7104;
+    mC.tensor->tensor.access(2,1) = 0.1381;
+    mC.tensor->tensor.access(2,2) = 0.2877;
 
     DenseMatrixManager matlabComp = matlab.tensor->tensor.mttkrp_naive_cpu(mD,mC);
     printf("Output of MTTKRP on Dense Matrix from MATLAB values:\n");
