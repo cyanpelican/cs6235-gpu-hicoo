@@ -14,7 +14,7 @@ ulimit -c unlimited -s
 
 nvidia-smi
 
-./HiCooExperiment "test.dataset"
+./HiCooExperiment 
 
 
 echo TESTS COMPLETED
