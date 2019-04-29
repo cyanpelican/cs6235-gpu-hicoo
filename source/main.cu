@@ -14,9 +14,6 @@ using namespace std;
 
 const int dimSizeI = 30, dimSizeJ = 30, dimSizeK = 30, dimSizeL = 30;
 int RANDOM_SEED = 1234;
-bool cooKernal = 0, hicooKernal = 0;
-unsigned long long memUsage;
-vector <string> tensorList;
 
 
 void compareOutput(DenseMatrix a, DenseMatrix b) {
@@ -65,7 +62,6 @@ int main(int argc, char *argv[]) {
     cudaEventRecord(par_stop);
     printf("Done.\n");
 
-    float testValue = 0, testI = 1, testJ = 2, testK = 3;  //Random point to sample
     if (mode == 0) {
 
         printf("No command line arguments detected... Beginning generic testing sequence...\n\n");
@@ -79,7 +75,6 @@ int main(int argc, char *argv[]) {
             for (int k = 0; k < dimSizeK; k++) {
                 for (int l = 0; l < dimSizeL; l++) {
                      B.tensor->tensor.access(i,k,l) = rand() / (float) RAND_MAX;
-                     if (i == testI && k == testJ && l == testK) { testValue = B.tensor->tensor.access(i,k,l); }
                 }
             }
         }
@@ -94,14 +89,9 @@ int main(int argc, char *argv[]) {
 
         //NEED TO CREATE TENSOR FROM FILEIN
         //dimSizeI = ; dimSizeK = ; dimSizeL = ;
-        printf("Adding tensor filenames to tensorList... ");
-        tensorList.push_back("tensorA.file");
-        tensorList.push_back("tensorB.file");
-        tensorList.push_back("tensorC.file");
-        printf("Done. (List Size = %d -> %s, %s, %s)\n",tensorList.size(),tensorList[0].c_str(),tensorList[1].c_str(),tensorList[2].c_str());
 
-        printf("Creating CooTensor... ");
-        Coo.tensor->tensor.setSize(dimSizeI*dimSizeK*dimSizeL,dimSizeI,dimSizeK,dimSizeL);
+        printf("Creating CooTensor from file '%s'... ", argv[1]);
+        Coo.create(argv[1]);
         printf("Done.\n");
     }
 
@@ -113,6 +103,7 @@ int main(int argc, char *argv[]) {
 
 
     printf("  Creating Random Dense Matrices (D,C) for testing... ");
+    unsigned long long memUsage;
     DenseMatrixManager D,C;
     DenseMatrix& c = C;
     DenseMatrix& d = D;
@@ -135,11 +126,6 @@ int main(int argc, char *argv[]) {
 
 
     if (mode == 0) {
-        printf("  Testing Dense Kernel Access function... ");
-        float retValue = B.tensor->tensor.access(testI,testJ,testK);
-        if (retValue == testValue) { printf("Passed. (%f and %f)\n",testValue,retValue); }
-        else { printf("Failed. (Expected %f, returned %f)\n",testValue, retValue); }
-
         printf("  Creating CooTensor from known data for comparison... ");
         srand(RANDOM_SEED);
         for (int i = 0; i < dimSizeI; i++) {
@@ -221,18 +207,18 @@ int main(int argc, char *argv[]) {
         compareOutput(retDense.tensor->tensor, retCooCPU.tensor->tensor);
 
         {
-        printf("  Comparing Kevin's Dense implementation to CPU Kernel Call (Dense.naive_cpu vs Coo.naive_cpu)... ");
-        DenseMatrixManager retDenseK = B.tensor->tensor.mttkrp_naive_cpu(D,C);
-        compareOutput(retDenseK.tensor->tensor, retCooCPU.tensor->tensor);
+            printf("  Comparing Kevin's Dense implementation to CPU Kernel Call (Dense.naive_cpu vs Coo.naive_cpu)... ");
+            DenseMatrixManager retDenseK = B.tensor->tensor.mttkrp_naive_cpu(D,C);
+            compareOutput(retDenseK.tensor->tensor, retCooCPU.tensor->tensor);
         }
     }
 
     {
-    printf("\n  Calculating MTTKRP (Coo) using implemented GPU kernel function call... ");
-    DenseMatrixManager retCooGpu = Coo.tensor->tensor.mttkrp_naive_gpu(D,C); //COO GPU KERNEL
+        printf("\n  Calculating MTTKRP (Coo) using implemented GPU kernel function call... ");
+        DenseMatrixManager retCooGpu = Coo.tensor->tensor.mttkrp_naive_gpu(D,C); //COO GPU KERNEL
 
-    printf("  Comparing GPU Kernel Call to Ground Truth (Coo.naive_gpu vs Ground truth)... ");
-    compareOutput(retCooCPU.tensor->tensor, retCooGpu.tensor->tensor);
+        printf("  Comparing GPU Kernel Call to Ground Truth (Coo.naive_gpu vs Ground truth)... ");
+        compareOutput(retCooCPU.tensor->tensor, retCooGpu.tensor->tensor);
     }
 
 
@@ -311,7 +297,7 @@ void validateGroundTruth() {
     //   ============/
 
 
-    
+
     DenseTensorManager matlab;
     matlab.tensor->tensor.setSize(3,3,3);
 
