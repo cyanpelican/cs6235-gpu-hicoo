@@ -34,6 +34,7 @@ void compareOutput(DenseMatrix a, DenseMatrix b) {
 
                 if(errors > maxErrors) {
                     printf("      FAILED, and stopped printing after %d errors.\n", maxErrors);
+                    fflush(stdout);
                     return;
                 }
             }
@@ -55,6 +56,7 @@ void compareOutput(DenseMatrix a, DenseMatrix b) {
     if(bZeros > (b.width * b.height) * .25) {
       printf("There seem to be a lot of zeros in the B matrix.\n");
     }
+    fflush(stdout);
 
     DEBUG_PRINT("done with compareOutput\n");
 }
@@ -121,6 +123,7 @@ int main(int argc, char *argv[]) {
         printf("Done.\n");
 
         printf("Creating CooTensor... ");
+        fflush(stdout);
         Coo.tensor->tensor.setSize(dimSizeI*dimSizeK*dimSizeL,dimSizeI,dimSizeK,dimSizeL);
         printf("Done.\n");
         fflush(stdout);
@@ -143,6 +146,7 @@ int main(int argc, char *argv[]) {
 
 
     printf("  Creating Random Dense Matrices (D,C) for testing... ");
+    fflush(stdout);
     DenseMatrixManager D,C;
     DenseMatrix& c = C;
     DenseMatrix& d = D;
@@ -167,11 +171,14 @@ int main(int argc, char *argv[]) {
 
     memUsage = Coo.tensor->tensor.getTotalMemory();
     printf("(Memory usage: %llu)\n",memUsage);
+    fflush(stdout);
 
-    printf("  Calculating MTTKRP (Coo) using implemented CPU kernel function call... ");
-    // Time COO Sequential to use as comparison
+
+    // Time COO to use as comparison
     float CooCPUTime = FOREVER;
     if(allowCPU) {
+        printf("  Calculating MTTKRP (Coo) using implemented CPU kernel function call... ");
+        fflush(stdout);
         cudaEventRecord(timing_start,0);
         goodRet = Coo.tensor->tensor.mttkrp_naive_cpu(D, C);
         cudaEventRecord(timing_stop);
@@ -181,19 +188,20 @@ int main(int argc, char *argv[]) {
         fflush(stdout);
     } else {
         printf("WARNING - VALIDATING AGAINST A GPU RUN, BECAUSE CPU IS TOO SLOW\n");
+        fflush(stdout);
         goodRet = Coo.tensor->tensor.mttkrp_naive_gpu(D, C);
     }
 
     // Time Parallel
     float CooGPUTime = validateAndTime(Coo, FUNC_AND_NAME(CooTensor::mttkrp_naive_gpu), D, C, goodRet);
 
-
-
-    // Time Parallel
     float CooKevin1Time = validateAndTime(Coo, FUNC_AND_NAME(CooTensor::mttkrp_kevin1), D, C, goodRet);
 
-    if (useDense) {
+
+
+    if (useDense && allowCPU) {
         printf("\n=================== Beginning Kernel Tests on Dense Tensor ===================\n\n");
+        fflush(stdout);
 
         float denseCpuTime = validateAndTime(B, FUNC_AND_NAME(DenseTensor::mttkrp_naive_cpu), D, C, goodRet);
 
@@ -203,9 +211,11 @@ int main(int argc, char *argv[]) {
     }
 
 
+
     printf("\n=================== Beginning Kernel Tests on HiCOO Tensor ===================\n\n");
 
     printf("  Converting to hicoo\n");
+    fflush(stdout);
     Hicoo = Coo.tensor->tensor.toHicoo();
 
     float HicooCPUTime = FOREVER;
@@ -255,6 +265,7 @@ int main(int argc, char *argv[]) {
 
     printf("  =========================================================\n\n");
     printf("That's a wrap\n");
+    fflush(stdout);
     return 0;
 }
 

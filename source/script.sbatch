@@ -29,7 +29,7 @@ echo VISIBLE === $CUDA_VISIBLE_DEVICES
 ./HiCooExperiment 262114 datasets/matmul_6-6-3.tns
 
 ./HiCooExperiment 32     datasets/nell-1.tns
-./HiCooExperiment 4096   datasets/nell-2.tns
+./HiCooExperiment 4096   datasets/nell-2.tns NOCPU
 
 
 echo TESTS COMPLETED
