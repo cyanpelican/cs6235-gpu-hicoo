@@ -375,8 +375,8 @@ float validateAndTime(Class inputTensor, Functype func, std::string funcname, De
     fflush(stdout);
 
     DEBUG_PRINT("Download result...\n");
-    if(result.values_h == nullptr) {
-        goodRet.tensor->tensor.downloadToHost();
+    if(result.tensor->tensor.values_h == nullptr) {
+        result.tensor->tensor.downloadToHost();
     }
 
     DEBUG_PRINT("Validating...\n");
