@@ -414,14 +414,13 @@ struct FastFilestream {
         for(i = idx; i < end; i++) {
             DEBUG_PRINT("Check char %c\n", buffer[i]);
             if(buffer[i] == ' ') {
-                line.word_indices[line.nwords++] = i-idx;
+                line.word_indices[line.nwords++] = i-idx+1;
                 buffer[i] = 0;
                 if(line.nwords >= 15) {
                     break;
                 }
             } else if(buffer[i] == '\n') {
                 buffer[i] = 0;
-                line.word_indices[line.nwords] = i-idx;
                 break;
             }
         }
