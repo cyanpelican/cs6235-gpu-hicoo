@@ -364,8 +364,10 @@ struct FastFilestream {
     bool nextLine(SplitLine& line) {
         DEBUG_PRINT("NL\n");
         if(end - idx < REFILL_THRESHOLD && !dead) {
+            DEBUG_PRINT("Refill\n");
             // if we want to read and are not at the end, memcpy to beginning
             if(idx != 0) {
+                DEBUG_PRINT("Shift\n");
                 for(int i = idx; i < end; i++) {
                     buffer[i-idx] = buffer[i];
                 }
@@ -375,9 +377,11 @@ struct FastFilestream {
             }
 
             // try to read
+            DEBUG_PRINT("Read\n");
             size_t nread = fread(&buffer[end], sizeof(char), BUFFER_SIZE - end, fp);
 
             // check errors
+            DEBUG_PRINT("Check err\n");
             if(nread == 0) {
                 // file out of remaining content
                 dead = true;
@@ -387,9 +391,11 @@ struct FastFilestream {
                 dead = true;
             }
 
+            DEBUG_PRINT("Icrement\n");
             end += nread;
         }
 
+        DEBUG_PRINT("Check completely dead\n");
         // if dead and out of stuff to read
         if(end >= idx) {
             return false;
