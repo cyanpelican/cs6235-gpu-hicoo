@@ -21,14 +21,13 @@ void compareOutput(DenseMatrix a, DenseMatrix b) {
 
     DEBUG_PRINT("Performing validation... ");
 
-    assert(a.points_h != nullptr);
-    assert(b.points_h != nullptr);
+    assert(a.values_h != nullptr);
+    assert(b.values_h != nullptr);
     for (int i = 0; i < dimSizeI; i++) {
         for (int j = 0; j < dimSizeJ; j++) {
             float mag = abs(a.access(i, j)) + 1e-4;
             if(abs(a.access(i, j) - b.access(i, j)) > mag * 1e-5) {
                 printf("\n    Outputs do not match at index (%d,%d): %f vs %f", i,j, a.access(i,j), b.access(i,j));
-                success = false;
                 errors++;
 
                 if(errors > maxErrors) {
@@ -37,7 +36,7 @@ void compareOutput(DenseMatrix a, DenseMatrix b) {
             }
         }
     }
-    if (success) { printf("Passed.\n"); }
+    if (errors==0) { printf("Passed.\n"); }
     else { printf("      FAILED :|\n"); }
     DEBUG_PRINT("done with compareOutput");
 }
