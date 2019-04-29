@@ -1,6 +1,6 @@
 
-# enable -NDEBUG to turn off asserts for official timing
-CCFLAGS := --std=c++11  -g # -NDEBUG
+# enable -DNDEBUG to turn off asserts for official timing
+CCFLAGS := --std=c++11  -g # -DNDEBUG
 
 all: HiCooExperiment main.o coo.o dense.o hicoo.o
 
