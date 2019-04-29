@@ -163,6 +163,10 @@ DenseMatrixManager CooTensor::mttkrp_naive_cpu(DenseMatrixManager D, DenseMatrix
     assert(c.height == K);
     assert(c.width  == J);
 
+    assert(points_h != nullptr);
+    assert(c.values_h != nullptr);
+    assert(d.values_h != nullptr);
+
 
     a.setSize(I, J);
 
@@ -472,7 +476,7 @@ void CooTensorManager::create(char *tensorFileName) {
 
     //construct the COO object
     DEBUG_PRINT("    - rebuild tensor from input\n");
-    tensor->tensor.setSize(nonZeroes, maxZ, maxY, maxX);
+    tensor->tensor.setSize(nonZeroes, maxZ+1, maxY+1, maxX+1);
     memcpy(tensor->tensor.points_h, tensorPoints.data(), sizeof(CooPoint) * tensorPoints.size());
 
     DEBUG_PRINT("    - done; size = %d; %d x %d x %d\n", nonZeroes, maxZ, maxY, maxX);
