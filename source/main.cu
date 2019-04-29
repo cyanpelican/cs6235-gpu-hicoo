@@ -91,6 +91,7 @@ int main(int argc, char *argv[]) {
         //NEED TO CREATE TENSOR FROM FILEIN
 
         printf("Creating CooTensor from file '%s'... ", argv[2]);
+        fflush(stdout);
         Coo.create(argv[2]);
         dimSizeI = Coo.tensor->tensor.depth;
         dimSizeK = Coo.tensor->tensor.height;

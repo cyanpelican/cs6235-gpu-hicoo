@@ -7,7 +7,7 @@
 #SBATCH --cpus-per-task=1
 #SBATCH --gres=gpu:p100:1
 #SBATCH --mem=20G
-#SBATCH --time=00:1:00
+#SBATCH --time=00:10:00
 #SBATCH --export=ALL
 #SBATCH --qos=soc-gpu-kp
 ulimit -c unlimited -s
@@ -19,7 +19,7 @@ nvidia-smi
 ./HiCooExperiment 16384
 
 #./HiCooExperiment 32     datasets/nell-1.tns
-#./HiCooExperiment 16384  datasets/nell-2.tns
+./HiCooExperiment 4096  datasets/nell-2.tns
 
 
 echo TESTS COMPLETED
