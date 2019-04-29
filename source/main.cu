@@ -69,8 +69,10 @@ float validateAndTime(Class inputTensor, Functype func, std::string funcname, De
 #define FUNC_AND_NAME(func) &func, #func
 
 int main(int argc, char *argv[]) {
+    // args: [J] [BS] [TensorFilepath] [NOCPU?]
     bool useDense = false;
     bool allowCPU = true;
+    int  blockSize = 4;
     float FOREVER = 9e9;
 
     printf("Creating TensorManager Objects... ");
@@ -90,13 +92,17 @@ int main(int argc, char *argv[]) {
         // read J
         dimSizeJ = atoi(argv[1]);
     }
-
     if (argc >= 3) {
+        // read BS
+        dimSizeJ = atoi(argv[2]);
+    }
+
+    if (argc >= 4) {
         //NEED TO CREATE TENSOR FROM FILEIN
 
-        printf("Creating CooTensor from file '%s'... ", argv[2]);
+        printf("Creating CooTensor from file '%s'... ", argv[3]);
         fflush(stdout);
-        Coo.create(argv[2]);
+        Coo.create(argv[3]);
         dimSizeI = Coo.tensor->tensor.depth;
         dimSizeK = Coo.tensor->tensor.height;
         dimSizeL = Coo.tensor->tensor.width;
@@ -132,8 +138,8 @@ int main(int argc, char *argv[]) {
     }
 
 
-    if (argc >= 4) {
-        if(strcmp(argv[3], "NOCPU") == 0) {
+    if (argc >= 5) {
+        if(strcmp(argv[4], "NOCPU") == 0) {
             allowCPU = false;
         }
     }
@@ -216,7 +222,7 @@ int main(int argc, char *argv[]) {
 
     printf("  Converting to hicoo\n");
     fflush(stdout);
-    Hicoo = Coo.tensor->tensor.toHicoo();
+    Hicoo = Coo.tensor->tensor.toHicoo(blockSize, blockSize, blockSize);
 
     float HicooCPUTime = FOREVER;
     if(allowCPU) {

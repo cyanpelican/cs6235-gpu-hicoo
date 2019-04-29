@@ -20,16 +20,18 @@ echo VISIBLE === $CUDA_VISIBLE_DEVICES
 ./HiCooExperiment 16384
 ./HiCooExperiment 262114
 
-./HiCooExperiment 262114 datasets/matmul_2-2-2.tns
-./HiCooExperiment 262114 datasets/matmul_3-3-3.tns
-./HiCooExperiment 262114 datasets/matmul_4-3-2.tns
-./HiCooExperiment 262114 datasets/matmul_4-4-3.tns
-./HiCooExperiment 262114 datasets/matmul_4-4-4.tns
-./HiCooExperiment 262114 datasets/matmul_5-5-5.tns
-./HiCooExperiment 262114 datasets/matmul_6-6-3.tns
+./HiCooExperiment 262114 8 datasets/matmul_2-2-2.tns
+./HiCooExperiment 262114 8 datasets/matmul_3-3-3.tns
+./HiCooExperiment 262114 8 datasets/matmul_4-3-2.tns
+./HiCooExperiment 262114 8 datasets/matmul_4-4-3.tns
+./HiCooExperiment 262114 8 datasets/matmul_4-4-4.tns
+./HiCooExperiment 262114 8 datasets/matmul_5-5-5.tns
+./HiCooExperiment 262114 8 datasets/matmul_6-6-3.tns
 
-./HiCooExperiment 32     datasets/nell-1.tns
-./HiCooExperiment 4096   datasets/nell-2.tns NOCPU
+./HiCooExperiment 32     8 datasets/nell-1.tns
+./HiCooExperiment 512    8 datasets/nell-2.tns
+./HiCooExperiment 1024   8 datasets/nell-2.tns NOCPU
+./HiCooExperiment 4096   8 datasets/nell-2.tns NOCPU
 
 
 echo TESTS COMPLETED

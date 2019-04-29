@@ -421,7 +421,10 @@ struct FastFilestream {
     FastFilestream(char* fname) {
         //f = open(fname, O_RDONLY);
         fp = fopen(fname, "r");
-        assert(fp != nullptr);
+        if(fp == nullptr) {
+            printf("Bad file: %s\n", fname);
+            dead = true;
+        }
 
         posix_fadvise(fileno(fp), 0, 0, POSIX_FADV_SEQUENTIAL);
     }
