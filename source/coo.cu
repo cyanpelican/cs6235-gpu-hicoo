@@ -233,7 +233,9 @@ DenseMatrixManager CooTensor::mttkrp_naive_gpu(DenseMatrixManager D, DenseMatrix
     DenseMatrix& c = C;
     DenseMatrix& d = D;
 
-    assert(points_h != nullptr);
+    assert(points_d != nullptr);
+    assert(c.values_d != nullptr);
+    assert(d.values_d != nullptr);
 
     int I = this->depth, J = d.width, K = this->height, L = this->width;
     DEBUG_PRINT("    - I = %d, J = %d, K = %d, L = %d\n", I, J, K, L);
@@ -241,14 +243,10 @@ DenseMatrixManager CooTensor::mttkrp_naive_gpu(DenseMatrixManager D, DenseMatrix
     assert(c.height == K);
     assert(c.width  == J);
     a.setSize_d(I, J);
-    d.uploadToDevice();
-    c.uploadToDevice();
 
     //todo: split up the blocks & blocks per threads appropriately
     mttkrp_naive_gpu_kernel<<<ceil(this->numElements/64.0), 64>>>(*this, d, c, ret);
     cudaDeviceSynchronize();
-
-    ret.tensor->tensor.downloadToHost();
 
     DEBUG_PRINT("    - done\n");
     return ret;
@@ -299,7 +297,10 @@ DenseMatrixManager CooTensor::mttkrp_kevin1(DenseMatrixManager D, DenseMatrixMan
     DenseMatrix& c = C;
     DenseMatrix& d = D;
 
-    assert(points_h != nullptr);
+
+    assert(points_d != nullptr);
+    assert(c.values_d != nullptr);
+    assert(d.values_d != nullptr);
 
     // A(i,j) = B(i,k,l) * D(l,j) * C(k,j);
     int I = this->depth, J = d.width, K = this->height, L = this->width;

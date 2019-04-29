@@ -84,9 +84,11 @@ DenseMatrixManager HicooTensor::mttkrp_naive_cpu(DenseMatrixManager D, DenseMatr
     DenseMatrix& a = ret;
     DenseMatrix& c = C;
     DenseMatrix& d = D;
-    assert(this->points_h != nullptr);
+
     assert(points_h != nullptr);
     assert(blocks_h != nullptr);
+    assert(c.values_h != nullptr);
+    assert(d.values_h != nullptr);
 
     //Naive: each thread is a non-zero
     //optimization: each thread does a few R's
@@ -138,8 +140,11 @@ DenseMatrixManager HicooTensor::mttkrp_naive_gpu(DenseMatrixManager D, DenseMatr
     DenseMatrix& a = ret;
     DenseMatrix& c = C;
     DenseMatrix& d = D;
-    assert(points_h != nullptr);
-    assert(blocks_h != nullptr);
+
+    assert(points_d != nullptr);
+    assert(blocks_d != nullptr);
+    assert(c.values_d != nullptr);
+    assert(d.values_d != nullptr);
 
     // A(i,j) = B(i,k,l) * D(l,j) * C(k,j);
     int I = this->depth, J = d.width, K = this->height, L = this->width;
@@ -149,14 +154,8 @@ DenseMatrixManager HicooTensor::mttkrp_naive_gpu(DenseMatrixManager D, DenseMatr
     assert(c.width  == J);
 
 
-    DEBUG_PRINT("    - uploadToDevice\n");
-    this->uploadToDevice();
-    d.uploadToDevice();
-    c.uploadToDevice();
+    DEBUG_PRINT("    - setSize_d\n");
     a.setSize_d(I, J);
-
-    assert(this->points_d != nullptr);
-    assert(this->blocks_d != nullptr);
 
     //todo: split up the blocks & blocks per threads appropriately
     mttkrp_naive_gpu_kernel<<<ceil(this->numBlocks/64.0), 64>>>(*this, d, c, ret);
@@ -263,8 +262,11 @@ DenseMatrixManager HicooTensor::mttkrp_kevin1(DenseMatrixManager D, DenseMatrixM
     DenseMatrix& a = ret;
     DenseMatrix& c = C;
     DenseMatrix& d = D;
-    assert(points_h != nullptr);
-    assert(blocks_h != nullptr);
+
+    assert(points_d != nullptr);
+    assert(blocks_d != nullptr);
+    assert(c.values_d != nullptr);
+    assert(d.values_d != nullptr);
 
     // A(i,j) = B(i,k,l) * D(l,j) * C(k,j);
     int I = this->depth, J = d.width, K = this->height, L = this->width;
@@ -273,11 +275,6 @@ DenseMatrixManager HicooTensor::mttkrp_kevin1(DenseMatrixManager D, DenseMatrixM
     assert(c.height == K);
     assert(c.width  == J);
 
-
-    DEBUG_PRINT("    - uploadToDevice\n");
-    this->uploadToDevice();
-    d.uploadToDevice();
-    c.uploadToDevice();
 
     DEBUG_PRINT("    - malloc output matrix\n");
     a.setSize_d(I, J);
@@ -311,7 +308,7 @@ __global__ void hicoo_kevin2_kernel(DenseMatrix a, HicooTensor b, DenseMatrix d,
                 a.access(p.z+bz, j) += val;
             }
         }
-        
+
         ba = bb;
         bi++;
     }
@@ -319,11 +316,11 @@ __global__ void hicoo_kevin2_kernel(DenseMatrix a, HicooTensor b, DenseMatrix d,
 
 __global__ void hicoo_kevin2_lut_populate(HicooTensor b, int* lut) {
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
-    
+
     if(idx < b.numBlocks && idx > 0) {
         HicooBlock prev = b.access_block(idx-1);
         HicooBlock curr = b.access_block(idx);
-        
+
         if(prev.blockZ != curr.blockZ) {
             lut[curr.blockZ] = idx;
         }
@@ -338,8 +335,12 @@ DenseMatrixManager HicooTensor::mttkrp_kevin2(DenseMatrixManager D, DenseMatrixM
     DenseMatrix& a = ret;
     DenseMatrix& c = C;
     DenseMatrix& d = D;
-    assert(points_h != nullptr);
-    assert(blocks_h != nullptr);
+
+    assert(points_d != nullptr);
+    assert(blocks_d != nullptr);
+    assert(c.values_d != nullptr);
+    assert(d.values_d != nullptr);
+
     assert(sorting == ZYX);
 
     // A(i,j) = B(i,k,l) * D(l,j) * C(k,j);
@@ -348,12 +349,6 @@ DenseMatrixManager HicooTensor::mttkrp_kevin2(DenseMatrixManager D, DenseMatrixM
     assert(d.height == L);
     assert(c.height == K);
     assert(c.width  == J);
-
-
-    DEBUG_PRINT("    - uploadToDevice\n");
-    this->uploadToDevice();
-    d.uploadToDevice();
-    c.uploadToDevice();
 
     DEBUG_PRINT("    - malloc output matrix\n");
     a.setSize_d(I, J);
@@ -364,13 +359,13 @@ DenseMatrixManager HicooTensor::mttkrp_kevin2(DenseMatrixManager D, DenseMatrixM
     cudaErrorCheck(cudaMalloc((void **) &zBlockIndices, sizeof(int) * blocksZ));
     assert(zBlockIndices != nullptr);
     cudaErrorCheck(cudaMemset(zBlockIndices, 0, blocksZ * sizeof(int)));
-    
+
     DEBUG_PRINT("    - populate LUT on gpu\n");
     hicoo_kevin2_lut_populate<<<(numBlocks-1)/32+1, 32>>>(*this, zBlockIndices);
-    
+
     DEBUG_PRINT("    - do compute on gpu\n");
     hicoo_kevin2_kernel<<<blocksZ, 32>>>(a, *this, d, c, zBlockIndices);
-    
+
     DEBUG_PRINT("    - Freeing LUT\n");
     cudaErrorCheck(cudaFree(zBlockIndices));
 
@@ -389,9 +384,9 @@ __global__ void hicoo_kevin3_kernel(DenseMatrix a, HicooTensor b, DenseMatrix d,
     if(bi > 0 && ba.blockZ != b.access_block(bi-1).blockZ) {
         return;
     }
-    
+
     int blockZ = ba.blockZ;
-    
+
     while(ba.blockZ == blockZ) {
         HicooBlock& bb = b.access_block(bi+1);
 
@@ -407,7 +402,7 @@ __global__ void hicoo_kevin3_kernel(DenseMatrix a, HicooTensor b, DenseMatrix d,
                 a.access(p.z+bz, j) += val;
             }
         }
-        
+
         ba = bb;
         bi++;
     }
@@ -422,8 +417,12 @@ DenseMatrixManager HicooTensor::mttkrp_kevin3(DenseMatrixManager D, DenseMatrixM
     DenseMatrix& a = ret;
     DenseMatrix& c = C;
     DenseMatrix& d = D;
-    assert(points_h != nullptr);
-    assert(blocks_h != nullptr);
+
+    assert(points_d != nullptr);
+    assert(blocks_d != nullptr);
+    assert(c.values_d != nullptr);
+    assert(d.values_d != nullptr);
+
     assert(sorting == ZYX);
 
     // A(i,j) = B(i,k,l) * D(l,j) * C(k,j);
@@ -432,16 +431,11 @@ DenseMatrixManager HicooTensor::mttkrp_kevin3(DenseMatrixManager D, DenseMatrixM
     assert(d.height == L);
     assert(c.height == K);
     assert(c.width  == J);
-
-
-    DEBUG_PRINT("    - uploadToDevice\n");
-    this->uploadToDevice();
-    d.uploadToDevice();
-    c.uploadToDevice();
+    
 
     DEBUG_PRINT("    - malloc output matrix\n");
     a.setSize_d(I, J);
-    
+
     DEBUG_PRINT("    - do compute on gpu\n");
     hicoo_kevin3_kernel<<<numBlocks, 32>>>(a, *this, d, c);
 
