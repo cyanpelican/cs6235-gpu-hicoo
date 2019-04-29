@@ -32,8 +32,10 @@ void compareOutput(DenseMatrix a, DenseMatrix b) {
 
 void validateGroundTruth();
 void testDenseToCoo(CooTensorManager Coo, DenseTensorManager B);
-template <typename classname, typename functype>
-float validateAndTime(classname inputTensor, functype func, DenseMatrixManager D, DenseMatrixManager C, DenseMatrixManager expected);
+template <typename Class, typename Functype>
+float validateAndTime(Class inputTensor, Functype func, std::string funcname, DenseMatrixManager D, DenseMatrixManager C, DenseMatrixManager expected);
+
+#define FUNC_AND_NAME(func) &func, #func
 
 int main(int argc, char *argv[]) {
     bool useDense = false;
@@ -134,19 +136,19 @@ int main(int argc, char *argv[]) {
 
 
     // Time Parallel
-    float CooGPUTime = validateAndTime(Coo, &CooTensor::mttkrp_naive_gpu, D, C, retCooCPU);
+    float CooGPUTime = validateAndTime(Coo, FUNC_AND_NAME(CooTensor::mttkrp_naive_gpu), D, C, retCooCPU);
 
     // Time Parallel
-    float CooKevin1Time = validateAndTime(Coo, &CooTensor::mttkrp_kevin1, D, C, retCooCPU);
+    float CooKevin1Time = validateAndTime(Coo, FUNC_AND_NAME(CooTensor::mttkrp_kevin1), D, C, retCooCPU);
 
     if (useDense) {
         printf("\n=================== Beginning Kernel Tests on Dense Tensor ===================\n\n");
         //DenseMatixManager Variables
         testDenseToCoo(Coo, B);
 
-        float denseCpuTime = validateAndTime(B, &DenseTensor::mttkrp_naive_cpu, D, C, retCooCPU);
+        float denseCpuTime = validateAndTime(B, FUNC_AND_NAME(DenseTensor::mttkrp_naive_cpu), D, C, retCooCPU);
 
-        //float denseGpuTime = validateAndTime(B, &DenseTensor::mttkrp_naive_gpu, D, C, retCooCPU);
+        //float denseGpuTime = validateAndTime(B, FUNC_AND_NAME(DenseTensor::mttkrp_naive_gpu), D, C, retCooCPU);
     }
 
 
@@ -154,11 +156,11 @@ int main(int argc, char *argv[]) {
 
     printf("  Converting to hicoo\n");
     Hicoo = Coo.tensor->tensor.toHicoo();
-    float HicooCPUTime = validateAndTime(Hicoo, &HicooTensor::mttkrp_naive_cpu, D, C, retCooCPU);
+    float HicooCPUTime = validateAndTime(Hicoo, FUNC_AND_NAME(HicooTensor::mttkrp_naive_cpu), D, C, retCooCPU);
 
-    float HicooGPUTime = validateAndTime(Hicoo, &HicooTensor::mttkrp_naive_gpu, D, C, retCooCPU);
+    float HicooGPUTime = validateAndTime(Hicoo, FUNC_AND_NAME(HicooTensor::mttkrp_naive_gpu), D, C, retCooCPU);
 
-    float HicooKevin1Time = validateAndTime(Hicoo, &HicooTensor::mttkrp_kevin1, D, C, retCooCPU);
+    float HicooKevin1Time = validateAndTime(Hicoo, FUNC_AND_NAME(HicooTensor::mttkrp_kevin1), D, C, retCooCPU);
 
 
 
@@ -234,9 +236,23 @@ void testDenseToCoo(CooTensorManager Coo, DenseTensorManager B) {
 
 }
 
+#include <cxxabi.h>
+#include <execinfo.h>
+template <typename T>
+std::string demangledClassName(T o) {
+    // https://gcc.gnu.org/onlinedocs/libstdc++/manual/ext_demangling.html
 
-template <typename classname, typename functype>
-float validateAndTime(classname inputTensor, functype func, DenseMatrixManager D, DenseMatrixManager C, DenseMatrixManager expected) {
+    int status;
+    char* demangled = abi::__cxa_demangle(typeid(o).name(), 0, 0, &status);
+    std::string ret = demangled;
+    free(demangled);
+    
+    return ret;
+}
+
+
+template <typename Class, typename Functype>
+float validateAndTime(Class inputTensor, Functype func, std::string funcname, DenseMatrixManager D, DenseMatrixManager C, DenseMatrixManager expected) {
     // minor black magic from https://timmurphy.org/2014/08/28/passing-member-functions-as-template-parameters-in-c/
     float retTime;
     cudaEvent_t timing_start,timing_stop;
@@ -244,7 +260,8 @@ float validateAndTime(classname inputTensor, functype func, DenseMatrixManager D
     cudaEventCreate(&timing_start);
     cudaEventCreate(&timing_stop);
 
-    printf("  Calculating MTTKRP on class %s using %s... ", typeid(classname).name(), typeid(func).name());
+    std::string classname = demangledClassName(inputTensor);
+    printf("  Calculating MTTKRP on class %s using %s... ", classname.c_str(), funcname.c_str());
     cudaEventRecord(timing_start,0);
     DenseMatrixManager result = (inputTensor.tensor->tensor.*func)(D, C);
     //DenseMatrixManager result;
@@ -252,6 +269,9 @@ float validateAndTime(classname inputTensor, functype func, DenseMatrixManager D
     cudaEventSynchronize(timing_stop);
     cudaEventElapsedTime(&retTime, timing_start, timing_stop);
     compareOutput(expected.tensor->tensor, result.tensor->tensor);
+
+    printf("    Time = %f\n", retTime);
+    fflush(stdout);
 
     return retTime;
 }

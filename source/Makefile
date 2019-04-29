@@ -1,5 +1,5 @@
 
-CCFLAGS := --std=c++11 # -g
+CCFLAGS := --std=c++11  -g
 
 all: HiCooExperiment main.o coo.o dense.o hicoo.o
 
