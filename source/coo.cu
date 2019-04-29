@@ -222,8 +222,11 @@ DenseMatrixManager CooTensor::mttkrp_naive_gpu(DenseMatrixManager D, DenseMatrix
     this->uploadToDevice();
 
     DenseMatrixManager ret;
+    DenseMatrix& a = ret;
     DenseMatrix& c = C;
     DenseMatrix& d = D;
+
+    assert(points_h != nullptr);
 
     int I = this->depth, J = d.width, K = this->height, L = this->width;
     DEBUG_PRINT("    - I = %d, J = %d, K = %d, L = %d\n", I, J, K, L);
@@ -233,11 +236,6 @@ DenseMatrixManager CooTensor::mttkrp_naive_gpu(DenseMatrixManager D, DenseMatrix
     a.setSize_d(I, J);
     d.uploadToDevice();
     c.uploadToDevice();
-
-    assert(this->points_d != nullptr);
-    //check for compatible dimensions
-    assert(this->width == d.width);
-    assert(this->depth == c.width);
 
     //todo: split up the blocks & blocks per threads appropriately
     mttkrp_naive_gpu_kernel<<<ceil(this->numElements/64.0), 64>>>(*this, d, c, ret);
