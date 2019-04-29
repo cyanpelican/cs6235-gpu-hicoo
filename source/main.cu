@@ -136,6 +136,8 @@ int main(int argc, char *argv[]) {
     // Time Parallel
     float CooGPUTime = validateAndTime(Coo, &CooTensor::mttkrp_naive_gpu, D, C, retCooCPU);
 
+    // Time Parallel
+    float CooKevin1Time = validateAndTime(Coo, &CooTensor::mttkrp_kevin1, D, C, retCooCPU);
 
     if (useDense) {
         printf("\n=================== Beginning Kernel Tests on Dense Tensor ===================\n\n");
@@ -155,6 +157,10 @@ int main(int argc, char *argv[]) {
     float HicooCPUTime = validateAndTime(Hicoo, &HicooTensor::mttkrp_naive_cpu, D, C, retCooCPU);
 
     float HicooGPUTime = validateAndTime(Hicoo, &HicooTensor::mttkrp_naive_gpu, D, C, retCooCPU);
+
+    float HicooKevin1Time = validateAndTime(Hicoo, &HicooTensor::mttkrp_kevin1, D, C, retCooCPU);
+
+
 
     printf("\n  ==================== Memory Usage ======================= \n");
 
@@ -176,11 +182,15 @@ int main(int argc, char *argv[]) {
     printf("  COO MTTKRP (%d,%d,%d)\n",dimSizeI,dimSizeK,dimSizeL);
     printf("    CPU -> %f\n", CooCPUTime);
     printf("    GPU -> %f\n", CooGPUTime);
-    printf("    Speedup -> %f\n\n", CooCPUTime/CooGPUTime);
+    printf("      Speedup -> %f\n\n", CooCPUTime/CooGPUTime);
+    printf("    Kevin1 -> %f\n", CooKevin1Time);
+    printf("      Speedup -> %f\n\n", CooCPUTime/CooKevin1Time);
     printf("  HiCOO MTTKRP (%d,%d,%d)\n",dimSizeI,dimSizeK,dimSizeL);
     printf("    CPU -> %f\n", HicooCPUTime);
+    printf("      Speedup -> %f\n", HicooCPUTime/HicooGPUTime);
     printf("    GPU -> %f\n", HicooGPUTime);
-    printf("    Speedup -> %f\n", HicooCPUTime/HicooGPUTime);
+    printf("    Kevin1 -> %f\n", HicooKevin1Time);
+    printf("      Speedup -> %f\n\n", HicooKevin1Time/CooKevin1Time);
 
     printf("  =========================================================\n\n");
     printf("That's a wrap\n");
