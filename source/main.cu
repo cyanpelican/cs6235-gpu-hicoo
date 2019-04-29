@@ -72,6 +72,7 @@ int main(int argc, char *argv[]) {
     cudaEventCreate(&timing_stop);
     printf("Done.\n");
 
+    int dimSizeI, dimSizeK, dimSizeL;
     if (mode == 0) {
 
         printf("No command line arguments detected... Beginning generic testing sequence...\n\n");
@@ -136,7 +137,7 @@ int main(int argc, char *argv[]) {
     printf("\n=================== Beginning Kernel Tests on COO Tensor ===================\n\n");
 
     if (mode == 0) {
-        testDenseToCoo(Coo, dimSizeI, dimSizeK, dimSizeL)
+        testDenseToCoo(Coo, dimSizeI, dimSizeK, dimSizeL);
     }
 
     memUsage = Coo.tensor->tensor.getTotalMemory();
