@@ -358,7 +358,7 @@ struct FastFilestream {
     bool dead = false;
 
     bool nextLine(SplitLine& line) {
-
+        DEBUG_PRINT("NL\n");
         if(end - idx < REFILL_THRESHOLD && !dead) {
             // if we want to read and are not at the end, memcpy to beginning
             if(idx != 0) {
@@ -390,6 +390,7 @@ struct FastFilestream {
         if(end >= idx) {
             return false;
         }
+        DEBUG_PRINT("Alive\n");
 
         // else, do the operation
         line.nwords = 1;
@@ -409,6 +410,7 @@ struct FastFilestream {
                 break;
             }
         }
+        DEBUG_PRINT("i = %d\n", i);
         idx = i;
 
         return true;
@@ -427,6 +429,8 @@ struct FastFilestream {
 };
 
 void CooTensorManager::create(char *tensorFileName) {
+    // nell-2 expected: 76879419, d 28819, h 9185, w 12093
+    // matmul_2-2-2.tns expected: 8, d 5, h 5, w 5
     DEBUG_PRINT("CT: parsing file %s\n", tensorFileName);
     DEBUG_PRINT("    - file validations, etc\n");
     std::vector<CooPoint> tensorPoints;
