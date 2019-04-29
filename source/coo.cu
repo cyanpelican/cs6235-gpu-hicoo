@@ -225,7 +225,12 @@ DenseMatrixManager CooTensor::mttkrp_naive_gpu(DenseMatrixManager D, DenseMatrix
     DenseMatrix& c = C;
     DenseMatrix& d = D;
 
-    ret.tensor->tensor.setSize_d(d.height, this->height);
+    int I = this->depth, J = d.width, K = this->height, L = this->width;
+    DEBUG_PRINT("    - I = %d, J = %d, K = %d, L = %d\n", I, J, K, L);
+    assert(d.height == L);
+    assert(c.height == K);
+    assert(c.width  == J);
+    a.setSize_d(I, J);
     d.uploadToDevice();
     c.uploadToDevice();
 

@@ -136,16 +136,24 @@ DenseMatrixManager HicooTensor::mttkrp_naive_gpu(DenseMatrixManager D, DenseMatr
     DenseMatrixManager ret;
     DenseMatrix& c = C;
     DenseMatrix& d = D;
+    assert(points_h != nullptr);
+    assert(blocks_h != nullptr);
 
-    ret.tensor->tensor.setSize_d(this->depth, d.width);
-    c.uploadToDevice();
+    // A(i,j) = B(i,k,l) * D(l,j) * C(k,j);
+    int I = this->depth, J = d.width, K = this->height, L = this->width;
+    DEBUG_PRINT("    - I = %d, J = %d, K = %d, L = %d\n", I, J, K, L);
+    assert(d.height == L);
+    assert(c.height == K);
+    assert(c.width  == J);
+
+
+    DEBUG_PRINT("    - uploadToDevice\n");
+    this->uploadToDevice();
     d.uploadToDevice();
+    c.uploadToDevice();
 
     assert(this->points_d != nullptr);
     assert(this->blocks_d != nullptr);
-    //check for compatible dimensions
-    assert(this->width == d.width);
-    assert(this->depth == c.width);
 
     //todo: split up the blocks & blocks per threads appropriately
     mttkrp_naive_gpu_kernel<<<ceil(this->numBlocks/64.0), 64>>>(*this, d, c, ret);
