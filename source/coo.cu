@@ -328,50 +328,157 @@ DenseMatrixManager CooTensor::mttkrp_kevin1(DenseMatrixManager D, DenseMatrixMan
     return ret;
 }
 
+
+
+
+
+
+
+
+// File IO stuff
+#include <fcntl.h>
+struct SplitLine {
+    int nwords;
+    int word_indices[16];
+    char* line; // do not free
+
+    char* word(int i) {
+        if(i == -1) {
+            return &line[word_indices[nwords-1]];
+        }
+        return &line[word_indices[i]];
+    }
+};
+
+struct FastFilestream {
+    // loosely based on https://stackoverflow.com/questions/17925051/fast-textfile-reading-in-c
+    const static int BUFFER_SIZE = 1024*1024;
+    const static int REFILL_THRESHOLD = 1024;
+
+    char buffer[BUFFER_SIZE];
+    FILE *fp;
+    int idx = 0;
+    int end = 0;
+    bool dead = false;
+
+    bool nextLine(SplitLine& line) {
+        ////DEBUG_PRINT("NL\n");
+        if(end - idx < REFILL_THRESHOLD && !dead) {
+            ////DEBUG_PRINT("Refill\n");
+            // if we want to read and are not at the end, memcpy to beginning
+            if(idx != 0) {
+                ////DEBUG_PRINT("Shift\n");
+                for(int i = idx; i < end; i++) {
+                    buffer[i-idx] = buffer[i];
+                }
+
+                end = end-idx;
+                idx = 0;
+            }
+
+            // try to read
+            ////DEBUG_PRINT("Read\n");
+            size_t nread = fread(&buffer[end], sizeof(char), BUFFER_SIZE - end, fp);
+
+            // check errors
+            ////DEBUG_PRINT("Check err\n");
+            if(nread == 0) {
+                // file out of remaining content
+                ////DEBUG_PRINT("Out of remaining\n");
+                dead = true;
+            } else if(nread == (size_t)-1) {
+                // read failed;
+                ////DEBUG_PRINT("Failed\n");
+                dead = true;
+            } else {
+                ////DEBUG_PRINT("Increment by %llu\n", nread);
+                end += nread;
+                ////DEBUG_PRINT("Now: %d\n", end);
+            }
+
+        }
+
+        ////DEBUG_PRINT("Check completely dead\n");
+        // if dead and out of stuff to read
+        if(idx >= end) {
+            ////DEBUG_PRINT("Completely dead :(\n");
+            return false;
+        }
+        ////DEBUG_PRINT("Alive\n");
+
+        // else, do the operation
+        line.nwords = 1;
+        line.word_indices[0] = 0;
+        line.line = &buffer[idx];
+        int i;
+        for(i = idx; i < end; i++) {
+            ////DEBUG_PRINT("Check char %c\n", buffer[i]);
+            if(buffer[i] == ' ') {
+                line.word_indices[line.nwords++] = i-idx+1;
+                buffer[i] = 0;
+                if(line.nwords >= 15) {
+                    i++;
+                    break;
+                }
+            } else if(buffer[i] == '\n') {
+                buffer[i] = 0;
+                i++;
+                break;
+            }
+        }
+        ////DEBUG_PRINT("i = %d\n", i);
+        idx = i;
+
+        return true;
+    }
+
+    FastFilestream(char* fname) {
+        //f = open(fname, O_RDONLY);
+        fp = fopen(fname, "r");
+        assert(fp != nullptr);
+
+        posix_fadvise(fileno(fp), 0, 0, POSIX_FADV_SEQUENTIAL);
+    }
+    ~FastFilestream() {
+        fclose(fp);
+    }
+};
+
 void CooTensorManager::create(char *tensorFileName) {
+    // nell-2 expected: 76879419, d 28819, h 9185, w 12093
+    // matmul_2-2-2.tns expected: 8, d 5, h 5, w 5
     DEBUG_PRINT("CT: parsing file %s\n", tensorFileName);
     DEBUG_PRINT("    - file validations, etc\n");
     std::vector<CooPoint> tensorPoints;
 
     size_t nonZeroes = 0;
-    std::string line;
     std::ifstream myfile(tensorFileName);
     assert(myfile.good()); // assert file exists, etc
+
+    FastFilestream ffs(tensorFileName);
+    SplitLine line;
 
     //put all the points into a vector
     DEBUG_PRINT("    - load all points into vector\n");
     int maxX = 0, maxY = 0, maxZ = 0;
-    while (std::getline(myfile, line)) {
-        if(line.length() < 4 || line[0] == '#') {
+    while (ffs.nextLine(line)) {
+        if(line.nwords < 4 || line.line[0] == '#') {
             // uselessly-short line or comment
             continue;
         }
-        int space_indices[16];
-        space_indices[0] = -1;
-        int nspaces = 1;
-        for(int i = 0; i < line.length(); i++) {
-            if(line[i] == ' ') {
-                space_indices[nspaces++] = i;
-                if(nspaces >= 15) {
-                    break;
-                }
-            }
-        }
-        space_indices[nspaces] = line.length();
 
-        //DEBUG_PRINT("  - string has %d spaces: '%s'\n", nspaces, line.c_str());
-
-        if(nspaces < 4) {
-            // not enough spaces
-            continue;
-        }
+        ////printf("        %d words: ", line.nwords);
+        ////for(int i = 0; i < line.nwords; i++) {
+        ////    printf("%s ", line.word(i));
+        ////}
+        ////fflush(stdout);
 
         ++nonZeroes;
         CooPoint currentPoint;
-        currentPoint.x = atoi(line.substr(space_indices[0]+1, space_indices[1]-space_indices[0]-1).c_str());
-        currentPoint.y = atoi(line.substr(space_indices[1]+1, space_indices[2]-space_indices[1]-1).c_str());
-        currentPoint.z = atoi(line.substr(space_indices[2]+1, space_indices[3]-space_indices[2]-1).c_str());
-        currentPoint.value = atof(line.substr(space_indices[nspaces-1]+1, space_indices[nspaces-1]-space_indices[nspaces-2]-1).c_str());
+        currentPoint.x = atoi(line.word(0));
+        currentPoint.y = atoi(line.word(1));
+        currentPoint.z = atoi(line.word(2));
+        currentPoint.value = atof(line.word(-1));
 
         if(currentPoint.x > maxX) maxX = currentPoint.x;
         if(currentPoint.y > maxY) maxY = currentPoint.y;
@@ -381,7 +488,8 @@ void CooTensorManager::create(char *tensorFileName) {
         tensorPoints.push_back(currentPoint);
     }
 
-    DEBUG_PRINT("    - Finished reading; first = (%d,%d,%d)->%f", tensorPoints[0].x, tensorPoints[0].y, tensorPoints[0].z, tensorPoints[0].value);
+    if(tensorPoints.size() != 0)
+        DEBUG_PRINT("    - Finished reading; first = (%d,%d,%d)->%f", tensorPoints[0].x, tensorPoints[0].y, tensorPoints[0].z, tensorPoints[0].value);
 
     //construct the COO object
     DEBUG_PRINT("    - rebuild tensor from input\n");
