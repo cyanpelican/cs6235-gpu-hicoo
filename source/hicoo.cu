@@ -131,6 +131,7 @@ __global__ void mttkrp_naive_gpu_kernel(HicooTensor hicooTensor, DenseMatrix d, 
 
 //wrapper function for the sake of convenience
 DenseMatrixManager HicooTensor::mttkrp_naive_gpu(DenseMatrixManager D, DenseMatrixManager C) {
+    DEBUG_PRINT("HT: naive mttkrp gpu\n");
     this->uploadToDevice();
 
     DenseMatrixManager ret;
@@ -151,6 +152,7 @@ DenseMatrixManager HicooTensor::mttkrp_naive_gpu(DenseMatrixManager D, DenseMatr
     this->uploadToDevice();
     d.uploadToDevice();
     c.uploadToDevice();
+    a.setSize_d(I, J);
 
     assert(this->points_d != nullptr);
     assert(this->blocks_d != nullptr);
@@ -253,7 +255,7 @@ __global__ void hicoo_kevin1_kernel(DenseMatrix a, HicooTensor b, DenseMatrix d,
 
 DenseMatrixManager HicooTensor::mttkrp_kevin1(DenseMatrixManager D, DenseMatrixManager C) {
     // Has each thread block mapped to a hicoo block (parallelizing blocks across J)
-    DEBUG_PRINT("HT: mttkrp naive gpu\n");
+    DEBUG_PRINT("HT: mttkrp kevin1\n");
     DEBUG_PRINT("    - asserts, initialization\n");
     DenseMatrixManager ret;
     DenseMatrix& a = ret;

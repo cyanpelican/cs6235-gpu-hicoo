@@ -220,6 +220,7 @@ __global__ void mttkrp_naive_gpu_kernel(CooTensor cooTensor, DenseMatrix d, Dens
 
 //wrapper function for the sake of convenience
 DenseMatrixManager CooTensor::mttkrp_naive_gpu(DenseMatrixManager D, DenseMatrixManager C) {
+    DEBUG_PRINT("CT: naive mttkrp gpu\n");
     this->uploadToDevice();
 
     DenseMatrixManager ret;
@@ -286,7 +287,7 @@ __global__ void coo_mttkrp_kevin1_kernel(DenseMatrix a, CooTensor b, DenseMatrix
 
 DenseMatrixManager CooTensor::mttkrp_kevin1(DenseMatrixManager D, DenseMatrixManager C) {
     // Has each thread block mapped to a point (parallelizing blocks across J)
-    DEBUG_PRINT("CT: naive mttkrp gpu\n");
+    DEBUG_PRINT("CT: mttkrp kevin1\n");
     DEBUG_PRINT("    - asserts, initialization\n");
     DenseMatrixManager ret;
     DenseMatrix& a = ret;
