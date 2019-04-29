@@ -362,12 +362,12 @@ struct FastFilestream {
     bool dead = false;
 
     bool nextLine(SplitLine& line) {
-        DEBUG_PRINT("NL\n");
+        ////DEBUG_PRINT("NL\n");
         if(end - idx < REFILL_THRESHOLD && !dead) {
-            DEBUG_PRINT("Refill\n");
+            ////DEBUG_PRINT("Refill\n");
             // if we want to read and are not at the end, memcpy to beginning
             if(idx != 0) {
-                DEBUG_PRINT("Shift\n");
+                ////DEBUG_PRINT("Shift\n");
                 for(int i = idx; i < end; i++) {
                     buffer[i-idx] = buffer[i];
                 }
@@ -377,34 +377,34 @@ struct FastFilestream {
             }
 
             // try to read
-            DEBUG_PRINT("Read\n");
+            ////DEBUG_PRINT("Read\n");
             size_t nread = fread(&buffer[end], sizeof(char), BUFFER_SIZE - end, fp);
 
             // check errors
-            DEBUG_PRINT("Check err\n");
+            ////DEBUG_PRINT("Check err\n");
             if(nread == 0) {
                 // file out of remaining content
-                DEBUG_PRINT("Out of remaining\n");
+                ////DEBUG_PRINT("Out of remaining\n");
                 dead = true;
             } else if(nread == (size_t)-1) {
                 // read failed;
-                DEBUG_PRINT("Failed\n");
+                ////DEBUG_PRINT("Failed\n");
                 dead = true;
             } else {
-                DEBUG_PRINT("Increment by %llu\n", nread);
+                ////DEBUG_PRINT("Increment by %llu\n", nread);
                 end += nread;
-                DEBUG_PRINT("Now: %d\n", end);
+                ////DEBUG_PRINT("Now: %d\n", end);
             }
 
         }
 
-        DEBUG_PRINT("Check completely dead\n");
+        ////DEBUG_PRINT("Check completely dead\n");
         // if dead and out of stuff to read
         if(idx >= end) {
-            DEBUG_PRINT("Completely dead :(\n");
+            ////DEBUG_PRINT("Completely dead :(\n");
             return false;
         }
-        DEBUG_PRINT("Alive\n");
+        ////DEBUG_PRINT("Alive\n");
 
         // else, do the operation
         line.nwords = 1;
@@ -412,7 +412,7 @@ struct FastFilestream {
         line.line = &buffer[idx];
         int i;
         for(i = idx; i < end; i++) {
-            DEBUG_PRINT("Check char %c\n", buffer[i]);
+            ////DEBUG_PRINT("Check char %c\n", buffer[i]);
             if(buffer[i] == ' ') {
                 line.word_indices[line.nwords++] = i-idx+1;
                 buffer[i] = 0;
@@ -426,7 +426,7 @@ struct FastFilestream {
                 break;
             }
         }
-        DEBUG_PRINT("i = %d\n", i);
+        ////DEBUG_PRINT("i = %d\n", i);
         idx = i;
 
         return true;
@@ -467,11 +467,11 @@ void CooTensorManager::create(char *tensorFileName) {
             continue;
         }
 
-        printf("        %d words: ", line.nwords);
-        for(int i = 0; i < line.nwords; i++) {
-            printf("%s ", line.word(i));
-        }
-        fflush(stdout);
+        ////printf("        %d words: ", line.nwords);
+        ////for(int i = 0; i < line.nwords; i++) {
+        ////    printf("%s ", line.word(i));
+        ////}
+        ////fflush(stdout);
 
         ++nonZeroes;
         CooPoint currentPoint;
