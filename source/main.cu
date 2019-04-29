@@ -18,6 +18,7 @@ int RANDOM_SEED = 1234;
 void compareOutput(DenseMatrix a, DenseMatrix b) {
     int errors = 0;
     const int maxErrors = 50;
+    long aZeros = 0, bZeros = 0;
 
     DEBUG_PRINT("Performing validation... ");
 
@@ -34,11 +35,26 @@ void compareOutput(DenseMatrix a, DenseMatrix b) {
                     printf("      FAILED, and stopped printing after %d errors.\n", maxErrors);
                     return;
                 }
+
+                if(abs(a.access(i, j)) < 1e-4) {
+                    aZeros += 1;
+                }
+                if(abs(b.access(i, j)) < 1e-4) {
+                    bZeros += 1;
+                }
             }
         }
     }
     if (errors==0) { printf("Passed.\n"); }
     else { printf("      FAILED :|\n"); }
+
+    if(aZeros > (a.width * a.height) * .25) {
+      printf("There seem to be a lot of zeros in the A matrix.\n");
+    }
+    if(bZeros > (b.width * b.height) * .25) {
+      printf("There seem to be a lot of zeros in the B matrix.\n");
+    }
+
     DEBUG_PRINT("done with compareOutput");
 }
 
@@ -275,14 +291,14 @@ float validateAndTime(Class inputTensor, Functype func, std::string funcname, De
 
     std::string classname = demangledClassName(inputTensor);
     printf("  Calculating MTTKRP on class %s using %s... ", classname.c_str(), funcname.c_str());
-    cudaEventRecord(timing_start,0);
 
     // compute
     DEBUG_PRINT("Launching compute...");
+    cudaEventRecord(timing_start,0);
     DenseMatrixManager result = (inputTensor.tensor->tensor.*func)(D, C);
-
     cudaEventRecord(timing_stop);
     cudaEventSynchronize(timing_stop);
+
     cudaEventElapsedTime(&retTime, timing_start, timing_stop);
     compareOutput(expected.tensor->tensor, result.tensor->tensor);
 
