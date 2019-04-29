@@ -36,13 +36,7 @@ template <typename classname, typename functype>
 float validateAndTime(classname inputTensor, functype func, DenseMatrixManager D, DenseMatrixManager C, DenseMatrixManager expected);
 
 int main(int argc, char *argv[]) {
-
-    int mode = 0;
-
-
-    if (argc >= 2) {
-        mode = 1;
-    }
+    bool useDense = false;
 
     printf("Creating TensorManager Objects... ");
     CooTensorManager Coo;
@@ -57,7 +51,23 @@ int main(int argc, char *argv[]) {
     cudaEventCreate(&timing_stop);
     printf("Done.\n");
 
-    if (mode == 0) {
+    if (argc >= 2) {
+        // read J
+        dimSizeJ = atoi(argv[1]);
+    }
+
+    if (argc >= 3) {
+        //NEED TO CREATE TENSOR FROM FILEIN
+
+        printf("Creating CooTensor from file '%s'... ", argv[2]);
+        Coo.create(argv[2]);
+        dimSizeI = Coo.tensor->tensor.depth;
+        dimSizeK = Coo.tensor->tensor.height;
+        dimSizeL = Coo.tensor->tensor.width;
+        printf("Done.\n");
+    } else {
+        // Generate dense tensor
+        useDense = true;
 
         printf("No command line arguments detected... Beginning generic testing sequence...\n\n");
         //exit(0);
@@ -77,17 +87,6 @@ int main(int argc, char *argv[]) {
 
         printf("Creating CooTensor... ");
         Coo.tensor->tensor.setSize(dimSizeI*dimSizeK*dimSizeL,dimSizeI,dimSizeK,dimSizeL);
-        printf("Done.\n");
-    }
-
-    if (mode == 1) {
-        //NEED TO CREATE TENSOR FROM FILEIN
-
-        printf("Creating CooTensor from file '%s'... ", argv[1]);
-        Coo.create(argv[1]);
-        dimSizeI = Coo.tensor->tensor.depth;
-        dimSizeK = Coo.tensor->tensor.height;
-        dimSizeL = Coo.tensor->tensor.width;
         printf("Done.\n");
     }
 
@@ -120,7 +119,7 @@ int main(int argc, char *argv[]) {
 
     printf("\n=================== Beginning Kernel Tests on COO Tensor ===================\n\n");
 
-    if (mode == 0) {
+    if (useDense) {
         testDenseToCoo(Coo, B);
     }
 
@@ -148,7 +147,7 @@ int main(int argc, char *argv[]) {
     printf("Done\n");
 
 
-    if (mode == 0) {
+    if (useDense) {
         //DenseMatixManager Variables
 
         {
