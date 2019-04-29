@@ -88,7 +88,6 @@ struct HicooTensor {
 
     // a handy function to get an element on either host or device
     HicooPoint& __host__ __device__ access_pointInBlock(unsigned int blockIndex, unsigned long long pointIndex) {
-        assert(element < numElements);
         return access_point(pointIndex + access_block(blockIndex).blockAddress);
     }
 
