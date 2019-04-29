@@ -343,15 +343,19 @@ void CooTensorManager::create(char *tensorFileName) {
             continue;
         }
         int space_indices[16];
-        int nspaces = 0;
+        space_indices[0] = -1;
+        int nspaces = 1;
         for(int i = 0; i < line.length(); i++) {
             if(line[i] == ' ') {
                 space_indices[nspaces++] = i;
-                if(nspaces >= 16) {
+                if(nspaces >= 15) {
                     break;
                 }
             }
         }
+        space_indices[nspaces] = line.length();
+
+        //DEBUG_PRINT("  - string has %d spaces: '%s'\n", nspaces, line.c_str());
 
         if(nspaces < 4) {
             // not enough spaces

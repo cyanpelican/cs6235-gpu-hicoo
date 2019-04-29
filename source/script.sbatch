@@ -14,9 +14,9 @@ ulimit -c unlimited -s
 
 nvidia-smi
 
-./HiCooExperiment 
-./HiCooExperiment 1024
-./HiCooExperiment 16384
+#./HiCooExperiment 
+#./HiCooExperiment 1024
+#./HiCooExperiment 16384
 
 #./HiCooExperiment 32     datasets/nell-1.tns
 ./HiCooExperiment 4096  datasets/nell-2.tns
