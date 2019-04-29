@@ -327,6 +327,7 @@ DenseMatrixManager CooTensor::mttkrp_kevin1(DenseMatrixManager D, DenseMatrixMan
 
 
 // File IO stuff
+#include <fcntl.h>
 struct SplitLine {
     int nwords;
     int word_indices[16];
@@ -342,8 +343,8 @@ struct SplitLine {
 
 struct FastFilestream {
     // loosely based on https://stackoverflow.com/questions/17925051/fast-textfile-reading-in-c
-    static int BUFFER_SIZE = 1024*1024;
-    static int REFILL_THRESHOLD = 1024;
+    const static int BUFFER_SIZE = 1024*1024;
+    const static int REFILL_THRESHOLD = 1024;
 
     char buffer[BUFFER_SIZE];
     FILE *fp;
@@ -365,14 +366,14 @@ struct FastFilestream {
             }
 
             // try to read
-            size_t nread = read(&buffer[end], BUFFER_SIZE - end, fd);
+            size_t nread = fread(&buffer[end], sizeof(char), BUFFER_SIZE - end, fp);
 
             // check errors
             if(nread == 0) {
                 // file out of remaining content
                 dead = true;
             }
-            if(nread == -1) {
+            if(nread == (size_t)-1) {
                 // read failed;
                 dead = true;
             }
@@ -391,14 +392,14 @@ struct FastFilestream {
         line.line = &buffer[idx];
         int i;
         for(i = idx; i < end; i++) {
-            if(line[i+idx] == ' ') {
+            if(buffer[i+idx] == ' ') {
                 line.word_indices[line.nwords++] = i-idx;
-                line[i+idx] = 0;
+                buffer[i+idx] = 0;
                 if(line.nwords >= 15) {
                     break;
                 }
-            } else if(line[i] == '\n') {
-                line[i+idx] = 0;
+            } else if(buffer[i] == '\n') {
+                buffer[i+idx] = 0;
                 line.word_indices[line.nwords] = i-idx;
                 break;
             }
@@ -410,13 +411,13 @@ struct FastFilestream {
 
     FastFilestream(char* fname) {
         //f = open(fname, O_RDONLY);
-        fp = fopen(fname, "r")
+        fp = fopen(fname, "r");
         assert(fp != nullptr);
 
         posix_fadvise(fileno(fp), 0, 0, POSIX_FADV_SEQUENTIAL);
     }
     ~FastFilestream() {
-        close(fp);
+        fclose(fp);
     }
 };
 
@@ -435,7 +436,7 @@ void CooTensorManager::create(char *tensorFileName) {
     //put all the points into a vector
     DEBUG_PRINT("    - load all points into vector\n");
     int maxX = 0, maxY = 0, maxZ = 0;
-    while (ffs.nextLine(sl)) {
+    while (ffs.nextLine(line)) {
         if(line.nwords < 4 || line.line[0] == '#') {
             // uselessly-short line or comment
             continue;
