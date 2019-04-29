@@ -71,6 +71,7 @@ struct HicooTensor {
         #ifdef __CUDA_ARCH__
             return blocks_d[blockIndex];
         #else
+            assert(blockIndex <= numBlocks);
             return blocks_h[blockIndex];
         #endif
     }
@@ -80,12 +81,14 @@ struct HicooTensor {
         #ifdef __CUDA_ARCH__
             return points_d[pointIndex];
         #else
+            assert(pointIndex < numPoints);
             return points_h[pointIndex];
         #endif
     }
 
     // a handy function to get an element on either host or device
     HicooPoint& __host__ __device__ access_pointInBlock(unsigned int blockIndex, unsigned long long pointIndex) {
+        assert(element < numElements);
         return access_point(pointIndex + access_block(blockIndex).blockAddress);
     }
 
