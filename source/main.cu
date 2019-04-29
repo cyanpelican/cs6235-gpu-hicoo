@@ -12,25 +12,8 @@
 
 using namespace std;
 
-const int dimSizeI = 30, dimSizeJ = 30, dimSizeK = 30, dimSizeL = 30;
+int dimSizeI = 30, dimSizeJ = 30, dimSizeK = 30, dimSizeL = 30;
 int RANDOM_SEED = 1234;
-
-
-template <typename classname, typename funcname>
-float validateAndTime(classname inputTensor, DenseMatrixManager expected) {
-    cudaEvent_t timing_start,timing_stop;
-
-    cudaEventCreate(&timing_start);
-    cudaEventCreate(&timing_stop);
-
-    printf("  Calculating MTTKRP on class %s using %s... ", typeid(classname).name(), typeid(funcname).name());
-    cudaEventRecord(timing_start,0);
-    DenseMatrixManager result = inputTensor.tensor->tensor.funcname(D, C);
-    cudaEventRecord(timing_stop);
-    cudaEventSynchronize(timing_stop);
-    cudaEventElapsedTime(&HicooCPUTime,timing_start, timing_stop);
-    compareOutput(expected.tensor->tensor, result.tensor->tensor);
-}
 
 void compareOutput(DenseMatrix a, DenseMatrix b) {
     bool success = 1;
@@ -48,7 +31,9 @@ void compareOutput(DenseMatrix a, DenseMatrix b) {
 }
 
 void validateGroundTruth();
-void testDenseToCoo(CooTensorManager Coo, int dimSizeI, int dimSizeK, int dimSizeL);
+void testDenseToCoo(CooTensorManager Coo, DenseTensorManager B);
+template <typename classname, typename functype>
+float validateAndTime(classname inputTensor, functype func, DenseMatrixManager D, DenseMatrixManager C, DenseMatrixManager expected);
 
 int main(int argc, char *argv[]) {
 
@@ -72,7 +57,6 @@ int main(int argc, char *argv[]) {
     cudaEventCreate(&timing_stop);
     printf("Done.\n");
 
-    int dimSizeI, dimSizeK, dimSizeL;
     if (mode == 0) {
 
         printf("No command line arguments detected... Beginning generic testing sequence...\n\n");
@@ -137,7 +121,7 @@ int main(int argc, char *argv[]) {
     printf("\n=================== Beginning Kernel Tests on COO Tensor ===================\n\n");
 
     if (mode == 0) {
-        testDenseToCoo(Coo, dimSizeI, dimSizeK, dimSizeL);
+        testDenseToCoo(Coo, B);
     }
 
     memUsage = Coo.tensor->tensor.getTotalMemory();
@@ -175,7 +159,7 @@ int main(int argc, char *argv[]) {
     }
 
     // TODO - this
-    float f = validateAndTime<CooTensorManager, mttkrp_naive_gpu>(Coo, retCooCPU);
+    float f = validateAndTime(Coo, &CooTensor::mttkrp_naive_gpu, D, C, retCooCPU);
 
     {
         printf("\n  Calculating MTTKRP (Coo) using implemented GPU kernel function call... ");
@@ -245,7 +229,7 @@ int main(int argc, char *argv[]) {
     return 0;
 }
 
-void testDenseToCoo(CooTensorManager Coo, int dimSizeI, int dimSizeK, int dimSizeL) {
+void testDenseToCoo(CooTensorManager Coo, DenseTensorManager B) {
     printf("  Creating CooTensor from known data for comparison... ");
     srand(RANDOM_SEED);
     for (int i = 0; i < dimSizeI; i++) {
@@ -278,6 +262,30 @@ void testDenseToCoo(CooTensorManager Coo, int dimSizeI, int dimSizeK, int dimSiz
     else { printf("Passed.\n"); }
 
 }
+
+
+template <typename classname, typename functype>
+float validateAndTime(classname inputTensor, functype func, DenseMatrixManager D, DenseMatrixManager C, DenseMatrixManager expected) {
+    // minor black magic from https://timmurphy.org/2014/08/28/passing-member-functions-as-template-parameters-in-c/
+    float retTime;
+    cudaEvent_t timing_start,timing_stop;
+
+    cudaEventCreate(&timing_start);
+    cudaEventCreate(&timing_stop);
+
+    printf("  Calculating MTTKRP on class %s using %s... ", typeid(classname).name(), typeid(func).name());
+    cudaEventRecord(timing_start,0);
+    DenseMatrixManager result = (inputTensor.tensor->tensor.*func)(D, C);
+    //DenseMatrixManager result;
+    cudaEventRecord(timing_stop);
+    cudaEventSynchronize(timing_stop);
+    cudaEventElapsedTime(&retTime, timing_start, timing_stop);
+    compareOutput(expected.tensor->tensor, result.tensor->tensor);
+
+    return retTime;
+}
+
+
 
 void validateGroundTruth() {
 
