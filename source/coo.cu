@@ -385,7 +385,7 @@ void CooTensorManager::create(char *tensorFileName) {
 
     //construct the COO object
     DEBUG_PRINT("    - rebuild tensor from input\n");
-    tensor->tensor.setSize(nonZeroes, maxZ, maxY, maxX);
+    tensor->tensor.setSize(nonZeroes, maxZ+1, maxY+1, maxX+1);
     memcpy(tensor->tensor.points_h, tensorPoints.data(), sizeof(CooPoint) * tensorPoints.size());
 
     DEBUG_PRINT("    - done; size = %d; %d x %d x %d\n", nonZeroes, maxZ, maxY, maxX);
