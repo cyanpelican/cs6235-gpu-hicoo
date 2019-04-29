@@ -20,8 +20,8 @@ void compareOutput(DenseMatrix a, DenseMatrix b) {
     const int maxErrors = 50;
     long aZeros = 0, bZeros = 0;
 
-    DEBUG_PRINT("Performing validation... ");
-    DEBUG_PRINT("Sample data: a(0,0)=%f, b(0,0)=%f", a.access(0,0), b.access(0,0));
+    DEBUG_PRINT("Performing validation...\n");
+    DEBUG_PRINT("Sample data: a(0,0)=%f, b(0,0)=%f\n", a.access(0,0), b.access(0,0));
 
     assert(a.values_h != nullptr);
     assert(b.values_h != nullptr);
@@ -36,13 +36,13 @@ void compareOutput(DenseMatrix a, DenseMatrix b) {
                     printf("      FAILED, and stopped printing after %d errors.\n", maxErrors);
                     return;
                 }
+            }
 
-                if(abs(a.access(i, j)) < 1e-4) {
-                    aZeros += 1;
-                }
-                if(abs(b.access(i, j)) < 1e-4) {
-                    bZeros += 1;
-                }
+            if(abs(a.access(i, j)) < 1e-4) {
+                aZeros += 1;
+            }
+            if(abs(b.access(i, j)) < 1e-4) {
+                bZeros += 1;
             }
         }
     }
@@ -56,11 +56,11 @@ void compareOutput(DenseMatrix a, DenseMatrix b) {
       printf("There seem to be a lot of zeros in the B matrix.\n");
     }
 
-    DEBUG_PRINT("done with compareOutput");
+    DEBUG_PRINT("done with compareOutput\n");
 }
 
 void validateGroundTruth();
-void testDenseToCoo(CooTensorManager Coo, DenseTensorManager B);
+void performAndTestDenseToCoo(CooTensorManager Coo, DenseTensorManager B);
 template <typename Class, typename Functype>
 float validateAndTime(Class inputTensor, Functype func, std::string funcname, DenseMatrixManager D, DenseMatrixManager C, DenseMatrixManager expected);
 
@@ -119,6 +119,8 @@ int main(int argc, char *argv[]) {
         printf("Creating CooTensor... ");
         Coo.tensor->tensor.setSize(dimSizeI*dimSizeK*dimSizeL,dimSizeI,dimSizeK,dimSizeL);
         printf("Done.\n");
+
+        performAndTestDenseToCoo(Coo, B);
     }
 
     printf("=============================== Begin Test ================================\n\n");
@@ -172,8 +174,6 @@ int main(int argc, char *argv[]) {
 
     if (useDense) {
         printf("\n=================== Beginning Kernel Tests on Dense Tensor ===================\n\n");
-        //DenseMatixManager Variables
-        testDenseToCoo(Coo, B);
 
         float denseCpuTime = validateAndTime(B, FUNC_AND_NAME(DenseTensor::mttkrp_naive_cpu), D, C, retCooCPU);
 
@@ -231,7 +231,7 @@ int main(int argc, char *argv[]) {
 
 
 
-void testDenseToCoo(CooTensorManager Coo, DenseTensorManager B) {
+void performAndTestDenseToCoo(CooTensorManager Coo, DenseTensorManager B) {
     printf("  Creating CooTensor from known data for comparison... ");
     srand(RANDOM_SEED);
     for (int i = 0; i < dimSizeI; i++) {
@@ -245,7 +245,7 @@ void testDenseToCoo(CooTensorManager Coo, DenseTensorManager B) {
             }
         }
     }
-    printf("Done. ");
+    printf("Done.\n");
 
 
     printf("  Testing Dense to Coo conversion function... ");
@@ -283,7 +283,7 @@ std::string demangledClassName(T o) {
 template <typename Class, typename Functype>
 float validateAndTime(Class inputTensor, Functype func, std::string funcname, DenseMatrixManager D, DenseMatrixManager C, DenseMatrixManager expected) {
     // minor black magic from https://timmurphy.org/2014/08/28/passing-member-functions-as-template-parameters-in-c/
-    DEBUG_PRINT("Running validateAndTime...");
+    DEBUG_PRINT("Running validateAndTime...\n");
     float retTime;
     cudaEvent_t timing_start,timing_stop;
 
@@ -294,7 +294,7 @@ float validateAndTime(Class inputTensor, Functype func, std::string funcname, De
     printf("  Calculating MTTKRP on class %s using %s... ", classname.c_str(), funcname.c_str());
 
     // compute
-    DEBUG_PRINT("Launching compute...");
+    DEBUG_PRINT("Launching compute...\n");
     cudaEventRecord(timing_start,0);
     DenseMatrixManager result = (inputTensor.tensor->tensor.*func)(D, C);
     cudaEventRecord(timing_stop);
@@ -306,7 +306,7 @@ float validateAndTime(Class inputTensor, Functype func, std::string funcname, De
     printf("    Time = %f\n", retTime);
     fflush(stdout);
 
-    DEBUG_PRINT("done with validateAndTime");
+    DEBUG_PRINT("done with validateAndTime\n");
     return retTime;
 }
 
