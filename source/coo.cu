@@ -398,6 +398,7 @@ struct FastFilestream {
         DEBUG_PRINT("Check completely dead\n");
         // if dead and out of stuff to read
         if(end >= idx) {
+            DEBUG_PRINT("Completely dead :(\n");
             return false;
         }
         DEBUG_PRINT("Alive\n");
@@ -408,14 +409,15 @@ struct FastFilestream {
         line.line = &buffer[idx];
         int i;
         for(i = idx; i < end; i++) {
-            if(buffer[i+idx] == ' ') {
+            DEBUG_PRINT("Check char %c\n", buffer[i]);
+            if(buffer[i] == ' ') {
                 line.word_indices[line.nwords++] = i-idx;
-                buffer[i+idx] = 0;
+                buffer[i] = 0;
                 if(line.nwords >= 15) {
                     break;
                 }
             } else if(buffer[i] == '\n') {
-                buffer[i+idx] = 0;
+                buffer[i] = 0;
                 line.word_indices[line.nwords] = i-idx;
                 break;
             }
