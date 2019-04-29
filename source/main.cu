@@ -16,13 +16,20 @@ int dimSizeI = 30, dimSizeJ = 30, dimSizeK = 30, dimSizeL = 30;
 int RANDOM_SEED = 1234;
 
 void compareOutput(DenseMatrix a, DenseMatrix b) {
-    bool success = 1;
+    int errors = 0;
+    const int maxErrors = 50;
+
     for (int i = 0; i < dimSizeI; i++) {
         for (int j = 0; j < dimSizeJ; j++) {
             float mag = abs(a.access(i, j)) + 1e-4;
             if(abs(a.access(i, j) - b.access(i, j)) > mag * 1e-5) {
                 printf("\n    Outputs do not match at index (%d,%d): %f vs %f", i,j, a.access(i,j), b.access(i,j));
-                success = 0;
+                success = false;
+                errors++;
+
+                if(errors > maxErrors) {
+                    printf("      FAILED, and stopped printing after %d errors.\n", maxErrors);
+                }
             }
         }
     }
@@ -246,7 +253,7 @@ std::string demangledClassName(T o) {
     char* demangled = abi::__cxa_demangle(typeid(o).name(), 0, 0, &status);
     std::string ret = demangled;
     free(demangled);
-    
+
     return ret;
 }
 
