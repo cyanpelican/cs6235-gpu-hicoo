@@ -342,13 +342,28 @@ void CooTensorManager::create(char *tensorFileName) {
             // uselessly-short line or comment
             continue;
         }
+        int space_indices[16];
+        int nspaces = 0;
+        for(int i = 0; i < line.length(); i++) {
+            if(line[i] == ' ') {
+                space_indices[nspaces++] = i;
+                if(nspaces >= 16) {
+                    break;
+                }
+            }
+        }
+
+        if(nspaces < 4) {
+            // not enough spaces
+            continue;
+        }
+
         ++nonZeroes;
         CooPoint currentPoint;
-        std::stringstream ss(line); // Turn the string into a stream.
-        ss >> currentPoint.x;
-        ss >> currentPoint.y;
-        ss >> currentPoint.z;
-        ss >> currentPoint.value;
+        currentPoint.x = atoi(line.substr(space_indices[0]+1, space_indices[1]-space_indices[0])-1);
+        currentPoint.y = atoi(line.substr(space_indices[1]+1, space_indices[2]-space_indices[1])-1);
+        currentPoint.z = atoi(line.substr(space_indices[2]+1, space_indices[3]-space_indices[2])-1);
+        currentPoint.value = atof(line.substr(space_indices[nspaces-1]+1, space_indices[nspaces-1]-space_indices[nspaces-2])-1);
 
         if(currentPoint.x > maxX) maxX = currentPoint.x;
         if(currentPoint.y > maxY) maxY = currentPoint.y;
@@ -358,7 +373,7 @@ void CooTensorManager::create(char *tensorFileName) {
         tensorPoints.push_back(currentPoint);
     }
 
-    tensorPoints.shrink_to_fit();
+    DEBUG_PRINT("    - Finished reading; first = (%d,%d,%d)->%f", tensorPoints[0].x, tensorPoints[0].y, tensorPoints[0].z, tensorPoints[0].value);
 
     //construct the COO object
     DEBUG_PRINT("    - rebuild tensor from input\n");
