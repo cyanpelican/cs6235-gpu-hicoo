@@ -400,7 +400,7 @@ struct FastFilestream {
 
         DEBUG_PRINT("Check completely dead\n");
         // if dead and out of stuff to read
-        if(end >= idx) {
+        if(idx >= end) {
             DEBUG_PRINT("Completely dead :(\n");
             return false;
         }
@@ -487,7 +487,8 @@ void CooTensorManager::create(char *tensorFileName) {
         tensorPoints.push_back(currentPoint);
     }
 
-    DEBUG_PRINT("    - Finished reading; first = (%d,%d,%d)->%f", tensorPoints[0].x, tensorPoints[0].y, tensorPoints[0].z, tensorPoints[0].value);
+    if(tensorPoints.size() != 0)
+        DEBUG_PRINT("    - Finished reading; first = (%d,%d,%d)->%f", tensorPoints[0].x, tensorPoints[0].y, tensorPoints[0].z, tensorPoints[0].value);
 
     //construct the COO object
     DEBUG_PRINT("    - rebuild tensor from input\n");
