@@ -25,6 +25,7 @@
  }
 
 // set to true to enable debug prints
+#define ENABLE_ACCESS_ASSERTS false
 #define DEBUG_PRINT_ENABLE true
 
 #if DEBUG_PRINT_ENABLE && !defined NDEBUG
