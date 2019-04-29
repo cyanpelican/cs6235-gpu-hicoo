@@ -255,7 +255,7 @@ int main(int argc, char *argv[]) {
 
     printf("\n  ======================= Timing(s) ======================= \n");
 
-    printf("  COO MTTKRP (%d,%d,%d; J=)\n",dimSizeI,dimSizeK,dimSizeL, dimSizeJ);
+    printf("  COO MTTKRP (%d,%d,%d; J=%d)\n",dimSizeI,dimSizeK,dimSizeL, dimSizeJ);
     printf("    CPU -> %f\n", CooCPUTime);
     printf("    GPU -> %f\n", CooGPUTime);
     printf("      Speedup -> %f\n", CooCPUTime/CooGPUTime);
