@@ -423,6 +423,7 @@ struct FastFilestream {
         fp = fopen(fname, "r");
         if(fp == nullptr) {
             printf("Bad file: %s\n", fname);
+            fflush(stdout);
             dead = true;
         }
 
