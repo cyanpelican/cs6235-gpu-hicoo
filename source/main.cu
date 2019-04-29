@@ -69,7 +69,7 @@ float validateAndTime(Class inputTensor, Functype func, std::string funcname, De
 int main(int argc, char *argv[]) {
     bool useDense = false;
     bool allowCPU = true;
-    float FOREVER = 9e9
+    float FOREVER = 9e9;
 
     printf("Creating TensorManager Objects... ");
     CooTensorManager Coo;
