@@ -168,7 +168,7 @@ DenseMatrixManager CooTensor::mttkrp_naive_cpu(DenseMatrixManager D, DenseMatrix
 
     //for each non-zero
     DEBUG_PRINT("    - performing operation\n");
-    for (int index = 0; index < this->numElements; index++) {
+    for (unsigned int index = 0; index < this->numElements; index++) {
         CooPoint point = this->access(index);
         int l = point.x;
         int k = point.y;
