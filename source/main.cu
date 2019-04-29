@@ -213,15 +213,17 @@ int main(int argc, char *argv[]) {
     printf("  COO MTTKRP (%d,%d,%d)\n",dimSizeI,dimSizeK,dimSizeL);
     printf("    CPU -> %f\n", CooCPUTime);
     printf("    GPU -> %f\n", CooGPUTime);
-    printf("      Speedup -> %f\n\n", CooCPUTime/CooGPUTime);
+    printf("      Speedup -> %f\n", CooCPUTime/CooGPUTime);
     printf("    Kevin1 -> %f\n", CooKevin1Time);
-    printf("      Speedup -> %f\n\n", CooCPUTime/CooKevin1Time);
+    printf("      Speedup -> %f\n", CooCPUTime/CooKevin1Time);
+    printf("\n");
     printf("  HiCOO MTTKRP (%d,%d,%d)\n",dimSizeI,dimSizeK,dimSizeL);
     printf("    CPU -> %f\n", HicooCPUTime);
-    printf("      Speedup -> %f\n", HicooCPUTime/HicooGPUTime);
     printf("    GPU -> %f\n", HicooGPUTime);
+    printf("      Speedup -> %f\n", HicooCPUTime/HicooGPUTime);
     printf("    Kevin1 -> %f\n", HicooKevin1Time);
-    printf("      Speedup -> %f\n\n", HicooKevin1Time/CooKevin1Time);
+    printf("      Speedup -> %f\n", CooCPUTime/HicooKevin1Time);
+    printf("\n");
 
     printf("  =========================================================\n\n");
     printf("That's a wrap\n");
@@ -230,6 +232,11 @@ int main(int argc, char *argv[]) {
 
 
 
+
+
+
+
+// helper functions
 
 void performAndTestDenseToCoo(CooTensorManager Coo, DenseTensorManager B) {
     printf("  Creating CooTensor from known data for comparison... ");
