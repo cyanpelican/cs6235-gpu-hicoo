@@ -21,6 +21,7 @@ void compareOutput(DenseMatrix a, DenseMatrix b) {
     long aZeros = 0, bZeros = 0;
 
     DEBUG_PRINT("Performing validation... ");
+    DEBUG_PRINT("Sample data: a(0,0)=%f, b(0,0)=%f", a.access(0,0), b.access(0,0));
 
     assert(a.values_h != nullptr);
     assert(b.values_h != nullptr);
@@ -46,7 +47,7 @@ void compareOutput(DenseMatrix a, DenseMatrix b) {
         }
     }
     if (errors==0) { printf("Passed.\n"); }
-    else { printf("      FAILED :|\n"); }
+    else { printf("\n      FAILED :|\n"); }
 
     if(aZeros > (a.width * a.height) * .25) {
       printf("There seem to be a lot of zeros in the A matrix.\n");
