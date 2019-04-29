@@ -162,7 +162,6 @@ DenseMatrixManager CooTensor::mttkrp_naive_cpu(DenseMatrixManager D, DenseMatrix
     assert(d.height == L);
     assert(c.height == K);
     assert(c.width  == J);
-    assert(a.points_h != nullptr);
     assert(values_h != nullptr);
     assert(c.points_h != nullptr);
     assert(d.points_h != nullptr);
