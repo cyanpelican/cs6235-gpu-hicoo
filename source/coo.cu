@@ -384,15 +384,17 @@ struct FastFilestream {
             DEBUG_PRINT("Check err\n");
             if(nread == 0) {
                 // file out of remaining content
+                DEBUG_PRINT("Out of remaining\n");
                 dead = true;
-            }
-            if(nread == (size_t)-1) {
+            } else if(nread == (size_t)-1) {
                 // read failed;
+                DEBUG_PRINT("Failed\n");
                 dead = true;
+            } else {
+                DEBUG_PRINT("Increment\n");
+                end += nread;
             }
 
-            DEBUG_PRINT("Icrement\n");
-            end += nread;
         }
 
         DEBUG_PRINT("Check completely dead\n");
