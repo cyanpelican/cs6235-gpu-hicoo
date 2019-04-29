@@ -119,15 +119,11 @@ int main(int argc, char *argv[]) {
 
     printf("\n=================== Beginning Kernel Tests on COO Tensor ===================\n\n");
 
-    if (useDense) {
-        testDenseToCoo(Coo, B);
-    }
-
     memUsage = Coo.tensor->tensor.getTotalMemory();
     printf("(Memory usage: %llu)\n",memUsage);
 
     printf("  Calculating MTTKRP (Coo) using implemented CPU kernel function call... ");
-    //Time Sequential
+    // Time COO Sequential to use as comparison
     float CooCPUTime;
     cudaEventRecord(timing_start,0);
     DenseMatrixManager retCooCPU = Coo.tensor->tensor.mttkrp_naive_cpu(D, C);
@@ -136,36 +132,19 @@ int main(int argc, char *argv[]) {
     cudaEventElapsedTime(&CooCPUTime,timing_start, timing_stop);
     printf("Done.\n");
 
-    printf("\n  Calculating MTTKRP (Coo) using implemented GPU kernel function call... ");
-    //Time Parallel
-    float CooGPUTime;
-    cudaEventRecord(timing_start,0);
-    DenseMatrixManager retCooGPU = Coo.tensor->tensor.mttkrp_naive_gpu(D, C); //COO GPU KERNEL
-    cudaEventRecord(timing_stop);
-    cudaEventSynchronize(timing_stop);
-    cudaEventElapsedTime(&CooGPUTime,timing_start, timing_stop);
-    printf("Done\n");
+
+    // Time Parallel
+    float CooGPUTime = validateAndTime(Coo, &CooTensor::mttkrp_naive_gpu, D, C, retCooCPU);
 
 
     if (useDense) {
+        printf("\n=================== Beginning Kernel Tests on Dense Tensor ===================\n\n");
         //DenseMatixManager Variables
+        testDenseToCoo(Coo, B);
 
-        {
-            printf("  Comparing Kevin's Dense implementation to CPU Kernel Call (Dense.naive_cpu vs Coo.naive_cpu)... ");
-            DenseMatrixManager retDense = B.tensor->tensor.mttkrp_naive_cpu(D,C);
-            compareOutput(retDense.tensor->tensor, retCooCPU.tensor->tensor);
-        }
-    }
+        float denseCpuTime = validateAndTime(B, &DenseTensor::mttkrp_naive_cpu, D, C, retCooCPU);
 
-    // TODO - this
-    float f = validateAndTime(Coo, &CooTensor::mttkrp_naive_gpu, D, C, retCooCPU);
-
-    {
-        printf("\n  Calculating MTTKRP (Coo) using implemented GPU kernel function call... ");
-        DenseMatrixManager retCooGpu = Coo.tensor->tensor.mttkrp_naive_gpu(D,C); //COO GPU KERNEL
-
-        printf("  Comparing GPU Kernel Call to Ground Truth (Coo.naive_gpu vs Ground truth)... ");
-        compareOutput(retCooCPU.tensor->tensor, retCooGpu.tensor->tensor);
+        //float denseGpuTime = validateAndTime(B, &DenseTensor::mttkrp_naive_gpu, D, C, retCooCPU);
     }
 
 
@@ -173,33 +152,13 @@ int main(int argc, char *argv[]) {
 
     printf("  Converting to hicoo\n");
     Hicoo = Coo.tensor->tensor.toHicoo();
-    float HicooCPUTime;
-    {
-        //Time Sequential
-        printf("  Calculating MTTKRP (HiCOO) using implemented CPU kernel function call... ");
-        cudaEventRecord(timing_start,0);
-        DenseMatrixManager retHicoo = Hicoo.tensor->tensor.mttkrp_naive_cpu(D, C);
-        cudaEventRecord(timing_stop);
-        cudaEventSynchronize(timing_stop);
-        cudaEventElapsedTime(&HicooCPUTime,timing_start, timing_stop);
-        compareOutput(retCooCPU.tensor->tensor, retHicoo.tensor->tensor);
-    }
+    float HicooCPUTime = validateAndTime(Hicoo, &HicooTensor::mttkrp_naive_cpu, D, C, retCooCPU);
 
-    float HicooGPUTime;
-    {
-        //Time Parallel
-        printf("  Comparing Hicoo implementation to CPU Kernel Call (Ground truth vs HiCoo.naive_cpu)... ");
-        cudaEventRecord(timing_start,0);
-        DenseMatrixManager retHicoo = Hicoo.tensor->tensor.mttkrp_naive_gpu(D, C);
-        cudaEventRecord(timing_stop);
-        cudaEventSynchronize(timing_stop);
-        cudaEventElapsedTime(&HicooGPUTime,timing_start,timing_stop);
-        compareOutput(retCooCPU.tensor->tensor, retHicoo.tensor->tensor);
-    }
+    float HicooGPUTime = validateAndTime(Hicoo, &HicooTensor::mttkrp_naive_gpu, D, C, retCooCPU);
 
     printf("\n  ==================== Memory Usage ======================= \n");
 
-    if (mode == 0) {
+    if (useDense) {
         memUsage = B.tensor->tensor.getTotalMemory();
         printf("  Dense Tensor (%d,%d,%d) --> %llu B\n",dimSizeI,dimSizeK,dimSizeL,memUsage);
     }
@@ -227,6 +186,9 @@ int main(int argc, char *argv[]) {
     printf("That's a wrap\n");
     return 0;
 }
+
+
+
 
 void testDenseToCoo(CooTensorManager Coo, DenseTensorManager B) {
     printf("  Creating CooTensor from known data for comparison... ");
