@@ -391,8 +391,9 @@ struct FastFilestream {
                 DEBUG_PRINT("Failed\n");
                 dead = true;
             } else {
-                DEBUG_PRINT("Increment\n");
+                DEBUG_PRINT("Increment by %llu\n", nread);
                 end += nread;
+                DEBUG_PRINT("Now: %d\n", end);
             }
 
         }
