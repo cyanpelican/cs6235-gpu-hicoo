@@ -24,8 +24,11 @@
   }\
  }
 
-// set to true to enable debug prints
+
+// set to true to slow down the entire world and make sure accesses are good
 #define ENABLE_ACCESS_ASSERTS false
+
+// set to true to enable debug prints
 #define DEBUG_PRINT_ENABLE true
 
 #if DEBUG_PRINT_ENABLE && !defined NDEBUG
