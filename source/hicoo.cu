@@ -318,7 +318,7 @@ __global__ void hicoo_kevin2_kernel(DenseMatrix a, HicooTensor b, DenseMatrix d,
 }
 
 __global__ void hicoo_kevin2_lut_populate(HicooTensor b, int* lut) {
-    int idx = blockIdx.x * blockSize.x + threadIdx.x;
+    int idx = blockIdx.x * blockDim.x + threadIdx.x;
     
     if(idx < b.numBlocks && idx > 0) {
         HicooBlock prev = b.access_block(idx-1);
@@ -359,7 +359,7 @@ DenseMatrixManager HicooTensor::mttkrp_kevin2(DenseMatrixManager D, DenseMatrixM
     a.setSize_d(I, J);
 
     DEBUG_PRINT("    - create LUT on gpu\n");
-    int blocksZ = (width-1)/blockDepth + 1
+    int blocksZ = (width-1)/blockDepth + 1;
     int* zBlockIndices;
     cudaErrorCheck(cudaMalloc((void **) &zBlockIndices, sizeof(int) * blocksZ));
     assert(zBlockIndices != nullptr);
