@@ -360,10 +360,10 @@ void CooTensorManager::create(char *tensorFileName) {
 
         ++nonZeroes;
         CooPoint currentPoint;
-        currentPoint.x = atoi(line.substr(space_indices[0]+1, space_indices[1]-space_indices[0])-1);
-        currentPoint.y = atoi(line.substr(space_indices[1]+1, space_indices[2]-space_indices[1])-1);
-        currentPoint.z = atoi(line.substr(space_indices[2]+1, space_indices[3]-space_indices[2])-1);
-        currentPoint.value = atof(line.substr(space_indices[nspaces-1]+1, space_indices[nspaces-1]-space_indices[nspaces-2])-1);
+        currentPoint.x = atoi(line.substr(space_indices[0]+1, space_indices[1]-space_indices[0]-1).c_str());
+        currentPoint.y = atoi(line.substr(space_indices[1]+1, space_indices[2]-space_indices[1]-1).c_str());
+        currentPoint.z = atoi(line.substr(space_indices[2]+1, space_indices[3]-space_indices[2]-1).c_str());
+        currentPoint.value = atof(line.substr(space_indices[nspaces-1]+1, space_indices[nspaces-1]-space_indices[nspaces-2]-1).c_str());
 
         if(currentPoint.x > maxX) maxX = currentPoint.x;
         if(currentPoint.y > maxY) maxY = currentPoint.y;

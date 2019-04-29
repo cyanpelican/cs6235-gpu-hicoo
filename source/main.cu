@@ -97,6 +97,7 @@ int main(int argc, char *argv[]) {
         dimSizeK = Coo.tensor->tensor.height;
         dimSizeL = Coo.tensor->tensor.width;
         printf("Done.\n");
+        fflush(stdout);
     } else {
         // Generate dense tensor
         useDense = true;
@@ -120,6 +121,7 @@ int main(int argc, char *argv[]) {
         printf("Creating CooTensor... ");
         Coo.tensor->tensor.setSize(dimSizeI*dimSizeK*dimSizeL,dimSizeI,dimSizeK,dimSizeL);
         printf("Done.\n");
+        fflush(stdout);
 
         performAndTestDenseToCoo(Coo, B);
     }
@@ -148,6 +150,7 @@ int main(int argc, char *argv[]) {
         }
     }
     printf("Done.\n");
+    fflush(stdout);
 
 
 
@@ -165,6 +168,7 @@ int main(int argc, char *argv[]) {
     cudaEventSynchronize(timing_stop);
     cudaEventElapsedTime(&CooCPUTime,timing_start, timing_stop);
     printf("Done.\n");
+    fflush(stdout);
 
 
     // Time Parallel
@@ -179,6 +183,8 @@ int main(int argc, char *argv[]) {
         float denseCpuTime = validateAndTime(B, FUNC_AND_NAME(DenseTensor::mttkrp_naive_cpu), D, C, retCooCPU);
 
         //float denseGpuTime = validateAndTime(B, FUNC_AND_NAME(DenseTensor::mttkrp_naive_gpu), D, C, retCooCPU);
+
+        fflush(stdout);
     }
 
 
@@ -191,6 +197,8 @@ int main(int argc, char *argv[]) {
     float HicooGPUTime = validateAndTime(Hicoo, FUNC_AND_NAME(HicooTensor::mttkrp_naive_gpu), D, C, retCooCPU);
 
     float HicooKevin1Time = validateAndTime(Hicoo, FUNC_AND_NAME(HicooTensor::mttkrp_kevin1), D, C, retCooCPU);
+
+    fflush(stdout);
 
 
 

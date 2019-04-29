@@ -25,7 +25,7 @@
  }
 
 // set to true to enable debug prints
-#define DEBUG_PRINT_ENABLE false
+#define DEBUG_PRINT_ENABLE true
 
 #if DEBUG_PRINT_ENABLE && !defined NDEBUG
   inline void __print_debug_header(std::string file, unsigned int line) {
