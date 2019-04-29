@@ -26,7 +26,7 @@ echo VISIBLE === $CUDA_VISIBLE_DEVICES
 ./HiCooExperiment 262114 8 datasets/matmul_4-4-3.tns
 ./HiCooExperiment 262114 8 datasets/matmul_4-4-4.tns
 ./HiCooExperiment 262114 8 datasets/matmul_5-5-5.tns
-./HiCooExperiment 262114 8 datasets/matmul_6-6-3.tns
+./HiCooExperiment 262114 8 datasets/matmul_6-3-3.tns
 
 ./HiCooExperiment 32     8 datasets/nell-1.tns
 ./HiCooExperiment 512    8 datasets/nell-2.tns
