@@ -19,6 +19,10 @@ void compareOutput(DenseMatrix a, DenseMatrix b) {
     int errors = 0;
     const int maxErrors = 50;
 
+    DEBUG_PRINT("Performing validation... ");
+
+    assert(a.points_h != nullptr);
+    assert(b.points_h != nullptr);
     for (int i = 0; i < dimSizeI; i++) {
         for (int j = 0; j < dimSizeJ; j++) {
             float mag = abs(a.access(i, j)) + 1e-4;
@@ -35,6 +39,7 @@ void compareOutput(DenseMatrix a, DenseMatrix b) {
     }
     if (success) { printf("Passed.\n"); }
     else { printf("      FAILED :|\n"); }
+    DEBUG_PRINT("done with compareOutput");
 }
 
 void validateGroundTruth();
@@ -261,6 +266,7 @@ std::string demangledClassName(T o) {
 template <typename Class, typename Functype>
 float validateAndTime(Class inputTensor, Functype func, std::string funcname, DenseMatrixManager D, DenseMatrixManager C, DenseMatrixManager expected) {
     // minor black magic from https://timmurphy.org/2014/08/28/passing-member-functions-as-template-parameters-in-c/
+    DEBUG_PRINT("Running validateAndTime...");
     float retTime;
     cudaEvent_t timing_start,timing_stop;
 
@@ -270,8 +276,11 @@ float validateAndTime(Class inputTensor, Functype func, std::string funcname, De
     std::string classname = demangledClassName(inputTensor);
     printf("  Calculating MTTKRP on class %s using %s... ", classname.c_str(), funcname.c_str());
     cudaEventRecord(timing_start,0);
+
+    // compute
+    DEBUG_PRINT("Launching compute...");
     DenseMatrixManager result = (inputTensor.tensor->tensor.*func)(D, C);
-    //DenseMatrixManager result;
+
     cudaEventRecord(timing_stop);
     cudaEventSynchronize(timing_stop);
     cudaEventElapsedTime(&retTime, timing_start, timing_stop);
@@ -280,6 +289,7 @@ float validateAndTime(Class inputTensor, Functype func, std::string funcname, De
     printf("    Time = %f\n", retTime);
     fflush(stdout);
 
+    DEBUG_PRINT("done with validateAndTime");
     return retTime;
 }
 
