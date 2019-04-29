@@ -326,6 +326,11 @@ DenseMatrixManager CooTensor::mttkrp_kevin1(DenseMatrixManager D, DenseMatrixMan
 
 
 
+
+
+
+
+
 // File IO stuff
 #include <fcntl.h>
 struct SplitLine {
@@ -357,8 +362,8 @@ struct FastFilestream {
         if(end - idx < REFILL_THRESHOLD && !dead) {
             // if we want to read and are not at the end, memcpy to beginning
             if(idx != 0) {
-                for(int i = 0; i < end-idx; i++) {
-                    buffer[i] = buffer[i+idx];
+                for(int i = idx; i < end; i++) {
+                    buffer[i-idx] = buffer[i];
                 }
 
                 end = end-idx;
@@ -382,7 +387,7 @@ struct FastFilestream {
         }
 
         // if dead and out of stuff to read
-        if(end == idx) {
+        if(end >= idx) {
             return false;
         }
 
