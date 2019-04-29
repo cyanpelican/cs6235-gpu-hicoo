@@ -417,10 +417,12 @@ struct FastFilestream {
                 line.word_indices[line.nwords++] = i-idx+1;
                 buffer[i] = 0;
                 if(line.nwords >= 15) {
+                    i++;
                     break;
                 }
             } else if(buffer[i] == '\n') {
                 buffer[i] = 0;
+                i++;
                 break;
             }
         }
