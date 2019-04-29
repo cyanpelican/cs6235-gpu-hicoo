@@ -447,6 +447,11 @@ void CooTensorManager::create(char *tensorFileName) {
             continue;
         }
 
+        printf("        %d words: ", line.nwords);
+        for(int i = 0; i < line.nwords; i++) {
+            printf("%s ", line.word(i));
+        }
+
         ++nonZeroes;
         CooPoint currentPoint;
         currentPoint.x = atoi(line.word(0));
