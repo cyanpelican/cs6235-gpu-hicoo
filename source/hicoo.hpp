@@ -71,7 +71,9 @@ struct HicooTensor {
         #ifdef __CUDA_ARCH__
             return blocks_d[blockIndex];
         #else
-            assert(blockIndex <= numBlocks);
+            #if ENABLE_ACCESS_ASSERTS
+              assert(blockIndex <= numBlocks);
+            #endif
             return blocks_h[blockIndex];
         #endif
     }
@@ -81,7 +83,9 @@ struct HicooTensor {
         #ifdef __CUDA_ARCH__
             return points_d[pointIndex];
         #else
-            assert(pointIndex < numPoints);
+            #if ENABLE_ACCESS_ASSERTS
+              assert(pointIndex < numPoints);
+            #endif
             return points_h[pointIndex];
         #endif
     }

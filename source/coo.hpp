@@ -66,7 +66,9 @@ struct CooTensor {
         #ifdef __CUDA_ARCH__
             return points_d[element];
         #else
-            assert(element < numElements);
+            #if ENABLE_ACCESS_ASSERTS
+              assert(element < numElements);
+            #endif
             return points_h[element];
         #endif
     }
