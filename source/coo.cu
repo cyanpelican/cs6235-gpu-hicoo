@@ -178,6 +178,7 @@ DenseMatrixManager CooTensor::mttkrp_naive_cpu(DenseMatrixManager D, DenseMatrix
             a.access(i,j) += point.value * d.access(l,j) * c.access(k,j);
         }
     }
+    DEBUG_PRINT("    - done\n");
 
     return ret;
 }
@@ -243,6 +244,7 @@ DenseMatrixManager CooTensor::mttkrp_naive_gpu(DenseMatrixManager D, DenseMatrix
 
     ret.tensor->tensor.downloadToHost();
 
+    DEBUG_PRINT("    - done\n");
     return ret;
 }
 
@@ -311,6 +313,10 @@ DenseMatrixManager CooTensor::mttkrp_kevin1(DenseMatrixManager D, DenseMatrixMan
 
     DEBUG_PRINT("    - do compute on gpu\n");
     coo_mttkrp_kevin1_kernel<<<numElements, 32>>>(a, *this, d, c);
+
+    DEBUG_PRINT("    - downloading\n");
+    a.downloadToHost();
+    DEBUG_PRINT("    - done\n");
 
 
 

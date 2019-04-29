@@ -160,6 +160,7 @@ DenseMatrixManager HicooTensor::mttkrp_naive_gpu(DenseMatrixManager D, DenseMatr
     cudaDeviceSynchronize();
 
     ret.tensor->tensor.downloadToHost();
+    DEBUG_PRINT("    - done\n");
 
     return ret;
 }
@@ -280,6 +281,9 @@ DenseMatrixManager HicooTensor::mttkrp_kevin1(DenseMatrixManager D, DenseMatrixM
     DEBUG_PRINT("    - do compute on gpu\n");
     hicoo_kevin1_kernel<<<numBlocks, 32>>>(a, *this, d, c);
 
+    DEBUG_PRINT("    - downloading to host\n");
+    a.downloadToHost();
 
+    DEBUG_PRINT("    - done\n");
     return ret;
 }
