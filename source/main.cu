@@ -94,7 +94,7 @@ int main(int argc, char *argv[]) {
     }
     if (argc >= 3) {
         // read BS
-        dimSizeJ = atoi(argv[2]);
+        blockSize = atoi(argv[2]);
     }
 
     if (argc >= 4) {
@@ -190,6 +190,7 @@ int main(int argc, char *argv[]) {
         cudaEventRecord(timing_stop);
         cudaEventSynchronize(timing_stop);
         cudaEventElapsedTime(&CooCPUTime,timing_start, timing_stop);
+        printf("    Time = %f\n", CooCPUTime);
         printf("Done.\n");
         fflush(stdout);
     } else {
@@ -254,7 +255,7 @@ int main(int argc, char *argv[]) {
 
     printf("\n  ======================= Timing(s) ======================= \n");
 
-    printf("  COO MTTKRP (%d,%d,%d)\n",dimSizeI,dimSizeK,dimSizeL);
+    printf("  COO MTTKRP (%d,%d,%d; J=)\n",dimSizeI,dimSizeK,dimSizeL, dimSizeJ);
     printf("    CPU -> %f\n", CooCPUTime);
     printf("    GPU -> %f\n", CooGPUTime);
     printf("      Speedup -> %f\n", CooCPUTime/CooGPUTime);
