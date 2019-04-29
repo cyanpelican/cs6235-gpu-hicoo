@@ -135,6 +135,7 @@ DenseMatrixManager HicooTensor::mttkrp_naive_gpu(DenseMatrixManager D, DenseMatr
     this->uploadToDevice();
 
     DenseMatrixManager ret;
+    DenseMatrix& a = ret;
     DenseMatrix& c = C;
     DenseMatrix& d = D;
     assert(points_h != nullptr);

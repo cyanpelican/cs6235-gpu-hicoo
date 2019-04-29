@@ -13,3 +13,5 @@ CMakeLists.txt
 cmake-build-debug/
 
 slurm-*.out
+core.*
+datasets/
