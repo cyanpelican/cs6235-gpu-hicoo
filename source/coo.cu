@@ -451,6 +451,7 @@ void CooTensorManager::create(char *tensorFileName) {
         for(int i = 0; i < line.nwords; i++) {
             printf("%s ", line.word(i));
         }
+        fflush(stdout);
 
         ++nonZeroes;
         CooPoint currentPoint;
