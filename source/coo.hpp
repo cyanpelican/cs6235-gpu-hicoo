@@ -20,6 +20,7 @@ struct CooPoint {
 enum PointSorting {
     UNSORTED,
     XYZ,
+    ZYX,
     Z_MORTON
 };
 

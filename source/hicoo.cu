@@ -290,3 +290,92 @@ DenseMatrixManager HicooTensor::mttkrp_kevin1(DenseMatrixManager D, DenseMatrixM
     DEBUG_PRINT("    - done\n");
     return ret;
 }
+
+
+__global__ void hicoo_kevin2_kernel(DenseMatrix a, HicooTensor b, DenseMatrix d, DenseMatrix c, int* lut) {
+    int bi = lut[blockIdx.x];
+    HicooBlock& ba = b.access_block(bi);
+    while(ba.blockZ == blockIdx.x) {
+        HicooBlock& bb = b.access_block(bi+1);
+
+        unsigned int bx = ba.blockX * b.blockWidth;
+        unsigned int by = ba.blockY * b.blockHeight;
+        unsigned int bz = ba.blockZ * b.blockDepth;
+
+        // A(i,j) = B(i,k,l) * D(l,j) * C(k,j);
+        for(int e = ba.blockAddress; e < bb.blockAddress; e++) {
+            HicooPoint& p = b.access_point(e);
+            for(int j = threadIdx.x; j < a.width; j+=32) {
+                float val = p.value * d.access(p.x+bx,j) * c.access(p.y+by,j);
+                a.access(p.z+bz, j) += val;
+            }
+        }
+        
+        ba = bb;
+        bi++;
+    }
+}
+
+__global__ void hicoo_kevin2_lut_populate(HicooTensor b, int* lut) {
+    int idx = blockIdx.x * blockSize.x + threadIdx.x;
+    
+    if(idx < b.numBlocks && idx > 0) {
+        HicooBlock prev = b.access_block(idx-1);
+        HicooBlock curr = b.access_block(idx);
+        
+        if(prev.blockZ != curr.blockZ) {
+            lut[curr.blockZ] = idx;
+        }
+    }
+}
+
+DenseMatrixManager HicooTensor::mttkrp_kevin2(DenseMatrixManager D, DenseMatrixManager C) {
+    // Has each thread block mapped to a hicoo block (parallelizing blocks across J)
+    DEBUG_PRINT("HT: mttkrp kevin1\n");
+    DEBUG_PRINT("    - asserts, initialization\n");
+    DenseMatrixManager ret;
+    DenseMatrix& a = ret;
+    DenseMatrix& c = C;
+    DenseMatrix& d = D;
+    assert(points_h != nullptr);
+    assert(blocks_h != nullptr);
+    assert(sorting == ZYX);
+
+    // A(i,j) = B(i,k,l) * D(l,j) * C(k,j);
+    int I = this->depth, J = d.width, K = this->height, L = this->width;
+    DEBUG_PRINT("    - I = %d, J = %d, K = %d, L = %d\n", I, J, K, L);
+    assert(d.height == L);
+    assert(c.height == K);
+    assert(c.width  == J);
+
+
+    DEBUG_PRINT("    - uploadToDevice\n");
+    this->uploadToDevice();
+    d.uploadToDevice();
+    c.uploadToDevice();
+
+    DEBUG_PRINT("    - malloc output matrix\n");
+    a.setSize_d(I, J);
+
+    DEBUG_PRINT("    - create LUT on gpu\n");
+    int blocksZ = (width-1)/blockDepth + 1
+    int* zBlockIndices;
+    cudaErrorCheck(cudaMalloc((void **) &zBlockIndices, sizeof(int) * blocksZ));
+    assert(zBlockIndices != nullptr);
+    cudaErrorCheck(cudaMemset(zBlockIndices, 0, blocksZ * sizeof(int)));
+    
+    DEBUG_PRINT("    - populate LUT on gpu\n");
+    hicoo_kevin1_lut_populate<<<(numBlocks-1)/32+1, 32>>>(*this, zBlockIndices);
+    
+    DEBUG_PRINT("    - do compute on gpu\n");
+    hicoo_kevin1_kernel<<<blocksZ, 32>>>(a, *this, d, c, zBlockIndices);
+    
+    DEBUG_PRINT("    - Freeing LUT\n");
+    cudaErrorCheck(cudaFree(zBlockIndices));
+
+    DEBUG_PRINT("    - downloading to host\n");
+    a.downloadToHost();
+
+    DEBUG_PRINT("    - done\n");
+    return ret;
+}

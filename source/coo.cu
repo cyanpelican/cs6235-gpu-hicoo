@@ -51,9 +51,9 @@ void CooTensor::downloadToHost() {
 
 // for std::map / std::set insertion
 bool operator<(const HicooBlock& a, const HicooBlock& b) {
-    if(a.blockX < b.blockX) {
+    if(a.blockZ < b.blockZ) {
         return true;
-    } else if(a.blockX > b.blockX) {
+    } else if(a.blockZ > b.blockZ) {
         return false;
     }
     if(a.blockY < b.blockY) {
@@ -61,9 +61,9 @@ bool operator<(const HicooBlock& a, const HicooBlock& b) {
     } else if(a.blockY > b.blockY) {
         return false;
     }
-    if(a.blockZ < b.blockZ) {
+    if(a.blockX < b.blockX) {
         return true;
-    } else if(a.blockZ > b.blockZ) {
+    } else if(a.blockX > b.blockX) {
         return false;
     }
 
@@ -113,6 +113,7 @@ HicooTensorManager CooTensor::toHicoo(int blockDepth, int blockHeight, int block
     retTensor.blocks_h[blockIndex].blockY = 0xFFFFFFFF;
     retTensor.blocks_h[blockIndex].blockZ = 0xFFFFFFFF;
     retTensor.blocks_h[blockIndex].UNUSED = 0xFFFFFFFF;
+    retTensor.sorting = ZYX;
 
 
     return ret;
