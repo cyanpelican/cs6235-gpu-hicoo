@@ -32,6 +32,7 @@ void compareOutput(DenseMatrix a, DenseMatrix b) {
 
                 if(errors > maxErrors) {
                     printf("      FAILED, and stopped printing after %d errors.\n", maxErrors);
+                    return;
                 }
             }
         }
