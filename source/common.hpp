@@ -24,10 +24,14 @@
   }\
  }
 
-// set to true to enable debug prints
-#define DEBUG_PRINT_ENABLE true
 
-#if DEBUG_PRINT_ENABLE
+// set to true to slow down the entire world and make sure accesses are good
+#define ENABLE_ACCESS_ASSERTS false
+
+// set to true to enable debug prints
+#define DEBUG_PRINT_ENABLE false
+
+#if DEBUG_PRINT_ENABLE && !defined NDEBUG
   inline void __print_debug_header(std::string file, unsigned int line) {
     // time-as-string from https://stackoverflow.com/questions/16357999/current-date-and-time-as-string
     //  and https://stackoverflow.com/questions/14370279/prevent-endline-after-printing-system-time

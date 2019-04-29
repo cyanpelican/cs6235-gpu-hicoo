@@ -131,27 +131,39 @@ __global__ void mttkrp_naive_gpu_kernel(HicooTensor hicooTensor, DenseMatrix d, 
 
 //wrapper function for the sake of convenience
 DenseMatrixManager HicooTensor::mttkrp_naive_gpu(DenseMatrixManager D, DenseMatrixManager C) {
+    DEBUG_PRINT("HT: naive mttkrp gpu\n");
     this->uploadToDevice();
 
     DenseMatrixManager ret;
+    DenseMatrix& a = ret;
     DenseMatrix& c = C;
     DenseMatrix& d = D;
+    assert(points_h != nullptr);
+    assert(blocks_h != nullptr);
 
-    ret.tensor->tensor.setSize_d(this->depth, d.width);
-    c.uploadToDevice();
+    // A(i,j) = B(i,k,l) * D(l,j) * C(k,j);
+    int I = this->depth, J = d.width, K = this->height, L = this->width;
+    DEBUG_PRINT("    - I = %d, J = %d, K = %d, L = %d\n", I, J, K, L);
+    assert(d.height == L);
+    assert(c.height == K);
+    assert(c.width  == J);
+
+
+    DEBUG_PRINT("    - uploadToDevice\n");
+    this->uploadToDevice();
     d.uploadToDevice();
+    c.uploadToDevice();
+    a.setSize_d(I, J);
 
     assert(this->points_d != nullptr);
     assert(this->blocks_d != nullptr);
-    //check for compatible dimensions
-    assert(this->width == d.width);
-    assert(this->depth == c.width);
 
     //todo: split up the blocks & blocks per threads appropriately
     mttkrp_naive_gpu_kernel<<<ceil(this->numBlocks/64.0), 64>>>(*this, d, c, ret);
     cudaDeviceSynchronize();
 
     ret.tensor->tensor.downloadToHost();
+    DEBUG_PRINT("    - done\n");
 
     return ret;
 }
@@ -177,7 +189,7 @@ __global__ void mttkrp_naive_gpu_kernel(HicooTensor hicooTensor, DenseMatrix d, 
     if(index < hicooTensor.numBlocks) {
         // A(i,j) = B(i,k,l) * D(l,j) * C(k,j);
         int J = d.width;// K = hicooTensor.height, L = hicooTensor.width, I = hicooTensor.depth
-    
+
 
         //each thread gets a block
         HicooBlock block = hicooTensor.access_block(index);
@@ -198,7 +210,7 @@ __global__ void mttkrp_naive_gpu_kernel(HicooTensor hicooTensor, DenseMatrix d, 
     }
 }
 
-DenseMatrixManager HicooTensor::mttkrp_fast(DenseMatrixManager D, DenseMatrixManager C) {
+DenseMatrixManager HicooTensor::mttkrp_guy1(DenseMatrixManager D, DenseMatrixManager C) {
     DenseMatrixManager ret;
     DenseMatrix& c = C;
     DenseMatrix& d = D;
@@ -208,5 +220,73 @@ DenseMatrixManager HicooTensor::mttkrp_fast(DenseMatrixManager D, DenseMatrixMan
 
     // A(i,j) = B(i,k,l) * D(l,j) * C(k,j);
 
+    return ret;
+}
+
+DenseMatrixManager HicooTensor::mttkrp_james1(DenseMatrixManager D, DenseMatrixManager C) {
+    DenseMatrixManager ret;
+    DenseMatrix& c = C;
+    DenseMatrix& d = D;
+
+    // TODO
+    assert(0);
+
+    // A(i,j) = B(i,k,l) * D(l,j) * C(k,j);
+
+    return ret;
+}
+
+__global__ void hicoo_kevin1_kernel(DenseMatrix a, HicooTensor b, DenseMatrix d, DenseMatrix c) {
+    HicooBlock& ba = b.access_block(blockIdx.x);
+    HicooBlock& bb = b.access_block(blockIdx.x+1);
+
+    unsigned int bx = ba.blockX * b.blockWidth;
+    unsigned int by = ba.blockY * b.blockHeight;
+    unsigned int bz = ba.blockZ * b.blockDepth;
+
+    // A(i,j) = B(i,k,l) * D(l,j) * C(k,j);
+    for(int e = ba.blockAddress; e < bb.blockAddress; e++) {
+        HicooPoint& p = b.access_point(e);
+        for(int j = threadIdx.x; j < a.width; j+=32) {
+            float val = p.value * d.access(p.x+bx,j) * c.access(p.y+by,j);
+            atomicAdd(&a.access(p.z+bz, j), val);
+        }
+    }
+}
+
+DenseMatrixManager HicooTensor::mttkrp_kevin1(DenseMatrixManager D, DenseMatrixManager C) {
+    // Has each thread block mapped to a hicoo block (parallelizing blocks across J)
+    DEBUG_PRINT("HT: mttkrp kevin1\n");
+    DEBUG_PRINT("    - asserts, initialization\n");
+    DenseMatrixManager ret;
+    DenseMatrix& a = ret;
+    DenseMatrix& c = C;
+    DenseMatrix& d = D;
+    assert(points_h != nullptr);
+    assert(blocks_h != nullptr);
+
+    // A(i,j) = B(i,k,l) * D(l,j) * C(k,j);
+    int I = this->depth, J = d.width, K = this->height, L = this->width;
+    DEBUG_PRINT("    - I = %d, J = %d, K = %d, L = %d\n", I, J, K, L);
+    assert(d.height == L);
+    assert(c.height == K);
+    assert(c.width  == J);
+
+
+    DEBUG_PRINT("    - uploadToDevice\n");
+    this->uploadToDevice();
+    d.uploadToDevice();
+    c.uploadToDevice();
+
+    DEBUG_PRINT("    - malloc output matrix\n");
+    a.setSize_d(I, J);
+
+    DEBUG_PRINT("    - do compute on gpu\n");
+    hicoo_kevin1_kernel<<<numBlocks, 32>>>(a, *this, d, c);
+
+    DEBUG_PRINT("    - downloading to host\n");
+    a.downloadToHost();
+
+    DEBUG_PRINT("    - done\n");
     return ret;
 }

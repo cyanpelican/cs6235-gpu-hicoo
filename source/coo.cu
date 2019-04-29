@@ -163,12 +163,16 @@ DenseMatrixManager CooTensor::mttkrp_naive_cpu(DenseMatrixManager D, DenseMatrix
     assert(c.height == K);
     assert(c.width  == J);
 
+    assert(points_h != nullptr);
+    assert(c.values_h != nullptr);
+    assert(d.values_h != nullptr);
+
 
     a.setSize(I, J);
 
     //for each non-zero
     DEBUG_PRINT("    - performing operation\n");
-    for (int index = 0; index < this->numElements; index++) {
+    for (unsigned int index = 0; index < this->numElements; index++) {
         CooPoint point = this->access(index);
         int l = point.x;
         int k = point.y;
@@ -178,6 +182,7 @@ DenseMatrixManager CooTensor::mttkrp_naive_cpu(DenseMatrixManager D, DenseMatrix
             a.access(i,j) += point.value * d.access(l,j) * c.access(k,j);
         }
     }
+    DEBUG_PRINT("    - done\n");
 
     return ret;
 }
@@ -219,20 +224,24 @@ __global__ void mttkrp_naive_gpu_kernel(CooTensor cooTensor, DenseMatrix d, Dens
 
 //wrapper function for the sake of convenience
 DenseMatrixManager CooTensor::mttkrp_naive_gpu(DenseMatrixManager D, DenseMatrixManager C) {
+    DEBUG_PRINT("CT: naive mttkrp gpu\n");
     this->uploadToDevice();
 
     DenseMatrixManager ret;
+    DenseMatrix& a = ret;
     DenseMatrix& c = C;
     DenseMatrix& d = D;
 
-    ret.tensor->tensor.setSize_d(d.height, this->height);
+    assert(points_h != nullptr);
+
+    int I = this->depth, J = d.width, K = this->height, L = this->width;
+    DEBUG_PRINT("    - I = %d, J = %d, K = %d, L = %d\n", I, J, K, L);
+    assert(d.height == L);
+    assert(c.height == K);
+    assert(c.width  == J);
+    a.setSize_d(I, J);
     d.uploadToDevice();
     c.uploadToDevice();
-
-    assert(this->points_d != nullptr);
-    //check for compatible dimensions
-    assert(this->width == d.width);
-    assert(this->depth == c.width);
 
     //todo: split up the blocks & blocks per threads appropriately
     mttkrp_naive_gpu_kernel<<<ceil(this->numElements/64.0), 64>>>(*this, d, c, ret);
@@ -240,15 +249,16 @@ DenseMatrixManager CooTensor::mttkrp_naive_gpu(DenseMatrixManager D, DenseMatrix
 
     ret.tensor->tensor.downloadToHost();
 
+    DEBUG_PRINT("    - done\n");
     return ret;
 }
 
 
-DenseMatrixManager CooTensor::mttkrp_fast(DenseMatrixManager d, DenseMatrixManager c) {
+DenseMatrixManager CooTensor::mttkrp_guy1(DenseMatrixManager d, DenseMatrixManager c) {
     DEBUG_PRINT("CT: fast mttkrp gpu\n");
     DenseMatrixManager ret;
 
-    // TODO
+    // TODO or DELTEME
     assert(0);
 
     // A(i,j) = B(i,k,l) * D(l,j) * C(k,j);
@@ -256,31 +266,203 @@ DenseMatrixManager CooTensor::mttkrp_fast(DenseMatrixManager d, DenseMatrixManag
     return ret;
 }
 
+DenseMatrixManager CooTensor::mttkrp_james1(DenseMatrixManager d, DenseMatrixManager c) {
+    DEBUG_PRINT("CT: fast mttkrp gpu\n");
+    DenseMatrixManager ret;
+
+    // TODO or DELTEME
+    assert(0);
+
+    // A(i,j) = B(i,k,l) * D(l,j) * C(k,j);
+
+    return ret;
+}
+
+
+__global__ void coo_mttkrp_kevin1_kernel(DenseMatrix a, CooTensor b, DenseMatrix d, DenseMatrix c) {
+    CooPoint point = b.access(blockIdx.x);
+
+    // A(i,j) = B(i,k,l) * D(l,j) * C(k,j);
+    for(int j = threadIdx.x; j < a.width; j += 32) {
+        float val = point.value * d.access(point.x, j) * c.access(point.y, j);
+        atomicAdd(&a.access(point.z, j), val);
+    }
+}
+
+DenseMatrixManager CooTensor::mttkrp_kevin1(DenseMatrixManager D, DenseMatrixManager C) {
+    // Has each thread block mapped to a point (parallelizing blocks across J)
+    DEBUG_PRINT("CT: mttkrp kevin1\n");
+    DEBUG_PRINT("    - asserts, initialization\n");
+    DenseMatrixManager ret;
+    DenseMatrix& a = ret;
+    DenseMatrix& c = C;
+    DenseMatrix& d = D;
+
+    assert(points_h != nullptr);
+
+    // A(i,j) = B(i,k,l) * D(l,j) * C(k,j);
+    int I = this->depth, J = d.width, K = this->height, L = this->width;
+    DEBUG_PRINT("    - I = %d, J = %d, K = %d, L = %d\n", I, J, K, L);
+    assert(d.height == L);
+    assert(c.height == K);
+    assert(c.width  == J);
+
+
+    DEBUG_PRINT("    - uploadToDevice\n");
+    this->uploadToDevice();
+    d.uploadToDevice();
+    c.uploadToDevice();
+
+    DEBUG_PRINT("    - malloc output matrix\n");
+    a.setSize_d(I, J);
+
+    DEBUG_PRINT("    - do compute on gpu\n");
+    coo_mttkrp_kevin1_kernel<<<numElements, 32>>>(a, *this, d, c);
+
+    DEBUG_PRINT("    - downloading\n");
+    a.downloadToHost();
+    DEBUG_PRINT("    - done\n");
+
+
+
+    return ret;
+}
+
+
+
+
+
+
+
+
+// File IO stuff
+#include <fcntl.h>
+struct SplitLine {
+    int nwords;
+    int word_indices[16];
+    char* line; // do not free
+
+    char* word(int i) {
+        if(i == -1) {
+            return &line[word_indices[nwords-1]];
+        }
+        return &line[word_indices[i]];
+    }
+};
+
+struct FastFilestream {
+    // loosely based on https://stackoverflow.com/questions/17925051/fast-textfile-reading-in-c
+    const static int BUFFER_SIZE = 1024*1024;
+    const static int REFILL_THRESHOLD = 1024;
+
+    char buffer[BUFFER_SIZE];
+    FILE *fp;
+    int idx = 0;
+    int end = 0;
+    bool dead = false;
+
+    bool nextLine(SplitLine& line) {
+        if(end - idx < REFILL_THRESHOLD && !dead) {
+            // if we want to read and are not at the end, memcpy to beginning
+            if(idx != 0) {
+                for(int i = idx; i < end; i++) {
+                    buffer[i-idx] = buffer[i];
+                }
+
+                end = end-idx;
+                idx = 0;
+            }
+
+            // try to read
+            size_t nread = fread(&buffer[end], sizeof(char), BUFFER_SIZE - end, fp);
+
+            // check errors
+            if(nread == 0) {
+                // file out of remaining content
+                dead = true;
+            } else if(nread == (size_t)-1) {
+                // read failed;
+                dead = true;
+            } else {
+                end += nread;
+            }
+
+        }
+
+        // if dead and out of stuff to read
+        if(idx >= end) {
+            return false;
+        }
+
+        // else, do the operation
+        line.nwords = 1;
+        line.word_indices[0] = 0;
+        line.line = &buffer[idx];
+        int i;
+        for(i = idx; i < end; i++) {
+            if(buffer[i] == ' ') {
+                line.word_indices[line.nwords++] = i-idx+1;
+                buffer[i] = 0;
+                if(line.nwords >= 15) {
+                    i++;
+                    break;
+                }
+            } else if(buffer[i] == '\n') {
+                buffer[i] = 0;
+                i++;
+                break;
+            }
+        }
+        idx = i;
+
+        return true;
+    }
+
+    FastFilestream(char* fname) {
+        //f = open(fname, O_RDONLY);
+        fp = fopen(fname, "r");
+        if(fp == nullptr) {
+            printf("Bad file: %s\n", fname);
+            fflush(stdout);
+            dead = true;
+        }
+
+        posix_fadvise(fileno(fp), 0, 0, POSIX_FADV_SEQUENTIAL);
+    }
+    ~FastFilestream() {
+        fclose(fp);
+    }
+};
+
 void CooTensorManager::create(char *tensorFileName) {
+    // nell-2 expected: 76879419, d 28819, h 9185, w 12093
+    // matmul_2-2-2.tns expected: 8, d 5, h 5, w 5
     DEBUG_PRINT("CT: parsing file %s\n", tensorFileName);
     DEBUG_PRINT("    - file validations, etc\n");
     std::vector<CooPoint> tensorPoints;
 
     size_t nonZeroes = 0;
-    std::string line;
     std::ifstream myfile(tensorFileName);
     assert(myfile.good()); // assert file exists, etc
+
+    FastFilestream ffs(tensorFileName);
+    SplitLine line;
 
     //put all the points into a vector
     DEBUG_PRINT("    - load all points into vector\n");
     int maxX = 0, maxY = 0, maxZ = 0;
-    while (std::getline(myfile, line)) {
-        if(line.length() < 4 || line[0] == '#') {
+    while (ffs.nextLine(line)) {
+        if(line.nwords < 4 || line.line[0] == '#') {
             // uselessly-short line or comment
             continue;
         }
+
         ++nonZeroes;
         CooPoint currentPoint;
-        std::stringstream ss(line); // Turn the string into a stream.
-        ss >> currentPoint.x;
-        ss >> currentPoint.y;
-        ss >> currentPoint.z;
-        ss >> currentPoint.value;
+        currentPoint.x = atoi(line.word(0));
+        currentPoint.y = atoi(line.word(1));
+        currentPoint.z = atoi(line.word(2));
+        currentPoint.value = atof(line.word(-1));
 
         if(currentPoint.x > maxX) maxX = currentPoint.x;
         if(currentPoint.y > maxY) maxY = currentPoint.y;
@@ -290,11 +472,12 @@ void CooTensorManager::create(char *tensorFileName) {
         tensorPoints.push_back(currentPoint);
     }
 
-    tensorPoints.shrink_to_fit();
+    if(tensorPoints.size() != 0)
+        DEBUG_PRINT("    - Finished reading; first = (%d,%d,%d)->%f", tensorPoints[0].x, tensorPoints[0].y, tensorPoints[0].z, tensorPoints[0].value);
 
     //construct the COO object
     DEBUG_PRINT("    - rebuild tensor from input\n");
-    tensor->tensor.setSize(nonZeroes, maxZ, maxY, maxX);
+    tensor->tensor.setSize(nonZeroes, maxZ+1, maxY+1, maxX+1);
     memcpy(tensor->tensor.points_h, tensorPoints.data(), sizeof(CooPoint) * tensorPoints.size());
 
     DEBUG_PRINT("    - done; size = %d; %d x %d x %d\n", nonZeroes, maxZ, maxY, maxX);

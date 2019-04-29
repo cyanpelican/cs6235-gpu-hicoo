@@ -12,6 +12,9 @@ module load cuda
 # c. Compile executable
 ./build.sh
 
+# grab datasets
+./get-datasets.sh
+
 # d. Run sbatch script
 sbatch script.sbatch
 

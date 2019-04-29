@@ -44,6 +44,11 @@ struct DenseTensor {
         #ifdef __CUDA_ARCH__
             return values_d[i*height*width + j*width + k];
         #else
+            #if ENABLE_ACCESS_ASSERTS
+                assert(i < depth);
+                assert(j < height);
+                assert(k < width);
+            #endif
             return values_h[i*height*width + j*width + k];
         #endif
     }
@@ -114,6 +119,10 @@ struct DenseMatrix {
         #ifdef __CUDA_ARCH__
             return values_d[i*width + j];
         #else
+            #if ENABLE_ACCESS_ASSERTS
+                assert(i < height);
+                assert(j < width);
+            #endif
             return values_h[i*width + j];
         #endif
     }

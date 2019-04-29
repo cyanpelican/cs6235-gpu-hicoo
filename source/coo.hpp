@@ -66,6 +66,9 @@ struct CooTensor {
         #ifdef __CUDA_ARCH__
             return points_d[element];
         #else
+            #if ENABLE_ACCESS_ASSERTS
+              assert(element < numElements);
+            #endif
             return points_h[element];
         #endif
     }
@@ -130,8 +133,11 @@ struct CooTensor {
     // A(i,j) = B(i,k,l) * D(l,j) * C(k,j);
     DenseMatrixManager mttkrp_naive_cpu(DenseMatrixManager d, DenseMatrixManager c);
     DenseMatrixManager mttkrp_naive_gpu(DenseMatrixManager d, DenseMatrixManager c);
-    DenseMatrixManager mttkrp_fast(DenseMatrixManager d, DenseMatrixManager c);
-    // TODO
+
+    // Just in case anyone wants to play with coo; we never said we would in the assignment
+    DenseMatrixManager mttkrp_guy1(DenseMatrixManager d, DenseMatrixManager c);
+    DenseMatrixManager mttkrp_james1(DenseMatrixManager d, DenseMatrixManager c);
+    DenseMatrixManager mttkrp_kevin1(DenseMatrixManager d, DenseMatrixManager c);
 };
 
 

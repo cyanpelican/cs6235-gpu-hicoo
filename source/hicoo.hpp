@@ -71,6 +71,9 @@ struct HicooTensor {
         #ifdef __CUDA_ARCH__
             return blocks_d[blockIndex];
         #else
+            #if ENABLE_ACCESS_ASSERTS
+              assert(blockIndex <= numBlocks);
+            #endif
             return blocks_h[blockIndex];
         #endif
     }
@@ -80,6 +83,9 @@ struct HicooTensor {
         #ifdef __CUDA_ARCH__
             return points_d[pointIndex];
         #else
+            #if ENABLE_ACCESS_ASSERTS
+              assert(pointIndex < numPoints);
+            #endif
             return points_h[pointIndex];
         #endif
     }
@@ -122,8 +128,11 @@ struct HicooTensor {
     // A(i,j) = B(i,k,l) * D(l,j) * C(k,j);
     DenseMatrixManager mttkrp_naive_cpu(DenseMatrixManager d, DenseMatrixManager c);
     DenseMatrixManager mttkrp_naive_gpu(DenseMatrixManager d, DenseMatrixManager c);
-    DenseMatrixManager mttkrp_fast(DenseMatrixManager d, DenseMatrixManager c);
-    // TODO
+
+    // Feel free to make more under your name, or do collaboration ones; just setting this up so we don't get crazy merge conflicts
+    DenseMatrixManager mttkrp_guy1(DenseMatrixManager d, DenseMatrixManager c);
+    DenseMatrixManager mttkrp_james1(DenseMatrixManager d, DenseMatrixManager c);
+    DenseMatrixManager mttkrp_kevin1(DenseMatrixManager d, DenseMatrixManager c);
 };
 
 

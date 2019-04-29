@@ -1,5 +1,7 @@
 
-CCFLAGS=--std=c++11 # -g
+# enable -DNDEBUG to turn off asserts for official timing
+#CCFLAGS := --std=c++11  -g # -DNDEBUG
+CCFLAGS := --std=c++11  -g -DNDEBUG
 
 all: HiCooExperiment main.o coo.o dense.o hicoo.o
 
@@ -17,6 +19,11 @@ dense.o: dense.cu dense.hpp coo.hpp common.hpp
 
 hicoo.o: hicoo.cu hicoo.hpp coo.hpp common.hpp dense.hpp
 	nvcc $(CCFLAGS) -c -o hicoo.o hicoo.cu
+
+
+datasets: get-datasets.sh
+	./get-datasets.sh
+
 
 .PHONY: clean
 clean:

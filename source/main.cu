@@ -12,292 +12,471 @@
 
 using namespace std;
 
-const int dimSize = 3;
+int dimSizeI = 30, dimSizeJ = 30, dimSizeK = 30, dimSizeL = 30;
 int RANDOM_SEED = 1234;
-bool cooKernal = 0, hicooKernal = 0;
-
-vector <string> tensorList;
-
 
 void compareOutput(DenseMatrix a, DenseMatrix b) {
-    bool success = 1;
-    for (int i = 0; i < dimSize; i++) {
-        for (int j = 0; j < dimSize; j++) {
-            if (abs(a.access(i,j) - b.access(i,j)) > 1e-4) {
+    int errors = 0;
+    const int maxErrors = 50;
+    long aZeros = 0, bZeros = 0;
+
+    DEBUG_PRINT("Performing validation...\n");
+    DEBUG_PRINT("Sample data: a(0,0)=%f, b(0,0)=%f\n", a.access(0,0), b.access(0,0));
+
+    assert(a.values_h != nullptr);
+    assert(b.values_h != nullptr);
+    for (int i = 0; i < dimSizeI; i++) {
+        for (int j = 0; j < dimSizeJ; j++) {
+            float mag = abs(a.access(i, j)) + 1e-4;
+            if(abs(a.access(i, j) - b.access(i, j)) > mag * 1e-5) {
                 printf("\n    Outputs do not match at index (%d,%d): %f vs %f", i,j, a.access(i,j), b.access(i,j));
-                success = 0;
+                errors++;
+
+                if(errors > maxErrors) {
+                    printf("      FAILED, and stopped printing after %d errors.\n", maxErrors);
+                    fflush(stdout);
+                    return;
+                }
+            }
+
+            if(abs(a.access(i, j)) < 1e-4) {
+                aZeros += 1;
+            }
+            if(abs(b.access(i, j)) < 1e-4) {
+                bZeros += 1;
             }
         }
     }
-    if (success) { printf("Passed.\n"); }
-    else { printf("      FAILED :|\n"); }
+    if (errors==0) { printf("Passed.\n"); }
+    else { printf("\n      FAILED :|\n"); }
+
+    if(aZeros > (a.width * a.height) * .25) {
+      printf("There seem to be a lot of zeros in the A matrix.\n");
+    }
+    if(bZeros > (b.width * b.height) * .25) {
+      printf("There seem to be a lot of zeros in the B matrix.\n");
+    }
+    fflush(stdout);
+
+    DEBUG_PRINT("done with compareOutput\n");
 }
 
+void validateGroundTruth();
+void performAndTestDenseToCoo(CooTensorManager Coo, DenseTensorManager B);
+template <typename Class, typename Functype>
+float validateAndTime(Class inputTensor, Functype func, std::string funcname, DenseMatrixManager D, DenseMatrixManager C, DenseMatrixManager expected);
+
+#define FUNC_AND_NAME(func) &func, #func
+
 int main(int argc, char *argv[]) {
-	if (argc != 2) {
-		fprintf(stderr, "Usage: <program name> <sparse matrix file name>\n");
-		exit(1);
-	}
+    // args: [J] [BS] [TensorFilepath] [NOCPU?]
+    bool useDense = false;
+    bool allowCPU = true;
+    int  blockSize = 4;
+    float FOREVER = 9e9;
 
-	printf("========= Begin Test ========\n\n");
+    printf("Creating TensorManager Objects... ");
+    CooTensorManager Coo;
+    DenseTensorManager B;
+    HicooTensorManager Hicoo;
+    printf("Done.\n");
 
-	printf("Adding tensor filenames to tensorList... ");
-	tensorList.push_back("tensorA.file");
-	tensorList.push_back("tensorB.file");
-	tensorList.push_back("tensorC.file");
-	printf("Done. (List Size = %d -> %s, %s, %s)\n",tensorList.size(),tensorList[0].c_str(),tensorList[1].c_str(),tensorList[2].c_str());
+    printf("Creating Timing Variables... ");
+    cudaEvent_t timing_start,timing_stop;
 
+    cudaEventCreate(&timing_start);
+    cudaEventCreate(&timing_stop);
+    printf("Done.\n");
 
-	//char *matrixName = argv[1];
+    if (argc >= 2) {
+        // read J
+        dimSizeJ = atoi(argv[1]);
+    }
+    if (argc >= 3) {
+        // read BS
+        blockSize = atoi(argv[2]);
+    }
 
-	printf("Creating TensorManager Objects... ");
-	CooTensorManager Coo;
-	DenseTensorManager B;
-	HicooTensorManager Hicoo;
-	printf("Done.\n");
+    if (argc >= 4) {
+        //NEED TO CREATE TENSOR FROM FILEIN
 
+        printf("Creating CooTensor from file '%s'... ", argv[3]);
+        fflush(stdout);
+        Coo.create(argv[3]);
+        dimSizeI = Coo.tensor->tensor.depth;
+        dimSizeK = Coo.tensor->tensor.height;
+        dimSizeL = Coo.tensor->tensor.width;
+        printf("Done.\n");
+        fflush(stdout);
+    } else {
+        // Generate dense tensor
+        useDense = true;
 
-
-	printf("Creating CooTensor... ");
-        Coo.tensor->tensor.setSize(dimSize*dimSize*dimSize,dimSize,dimSize,dimSize);
-	printf("Done.\n");
-
-
-	printf("Creating Random Dense Tensor (B) for testing... ");
-	float testValue = 0, testI = 1, testJ = 2, testK = 3;  //Random point to sample
-	B.tensor->tensor.setSize(dimSize,dimSize,dimSize);
-	srand(RANDOM_SEED);
-	for (int i = 0; i < dimSize; i++) {
-	    for (int j = 0; j < dimSize; j++) {
-		for (int k = 0; k < dimSize; k++) {
-		     B.tensor->tensor.access(i,j,k) = rand() / (float) RAND_MAX;
-		     if (i == testI && j == testJ && k == testK) { testValue = B.tensor->tensor.access(i,j,k); }
-		}
-	    }
-	}
-	printf("Done.\n");
-
-	/*=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-   MATLAB TENSOR / MATRIX VALIDATION CODE =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
-	
-	// STRUCTURE OF MATLAB TENSOR:
-
-	// y = i, x = j, z = k;
-	//    /    j
-	//   ============//
-	//   ============//
-	// i ============// k
-	//   ============//
-	//   ============/
-	
-
-	/*
-	DenseTensorManager matlab;
-	matlab.tensor->tensor.setSize(3,3,3);
-
-	matlab.tensor->tensor.access(0,0,0) = 0.8311;
-	matlab.tensor->tensor.access(0,0,1) = 0.3952;
-	matlab.tensor->tensor.access(0,0,2) = 0.4412;
-
-	matlab.tensor->tensor.access(0,1,0) = 0.5568;
-	matlab.tensor->tensor.access(0,1,1) = 0.2911;
-	matlab.tensor->tensor.access(0,1,2) = 0.2135;
-
-	matlab.tensor->tensor.access(0,2,0) = 0.2345;
-	matlab.tensor->tensor.access(0,2,1) = 0.2098;
-	matlab.tensor->tensor.access(0,2,2) = 0.1484;
-	
-	matlab.tensor->tensor.access(1,0,0) = 0.2844;
-	matlab.tensor->tensor.access(1,0,1) = 0.2804;
-	matlab.tensor->tensor.access(1,0,2) = 0.0949;
-
-	matlab.tensor->tensor.access(1,1,0) = 0.3379;
-	matlab.tensor->tensor.access(1,1,1) = 0.9659;
-	matlab.tensor->tensor.access(1,1,2) = 0.7877;
-
-	matlab.tensor->tensor.access(1,2,0) = 0.4038;
-	matlab.tensor->tensor.access(1,2,1) = 0.0240;
-	matlab.tensor->tensor.access(1,2,2) = 0.6363;
-
-	matlab.tensor->tensor.access(2,0,0) = 0.3720;
-	matlab.tensor->tensor.access(2,0,1) = 0.6422;
-	matlab.tensor->tensor.access(2,0,2) = 0.0034;
-
-	matlab.tensor->tensor.access(2,1,0) = 0.9030;
-	matlab.tensor->tensor.access(2,1,1) = 0.4056;
-	matlab.tensor->tensor.access(2,1,2) = 0.8192;
-
-	matlab.tensor->tensor.access(2,2,0) = 0.3261;
-	matlab.tensor->tensor.access(2,2,1) = 0.7646;
-	matlab.tensor->tensor.access(2,2,2) = 0.5833;
-
-	
-	DenseMatrix mD, mC;
-	mD.setSize(3,3);
-	mC.setSize(3,3);
-
-	mD.access(0,0) = 0.2061;
-        mD.access(0,1) = 0.8238;
-        mD.access(0,2) = 0.0042;
-        mD.access(1,0) = 0.7055;
-        mD.access(1,1) = 0.7682;
-        mD.access(1,2) = 0.4294;
-        mD.access(2,0) = 0.9975;
-        mD.access(2,1) = 0.3894;
-        mD.access(2,2) = 0.3276;
-
-	mC.access(0,0) = 0.7853;
-        mC.access(0,1) = 0.9508;
-        mC.access(0,2) = 0.3240;
-        mC.access(1,0) = 0.4353;
-        mC.access(1,1) = 0.7073;
-        mC.access(1,2) = 0.7889;
-        mC.access(2,0) = 0.7104;
-        mC.access(2,1) = 0.1381;
-        mC.access(2,2) = 0.2877;
-
-	DenseMatrixManager matlabComp = matlab.tensor->tensor.mttkrp_naive_cpu(mD,mC);
-	printf("Output of MTTKRP on Dense Matrix from MATLAB values:\n");
-
-	for (int i = 0; i < 3; i++) {
-	    for (int j = 0; j < 3; j++) {
-		printf("%f ", matlabComp.tensor->tensor.access(i,j));
-	    }
-	    printf("\n");
-	}
-	
-	/* =========   OUTPUT FROM ABOVE CALC    =========
-
-	1.175773 1.701301 0.298766 
-	1.466742 1.484061 0.644793 
-	1.824243 1.883446 0.592149 
-	
-	/* =========   MTTKRP CODE FROM MATLAB:  =========
-
-	n = 1
-	KRP = khatrirao(D,C); %<--Khatri-Rao product, omitting U{2}
-	M = permute(X.data, [n:size(X,n), 1:n-1]);
-	M = reshape(M,size(X,n),[]); %<--Matricized tensor data
-	M*KRP
-
-	ans =
-
-    	1.1757    1.7013    0.2988
-    	1.4666    1.4841    0.6449
-    	1.8243    1.8836    0.5922
-	
-
-	exit(0);
-
-	=================================================*/
-
-	/*-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
-
-	printf("Creating Random Dense Matrices (D,C) for testing... ");
-	DenseMatrixManager D,C;
-  DenseMatrix& c = C;
-  DenseMatrix& d = D;
-	d.setSize(dimSize,dimSize);
-	c.setSize(dimSize,dimSize);
-	for (int i = 0; i < dimSize; i++) {
-	    for (int j = 0; j < dimSize; j++) {
-		d.access(i,j) = rand() / (float) RAND_MAX;
-		c.access(i,j) = rand() / (float) RAND_MAX;
-	    }
-	}
-	printf("Done.\n");
-
-	printf("\n=================== Beginning Kernel Tests on COO Tensor ===================\n\n");
-	printf("Testing Dense Kernel Access function... ");
-	float retValue = B.tensor->tensor.access(testI,testJ,testK);
-	if (retValue == testValue) { printf("Passed. (%f and %f)\n",testValue,retValue); }
-	else { printf("Failed. (Expected %f, returned %f)\n",testValue, retValue); }
-
-	printf("Creating CooTensor from known data for comparison... ");
-	srand(RANDOM_SEED);
-	for (int i = 0; i < dimSize; i++) {
-        for (int j = 0; j < dimSize; j++) {
-        for (int k = 0; k < dimSize; k++) {
-	   int idx = i*dimSize*dimSize + j*dimSize + k;
-	   CooPoint p;
-	   p.x = k; p.y = j; p.z = i;
-	   p.value = rand() / (float) RAND_MAX;
-           if(p.value > 1e-4) Coo.tensor->tensor.access(idx) = p;
-        }}}
-	printf("Done.\n");
+        printf("No command line arguments detected... Beginning generic testing sequence...\n\n");
+        //exit(0);
 
 
-	printf("Testing Dense to Coo conversion function... ");
-	CooTensorManager CooComp = B.tensor->tensor.toCoo();
-	bool mismatch = 0;
-	for (int idx = 0; idx < dimSize*dimSize*dimSize; idx++) {
-		CooPoint a, b;
-		a = Coo.tensor->tensor.access(idx);
-		b = CooComp.tensor->tensor.access(idx);
-		if (a.x != b.x || a.y != b.y || a.z != b.z || a.value != b.value) {
-			mismatch = 1;
-			printf("    idx: %d  x: %d/%d  y: %d/%d  z: %d/%d  val: %d/%d\n",idx,a.x,b.x,a.y,b.y,a.z,b.z,a.value,b.value);
-		}
-	}
-	if (mismatch) { printf("... Failed.\n"); }
-	else { printf("Passed.\n"); }
-
-
-	//DenseMatixManager Variables
-	printf("Creating DenseMatrixManager for Dense return Matrix (A)... ");
-        DenseMatrixManager retDense;
-        retDense.tensor->tensor.setSize(dimSize,dimSize);
+        printf("Creating Random Dense Tensor (B) for testing... ");
+        B.tensor->tensor.setSize(dimSizeI,dimSizeK,dimSizeL);
+        srand(RANDOM_SEED);
+        for (int i = 0; i < dimSizeI; i++) {
+            for (int k = 0; k < dimSizeK; k++) {
+                for (int l = 0; l < dimSizeL; l++) {
+                     B.tensor->tensor.access(i,k,l) = rand() / (float) RAND_MAX;
+                }
+            }
+        }
         printf("Done.\n");
 
-	printf("Calculating MTTKRP (Dense)  value based on naive CPU Kernel (Ground Truth)... ");
-        for (unsigned int i = 0; i < dimSize; i++) {
-        for (unsigned int k = 0; k < dimSize; k++) {
-        for (unsigned int l = 0; l < dimSize; l++) {
-        for (unsigned int j = 0; j < d.height; j++) {
-           retDense.tensor->tensor.access(i,j) = retDense.tensor->tensor.access(i,j) + B.tensor->tensor.access(i,k,l) * d.access(l,j) * c.access(k,j);
-        }}}}
+        printf("Creating CooTensor... ");
+        fflush(stdout);
+        Coo.tensor->tensor.setSize(dimSizeI*dimSizeK*dimSizeL,dimSizeI,dimSizeK,dimSizeL);
         printf("Done.\n");
-	printf("Calculating MTTKRP (Coo) using implemented CPU kernel function call... ");
-	DenseMatrixManager retCooCPU = Coo.tensor->tensor.mttkrp_naive_cpu(D, C);
-	printf("Done.\n");
-	printf("\nCalculating MTTKRP (Coo) using implemented GPU kernel function call... ");
-        DenseMatrixManager retCooGPU = Coo.tensor->tensor.mttkrp_naive_gpu(D, C); //COO GPU KERNEL
-        printf("Done\n");
+        fflush(stdout);
 
-  
-	printf("Comparing Dense implementation to CPU Kernel Call (Ground truth vs Coo.naive_cpu)... ");
-	compareOutput(retDense.tensor->tensor, retCooCPU.tensor->tensor);
-
-  {
-  	printf("Comparing Kevin's Dense implementation to CPU Kernel Call (Dense.naive_cpu vs Coo.naive_cpu)... ");
-  	DenseMatrixManager retDenseK = B.tensor->tensor.mttkrp_naive_cpu(D,C);
-  	compareOutput(retDenseK.tensor->tensor, retCooCPU.tensor->tensor);
-  }
-
-	{
-    printf("\nCalculating MTTKRP (Coo) using implemented GPU kernel function call... ");
-  	DenseMatrixManager retCooGpu = Coo.tensor->tensor.mttkrp_naive_gpu(D,C); //COO GPU KERNEL
-
-    printf("Comparing GPU Kernel Call to Ground Truth (Coo.naive_gpu vs Ground truth)... ");
-  	compareOutput(retCooCPU.tensor->tensor, retCooGpu.tensor->tensor);
-  }
+        performAndTestDenseToCoo(Coo, B);
+    }
 
 
-	printf("\n=================== Beginning Kernel Tests on HiCOO Tensor ===================\n\n");
+    if (argc >= 5) {
+        if(strcmp(argv[4], "NOCPU") == 0) {
+            allowCPU = false;
+        }
+    }
 
-  printf("Converting to hicoo\n");
-  Hicoo = Coo.tensor->tensor.toHicoo();
-  {
-  	DenseMatrixManager retHicoo = Hicoo.tensor->tensor.mttkrp_naive_cpu(D, C);
-        printf("Calculating MTTKRP (HiCOO) using implemented CPU kernel function call... ");
-    compareOutput(retCooCPU.tensor->tensor, retHicoo.tensor->tensor);
-  }
+    printf("=============================== Begin Test ================================\n\n");
 
-  {
-  	DenseMatrixManager retHicoo = Hicoo.tensor->tensor.mttkrp_naive_gpu(D, C);
-        printf("Comparing Hicoo implementation to CPU Kernel Call (Ground truth vs HiCoo.naive_cpu)... ");
-    compareOutput(retCooCPU.tensor->tensor, retHicoo.tensor->tensor);
-  }
 
-	printf("That's a wrap\n");
-	return 0;
+
+    unsigned long long memUsage;
+
+
+    printf("  Creating Random Dense Matrices (D,C) for testing... ");
+    fflush(stdout);
+    DenseMatrixManager D,C;
+    DenseMatrix& c = C;
+    DenseMatrix& d = D;
+    d.setSize(dimSizeL,dimSizeJ);
+    c.setSize(dimSizeK,dimSizeJ);
+    for (int l = 0; l < dimSizeL; l++) {
+        for (int j = 0; j < dimSizeJ; j++) {
+            d.access(l,j) = rand() / (float) RAND_MAX;
+        }
+    }
+    for (int k = 0; k < dimSizeK; k++) {
+        for (int j = 0; j < dimSizeJ; j++) {
+            c.access(k,j) = rand() / (float) RAND_MAX;
+        }
+    }
+    printf("Done.\n");
+    fflush(stdout);
+
+
+    DenseMatrixManager goodRet;
+    printf("\n=================== Beginning Kernel Tests on COO Tensor ===================\n\n");
+
+    memUsage = Coo.tensor->tensor.getTotalMemory();
+    printf("(Memory usage: %llu)\n",memUsage);
+    fflush(stdout);
+
+
+    // Time COO to use as comparison
+    float CooCPUTime = FOREVER;
+    if(allowCPU) {
+        printf("  Calculating MTTKRP (Coo) using implemented CPU kernel function call... ");
+        fflush(stdout);
+        cudaEventRecord(timing_start,0);
+        goodRet = Coo.tensor->tensor.mttkrp_naive_cpu(D, C);
+        cudaEventRecord(timing_stop);
+        cudaEventSynchronize(timing_stop);
+        cudaEventElapsedTime(&CooCPUTime,timing_start, timing_stop);
+        printf("    Time = %f\n", CooCPUTime);
+        printf("Done.\n");
+        fflush(stdout);
+    } else {
+        printf("WARNING - VALIDATING AGAINST A GPU RUN, BECAUSE CPU IS TOO SLOW\n");
+        fflush(stdout);
+        goodRet = Coo.tensor->tensor.mttkrp_naive_gpu(D, C);
+    }
+
+    // Time Parallel
+    float CooGPUTime = validateAndTime(Coo, FUNC_AND_NAME(CooTensor::mttkrp_naive_gpu), D, C, goodRet);
+
+    float CooKevin1Time = validateAndTime(Coo, FUNC_AND_NAME(CooTensor::mttkrp_kevin1), D, C, goodRet);
+
+
+
+    if (useDense && allowCPU) {
+        printf("\n=================== Beginning Kernel Tests on Dense Tensor ===================\n\n");
+        fflush(stdout);
+
+        float denseCpuTime = validateAndTime(B, FUNC_AND_NAME(DenseTensor::mttkrp_naive_cpu), D, C, goodRet);
+
+        //float denseGpuTime = validateAndTime(B, FUNC_AND_NAME(DenseTensor::mttkrp_naive_gpu), D, C, goodRet);
+
+        fflush(stdout);
+    }
+
+
+
+    printf("\n=================== Beginning Kernel Tests on HiCOO Tensor ===================\n\n");
+
+    printf("  Converting to hicoo\n");
+    fflush(stdout);
+    Hicoo = Coo.tensor->tensor.toHicoo(blockSize, blockSize, blockSize);
+
+    float HicooCPUTime = FOREVER;
+    if(allowCPU) {
+        HicooCPUTime = validateAndTime(Hicoo, FUNC_AND_NAME(HicooTensor::mttkrp_naive_cpu), D, C, goodRet);
+    }
+
+    float HicooGPUTime = validateAndTime(Hicoo, FUNC_AND_NAME(HicooTensor::mttkrp_naive_gpu), D, C, goodRet);
+
+    float HicooKevin1Time = validateAndTime(Hicoo, FUNC_AND_NAME(HicooTensor::mttkrp_kevin1), D, C, goodRet);
+
+    fflush(stdout);
+
+
+
+    printf("\n  ==================== Memory Usage ======================= \n");
+
+    if (useDense) {
+        memUsage = B.tensor->tensor.getTotalMemory();
+        printf("  Dense Tensor (%d,%d,%d) --> %llu B\n",dimSizeI,dimSizeK,dimSizeL,memUsage);
+    }
+
+    memUsage = Coo.tensor->tensor.getTotalMemory();
+    printf("  COO Tensor (%d,%d,%d) --> %llu B\n",dimSizeI,dimSizeK,dimSizeL,memUsage);
+
+    memUsage = Hicoo.tensor->tensor.getTotalMemory();
+    printf("  HiCOO Tensor (%d,%d,%d) --> %llu B\n",dimSizeI,dimSizeK,dimSizeL,memUsage);
+
+    printf("  =========================================================\n\n");
+
+    printf("\n  ======================= Timing(s) ======================= \n");
+
+    printf("  COO MTTKRP (%d,%d,%d; J=%d)\n",dimSizeI,dimSizeK,dimSizeL, dimSizeJ);
+    printf("    CPU -> %f\n", CooCPUTime);
+    printf("    GPU -> %f\n", CooGPUTime);
+    printf("      Speedup -> %f\n", CooCPUTime/CooGPUTime);
+    printf("    Kevin1 -> %f\n", CooKevin1Time);
+    printf("      Speedup -> %f\n", CooCPUTime/CooKevin1Time);
+    printf("\n");
+    printf("  HiCOO MTTKRP (%d,%d,%d)\n",dimSizeI,dimSizeK,dimSizeL);
+    printf("    CPU -> %f\n", HicooCPUTime);
+    printf("    GPU -> %f\n", HicooGPUTime);
+    printf("      Speedup -> %f\n", HicooCPUTime/HicooGPUTime);
+    printf("    Kevin1 -> %f\n", HicooKevin1Time);
+    printf("      Speedup -> %f\n", CooCPUTime/HicooKevin1Time);
+    printf("\n");
+
+    printf("  =========================================================\n\n");
+    printf("That's a wrap\n\n\n\n");
+    fflush(stdout);
+    return 0;
+}
+
+
+
+
+
+
+
+// helper functions
+
+void performAndTestDenseToCoo(CooTensorManager Coo, DenseTensorManager B) {
+    printf("  Creating CooTensor from known data for comparison... ");
+    srand(RANDOM_SEED);
+    for (int i = 0; i < dimSizeI; i++) {
+        for (int k = 0; k < dimSizeK; k++) {
+            for (int l = 0; l < dimSizeL; l++) {
+                int idx = i*dimSizeK*dimSizeL + k*dimSizeL + l;
+                CooPoint p;
+                p.x = l; p.y = k; p.z = i;
+                p.value = rand() / (float) RAND_MAX;
+                if(p.value > 1e-4) Coo.tensor->tensor.access(idx) = p;
+            }
+        }
+    }
+    printf("Done.\n");
+
+
+    printf("  Testing Dense to Coo conversion function... ");
+    CooTensorManager CooComp = B.tensor->tensor.toCoo();
+    bool mismatch = 0;
+    for (int idx = 0; idx < dimSizeI*dimSizeK*dimSizeL; idx++) {
+        CooPoint a, b;
+        a = Coo.tensor->tensor.access(idx);
+        b = CooComp.tensor->tensor.access(idx);
+        if (a.x != b.x || a.y != b.y || a.z != b.z || a.value != b.value) {
+            mismatch = 1;
+            //printf("    idx: %d  x: %d/%d  y: %d/%d  z: %d/%d  val: %d/%d\n",idx,a.x,b.x,a.y,b.y,a.z,b.z,a.value,b.value);
+        }
+    }
+    if (mismatch) { printf("... Failed.\n"); }
+    else { printf("Passed.\n"); }
+
+}
+
+#include <cxxabi.h>
+#include <execinfo.h>
+template <typename T>
+std::string demangledClassName(T o) {
+    // https://gcc.gnu.org/onlinedocs/libstdc++/manual/ext_demangling.html
+
+    int status;
+    char* demangled = abi::__cxa_demangle(typeid(o).name(), 0, 0, &status);
+    std::string ret = demangled;
+    free(demangled);
+
+    return ret;
+}
+
+
+template <typename Class, typename Functype>
+float validateAndTime(Class inputTensor, Functype func, std::string funcname, DenseMatrixManager D, DenseMatrixManager C, DenseMatrixManager expected) {
+    // minor black magic from https://timmurphy.org/2014/08/28/passing-member-functions-as-template-parameters-in-c/
+    DEBUG_PRINT("Running validateAndTime...\n");
+    float retTime;
+    cudaEvent_t timing_start,timing_stop;
+
+    cudaEventCreate(&timing_start);
+    cudaEventCreate(&timing_stop);
+
+    std::string classname = demangledClassName(inputTensor);
+    printf("  Calculating MTTKRP on class %s using %s... ", classname.c_str(), funcname.c_str());
+
+    // compute
+    DEBUG_PRINT("Launching compute...\n");
+    cudaEventRecord(timing_start,0);
+    DenseMatrixManager result = (inputTensor.tensor->tensor.*func)(D, C);
+    cudaEventRecord(timing_stop);
+    cudaEventSynchronize(timing_stop);
+
+    cudaEventElapsedTime(&retTime, timing_start, timing_stop);
+    compareOutput(expected.tensor->tensor, result.tensor->tensor);
+
+    printf("    Time = %f\n", retTime);
+    fflush(stdout);
+
+    DEBUG_PRINT("done with validateAndTime\n");
+    return retTime;
+}
+
+
+
+void validateGroundTruth() {
+
+    /*=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-=-   MATLAB TENSOR / MATRIX VALIDATION CODE =-=-=-=-=-=-=-=-=-=-=-=-=-=-=-*/
+
+    // STRUCTURE OF MATLAB TENSOR:
+
+    // y = i, x = j, z = k;
+    //    /    j
+    //   ============//
+    //   ============//
+    // i ============// k
+    //   ============//
+    //   ============/
+
+
+
+    DenseTensorManager matlab;
+    matlab.tensor->tensor.setSize(3,3,3);
+
+    matlab.tensor->tensor.access(0,0,0) = 0.8311;
+    matlab.tensor->tensor.access(0,0,1) = 0.3952;
+    matlab.tensor->tensor.access(0,0,2) = 0.4412;
+
+    matlab.tensor->tensor.access(0,1,0) = 0.5568;
+    matlab.tensor->tensor.access(0,1,1) = 0.2911;
+    matlab.tensor->tensor.access(0,1,2) = 0.2135;
+
+    matlab.tensor->tensor.access(0,2,0) = 0.2345;
+    matlab.tensor->tensor.access(0,2,1) = 0.2098;
+    matlab.tensor->tensor.access(0,2,2) = 0.1484;
+
+    matlab.tensor->tensor.access(1,0,0) = 0.2844;
+    matlab.tensor->tensor.access(1,0,1) = 0.2804;
+    matlab.tensor->tensor.access(1,0,2) = 0.0949;
+
+    matlab.tensor->tensor.access(1,1,0) = 0.3379;
+    matlab.tensor->tensor.access(1,1,1) = 0.9659;
+    matlab.tensor->tensor.access(1,1,2) = 0.7877;
+
+    matlab.tensor->tensor.access(1,2,0) = 0.4038;
+    matlab.tensor->tensor.access(1,2,1) = 0.0240;
+    matlab.tensor->tensor.access(1,2,2) = 0.6363;
+
+    matlab.tensor->tensor.access(2,0,0) = 0.3720;
+    matlab.tensor->tensor.access(2,0,1) = 0.6422;
+    matlab.tensor->tensor.access(2,0,2) = 0.0034;
+
+    matlab.tensor->tensor.access(2,1,0) = 0.9030;
+    matlab.tensor->tensor.access(2,1,1) = 0.4056;
+    matlab.tensor->tensor.access(2,1,2) = 0.8192;
+
+    matlab.tensor->tensor.access(2,2,0) = 0.3261;
+    matlab.tensor->tensor.access(2,2,1) = 0.7646;
+    matlab.tensor->tensor.access(2,2,2) = 0.5833;
+
+
+    DenseMatrixManager mD, mC;
+    mD.tensor->tensor.setSize(3,3);
+    mC.tensor->tensor.setSize(3,3);
+
+    mD.tensor->tensor.access(0,0) = 0.2061;
+    mD.tensor->tensor.access(0,1) = 0.8238;
+    mD.tensor->tensor.access(0,2) = 0.0042;
+    mD.tensor->tensor.access(1,0) = 0.7055;
+    mD.tensor->tensor.access(1,1) = 0.7682;
+    mD.tensor->tensor.access(1,2) = 0.4294;
+    mD.tensor->tensor.access(2,0) = 0.9975;
+    mD.tensor->tensor.access(2,1) = 0.3894;
+    mD.tensor->tensor.access(2,2) = 0.3276;
+
+    mC.tensor->tensor.access(0,0) = 0.7853;
+    mC.tensor->tensor.access(0,1) = 0.9508;
+    mC.tensor->tensor.access(0,2) = 0.3240;
+    mC.tensor->tensor.access(1,0) = 0.4353;
+    mC.tensor->tensor.access(1,1) = 0.7073;
+    mC.tensor->tensor.access(1,2) = 0.7889;
+    mC.tensor->tensor.access(2,0) = 0.7104;
+    mC.tensor->tensor.access(2,1) = 0.1381;
+    mC.tensor->tensor.access(2,2) = 0.2877;
+
+    DenseMatrixManager matlabComp = matlab.tensor->tensor.mttkrp_naive_cpu(mD,mC);
+    printf("Output of MTTKRP on Dense Matrix from MATLAB values:\n");
+
+    for (int i = 0; i < 3; i++) {
+        for (int j = 0; j < 3; j++) {
+            printf("%f ", matlabComp.tensor->tensor.access(i,j));
+        }
+        printf("\n");
+    }
+
+    /* =========   OUTPUT FROM ABOVE CALC    =========
+
+    1.175773 1.701301 0.298766
+    1.466742 1.484061 0.644793
+    1.824243 1.883446 0.592149
+
+    /* =========   MTTKRP CODE FROM MATLAB:  =========
+
+    n = 1
+    KRP = khatrirao(D,C); %<--Khatri-Rao product, omitting U{2}
+    M = permute(X.data, [n:size(X,n), 1:n-1]);
+    M = reshape(M,size(X,n),[]); %<--Matricized tensor data
+    M*KRP
+
+    ans =
+
+    1.1757    1.7013    0.2988
+    1.4666    1.4841    0.6449
+    1.8243    1.8836    0.5922
+
+
+    exit(0);
+
+    =================================================*/
 }
