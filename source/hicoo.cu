@@ -238,7 +238,7 @@ __global__ void hicoo_james1_kernel(DenseMatrix a, HicooTensor b, DenseMatrix d,
     
     for(int e = ba.blockAddress; e < bb.blockAddress; e++) {
         //For every HiCOOPoint in the HiCOO block
-	& p = b.access_point(e);
+	HicooPoint& p = b.access_point(e);
         for(int j = threadIdx.x; j < a.width; j+=128) {
             float val = p.value * d.access(p.x+bx,j) * c.access(p.y+by,j);
             atomicAdd(&a.access(p.z+bz, j), val);
@@ -295,7 +295,7 @@ __global__ void hicoo_collab1_kernel(DenseMatrix a, HicooTensor b, DenseMatrix d
 
     for(int e = ba.blockAddress; e < bb.blockAddress; e++) {
         //For every HiCOOPoint in the HiCOO block
-        & p = b.access_point(e);
+        HicooPoint& p = b.access_point(e);
         int j;
         for (j = threadIdx.x; j <= a.width - blockDim.x*4 ; j += blockDim.x*4) { //4x unroll
             float val1 = p.value * d.access(p.x+bx,j + blockDim.x*0) * c.access(p.y+by,j + blockDim.x*0);
