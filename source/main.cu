@@ -15,6 +15,7 @@ using namespace std;
 int dimSizeI = 30, dimSizeJ = 30, dimSizeK = 30, dimSizeL = 30;
 float density = 1.0f;
 int RANDOM_SEED = 1234;
+float VALIDATION_THRESHOLD = 1.2e-4;
 
 void compareOutput(DenseMatrix a, DenseMatrix b) {
     int errors = 0;
@@ -28,8 +29,8 @@ void compareOutput(DenseMatrix a, DenseMatrix b) {
     assert(b.values_h != nullptr);
     for (int i = 0; i < dimSizeI; i++) {
         for (int j = 0; j < dimSizeJ; j++) {
-            float mag = abs(a.access(i, j)) + 1e-4;
-            if(abs(a.access(i, j) - b.access(i, j)) > mag * 1e-4) {
+            float mag = abs(a.access(i, j)) + VALIDATION_THRESHOLD;
+            if(abs(a.access(i, j) - b.access(i, j)) > mag * VALIDATION_THRESHOLD) {
                 printf("\n    Outputs do not match at index (%d,%d): %f vs %f", i,j, a.access(i,j), b.access(i,j));
                 errors++;
 
