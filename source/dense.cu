@@ -142,11 +142,11 @@ DenseMatrixManager DenseTensor::mttkrp_naive_cpu(DenseMatrixManager D, DenseMatr
 
     DEBUG_PRINT("    - compute\n");
     for(int i = 0; i < I; i++) {
-        for(int j = 0; j < J; j++) {
-            for(int k = 0; k < K; k++) {
-              for(int l = 0; l < L; l++) {
-                  a.access(i, j) += access(i,k,l) * d.access(l,j) * c.access(k,j);
-              }
+        for(int k = 0; k < K; k++) {
+            for(int l = 0; l < L; l++) {
+                for(int j = 0; j < J; j++) {
+                    a.access(i, j) += access(i,k,l) * d.access(l,j) * c.access(k,j);
+                }
             }
         }
     }

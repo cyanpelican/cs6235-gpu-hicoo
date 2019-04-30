@@ -10,14 +10,18 @@
 #SBATCH --time=01:00:00
 #SBATCH --export=ALL
 #SBATCH --qos=soc-gpu-kp
+#SBATCH --output=slurm-%j-nell1.out
+echo $0
+echo
 ulimit -c unlimited -s
 
 nvidia-smi
 echo VISIBLE === $CUDA_VISIBLE_DEVICES
 
 
-./HiCooExperiment 16     8 datasets/nell-1.tns
-./HiCooExperiment 32     8 datasets/nell-1.tns
+#                 J      BS file
+#./HiCooExperiment 16     8 datasets/nell-1.tns
+#./HiCooExperiment 32     8 datasets/nell-1.tns
 
 
 

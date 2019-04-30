@@ -10,12 +10,16 @@
 #SBATCH --time=01:00:00
 #SBATCH --export=ALL
 #SBATCH --qos=soc-gpu-kp
+#SBATCH --output=slurm-%j-small-tensors.out
+echo $0
+echo
 ulimit -c unlimited -s
 module load cuda
 
 nvidia-smi
 echo VISIBLE === $CUDA_VISIBLE_DEVICES
 
+#                 J      BS file
 ./HiCooExperiment 262114 4 datasets/matmul_2-2-2.tns
 ./HiCooExperiment 262114 4 datasets/matmul_3-3-3.tns
 ./HiCooExperiment 262114 4 datasets/matmul_4-3-2.tns
@@ -26,10 +30,10 @@ echo VISIBLE === $CUDA_VISIBLE_DEVICES
 
 
 
-./HiCooExperiment 32     8 datasets/vast-2015-mc1-3d.tns
-./HiCooExperiment 128    8 datasets/vast-2015-mc1-3d.tns
-./HiCooExperiment 256    8 datasets/vast-2015-mc1-3d.tns
-./HiCooExperiment 512    8 datasets/vast-2015-mc1-3d.tns
+./HiCooExperiment 32     8 datasets/vast-2015-mc1-3d.tns NOCPU
+./HiCooExperiment 128    8 datasets/vast-2015-mc1-3d.tns NOCPU
+./HiCooExperiment 256    8 datasets/vast-2015-mc1-3d.tns NOCPU
+./HiCooExperiment 512    8 datasets/vast-2015-mc1-3d.tns NOCPU
 
 ./HiCooExperiment 1024   2 datasets/vast-2015-mc1-3d.tns
 ./HiCooExperiment 1024   4 datasets/vast-2015-mc1-3d.tns

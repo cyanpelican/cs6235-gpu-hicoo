@@ -10,16 +10,21 @@
 #SBATCH --time=01:00:00
 #SBATCH --export=ALL
 #SBATCH --qos=soc-gpu-kp
+#SBATCH --output=slurm-%j-dense.out
+echo $0
+echo
 ulimit -c unlimited -s
 module load cuda
 
 nvidia-smi
 echo VISIBLE === $CUDA_VISIBLE_DEVICES
 
-./HiCooExperiment        8
-./HiCooExperiment 1024   8 dense-32x32x32
-./HiCooExperiment 16384
+#                 J      BS flavor
+#./HiCooExperiment 8      4                        NOCPU
+#./HiCooExperiment 1024   8 dense-32x32x32         NOCPU
+#./HiCooExperiment 16384                           # cpu is ok
 ./HiCooExperiment 16384  8 dense-256x256x256d.1
+./HiCooExperiment 16384  8 dense-128x128x128d.1
 ./HiCooExperiment 262114 8
 
 
