@@ -306,8 +306,8 @@ __global__ void hicoo_kevin2_kernel(DenseMatrix a, HicooTensor b, DenseMatrix d,
             HicooPoint& p = b.access_point(e);
             for(int j = threadIdx.x; j < a.width; j+=32) {
                 float val = p.value * d.access(p.x+bx,j) * c.access(p.y+by,j);
-                //a.access(p.z+bz, j) += val;
-                atomicAdd(&a.access(p.z+bz, j), val);
+                a.access(p.z+bz, j) += val;
+                //atomicAdd(&a.access(p.z+bz, j), val);
             }
         }
 
@@ -403,8 +403,8 @@ __global__ void hicoo_kevin3_kernel(DenseMatrix a, HicooTensor b, DenseMatrix d,
             HicooPoint& p = b.access_point(e);
             for(int j = threadIdx.x; j < a.width; j+=32) {
                 float val = p.value * d.access(p.x+bx,j) * c.access(p.y+by,j);
-                //a.access(p.z+bz, j) += val;
-                atomicAdd(&a.access(p.z+bz, j), val);
+                a.access(p.z+bz, j) += val;
+                //atomicAdd(&a.access(p.z+bz, j), val);
             }
         }
 
