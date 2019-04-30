@@ -291,10 +291,11 @@ DenseMatrixManager HicooTensor::mttkrp_kevin1(DenseMatrixManager D, DenseMatrixM
 
 
 __global__ void hicoo_kevin2_kernel(DenseMatrix a, HicooTensor b, DenseMatrix d, DenseMatrix c, int* lut) {
-    int bi = lut[blockIdx.x];
-    HicooBlock& ba = b.access_block(bi);
-    while(ba.blockZ == blockIdx.x && bi < b.numBlocks) {
-        HicooBlock& bb = b.access_block(bi+1);
+    int myBlockZ = blockIdx.x;
+    int bi = lut[myBlockZ];
+    HicooBlock ba = b.access_block(bi);
+    while(ba.blockZ == myBlockZ && bi < b.numBlocks) {
+        HicooBlock bb = b.access_block(bi+1);
 
         unsigned int bx = ba.blockX * b.blockWidth;
         unsigned int by = ba.blockY * b.blockHeight;
@@ -305,7 +306,8 @@ __global__ void hicoo_kevin2_kernel(DenseMatrix a, HicooTensor b, DenseMatrix d,
             HicooPoint& p = b.access_point(e);
             for(int j = threadIdx.x; j < a.width; j+=32) {
                 float val = p.value * d.access(p.x+bx,j) * c.access(p.y+by,j);
-                a.access(p.z+bz, j) += val;
+                //a.access(p.z+bz, j) += val;
+                atomicAdd(&a.access(p.z+bz, j), val);
             }
         }
 
@@ -328,6 +330,7 @@ __global__ void hicoo_kevin2_lut_populate(HicooTensor b, int* lut) {
 }
 
 DenseMatrixManager HicooTensor::mttkrp_kevin2(DenseMatrixManager D, DenseMatrixManager C) {
+    // Avoid atomicAdd() by assigning each blockZ to a cuda block
     // Has each thread block mapped to a hicoo block (parallelizing blocks across J)
     DEBUG_PRINT("HT: mttkrp kevin2\n");
     DEBUG_PRINT("    - asserts, initialization\n");
@@ -342,9 +345,6 @@ DenseMatrixManager HicooTensor::mttkrp_kevin2(DenseMatrixManager D, DenseMatrixM
     assert(d.values_d != nullptr);
 
     assert(sorting == ZYX);
-    for(int i = 1; i < numBlocks; i++) {
-        assert(access_block(i).blockZ >= access_block(i-1).blockZ);
-    }
 
     // A(i,j) = B(i,k,l) * D(l,j) * C(k,j);
     int I = this->depth, J = d.width, K = this->height, L = this->width;
@@ -366,21 +366,6 @@ DenseMatrixManager HicooTensor::mttkrp_kevin2(DenseMatrixManager D, DenseMatrixM
     DEBUG_PRINT("    - populate LUT on gpu\n");
     hicoo_kevin2_lut_populate<<<(numBlocks-1)/32+1, 32>>>(*this, zBlockIndices);
 
-    {
-      int* zbi_h = (int*)malloc(sizeof(int) * blocksZ);
-      cudaErrorCheck(cudaMemcpy(zbi_h, zBlockIndices, sizeof(int) * blocksZ, cudaMemcpyDeviceToHost));
-      for(int i = 0; i < blocksZ; i++) {
-        printf("%d ", zbi_h[i]);
-      }
-      printf("\n");
-      for(int i = 0; i < numBlocks; i++) {
-        printf("blk: %d %d %d\n", access_block(i).blockX, access_block(i).blockY, access_block(i).blockZ);
-      }
-      printf("\n");
-      fflush(stdout);
-      free(zbi_h);
-    }
-
     DEBUG_PRINT("    - do compute on gpu\n");
     hicoo_kevin2_kernel<<<blocksZ, 32>>>(a, *this, d, c, zBlockIndices);
 
@@ -398,7 +383,8 @@ DenseMatrixManager HicooTensor::mttkrp_kevin2(DenseMatrixManager D, DenseMatrixM
 
 __global__ void hicoo_kevin3_kernel(DenseMatrix a, HicooTensor b, DenseMatrix d, DenseMatrix c) {
     int bi = blockIdx.x;
-    HicooBlock& ba = b.access_block(bi);
+    // check that we are in the first block of this given blockZ (will often fail)
+    HicooBlock ba = b.access_block(bi);
     if(bi > 0 && ba.blockZ == b.access_block(bi-1).blockZ) {
         return;
     }
@@ -406,7 +392,7 @@ __global__ void hicoo_kevin3_kernel(DenseMatrix a, HicooTensor b, DenseMatrix d,
     int blockZ = ba.blockZ;
 
     while(ba.blockZ == blockZ && bi < b.numBlocks) {
-        HicooBlock& bb = b.access_block(bi+1);
+        HicooBlock bb = b.access_block(bi+1);
 
         unsigned int bx = ba.blockX * b.blockWidth;
         unsigned int by = ba.blockY * b.blockHeight;
@@ -417,7 +403,8 @@ __global__ void hicoo_kevin3_kernel(DenseMatrix a, HicooTensor b, DenseMatrix d,
             HicooPoint& p = b.access_point(e);
             for(int j = threadIdx.x; j < a.width; j+=32) {
                 float val = p.value * d.access(p.x+bx,j) * c.access(p.y+by,j);
-                a.access(p.z+bz, j) += val;
+                //a.access(p.z+bz, j) += val;
+                atomicAdd(&a.access(p.z+bz, j), val);
             }
         }
 
@@ -428,7 +415,7 @@ __global__ void hicoo_kevin3_kernel(DenseMatrix a, HicooTensor b, DenseMatrix d,
 
 
 DenseMatrixManager HicooTensor::mttkrp_kevin3(DenseMatrixManager D, DenseMatrixManager C) {
-    // Has each thread block mapped to a hicoo block (parallelizing blocks across J)
+    // kevin2 but skip the LUT by pushing the essence of it into the kernel (still no atomicAdd) 
     DEBUG_PRINT("HT: mttkrp kevin3\n");
     DEBUG_PRINT("    - asserts, initialization\n");
     DenseMatrixManager ret;
