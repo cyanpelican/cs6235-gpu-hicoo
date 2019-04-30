@@ -222,16 +222,61 @@ DenseMatrixManager HicooTensor::mttkrp_guy1(DenseMatrixManager D, DenseMatrixMan
     return ret;
 }
 
+
+__global__ void hicoo_james1_kernel(DenseMatrix a, HicooTensor b, DenseMatrix d, DenseMatrix c) {
+    //launched with 128 threads per block
+
+    //Start of current HiCOO block
+    HicooBlock& ba = b.access_block(blockIdx.x);
+    //Start of subsequent block
+    HicooBlock& bb = b.access_block(blockIdx.x+1);
+
+    unsigned int bx = ba.blockX * b.blockWidth;
+    unsigned int by = ba.blockY * b.blockHeight;
+    unsigned int bz = ba.blockZ * b.blockDepth;
+
+    
+    for(int e = ba.blockAddress; e < bb.blockAddress; e++) {
+        //For every HiCOOPoint in the HiCOO block
+	& p = b.access_point(e);
+        for(int j = threadIdx.x; j < a.width; j+=128) {
+            float val = p.value * d.access(p.x+bx,j) * c.access(p.y+by,j);
+            atomicAdd(&a.access(p.z+bz, j), val);
+        }
+    }
+}
+
 DenseMatrixManager HicooTensor::mttkrp_james1(DenseMatrixManager D, DenseMatrixManager C) {
+    DEBUG_PRINT("HT: mttkrp james1\n");
+    DEBUG_PRINT("    - asserts, initialization\n");
     DenseMatrixManager ret;
+    DenseMatrix& a = ret;
     DenseMatrix& c = C;
     DenseMatrix& d = D;
 
-    // TODO
-    assert(0);
+    assert(points_d != nullptr);
+    assert(blocks_d != nullptr);
+    assert(c.values_d != nullptr);
+    assert(d.values_d != nullptr);
 
     // A(i,j) = B(i,k,l) * D(l,j) * C(k,j);
+    int I = this->depth, J = d.width, K = this->height, L = this->width;
+    DEBUG_PRINT("    - I = %d, J = %d, K = %d, L = %d\n", I, J, K, L);
+    assert(d.height == L);
+    assert(c.height == K);
+    assert(c.width  == J);
 
+
+    DEBUG_PRINT("    - malloc output matrix\n");
+    a.setSize_d(I, J);
+
+    DEBUG_PRINT("    - do compute on gpu\n");
+    hicoo_james1_kernel<<<numBlocks, 128>>>(a, *this, d, c);
+
+    DEBUG_PRINT("    - downloading to host\n");
+    a.downloadToHost();
+
+    DEBUG_PRINT("    - done\n");
     return ret;
 }
 
