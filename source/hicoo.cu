@@ -293,7 +293,7 @@ DenseMatrixManager HicooTensor::mttkrp_kevin1(DenseMatrixManager D, DenseMatrixM
 __global__ void hicoo_kevin2_kernel(DenseMatrix a, HicooTensor b, DenseMatrix d, DenseMatrix c, int* lut) {
     int bi = lut[blockIdx.x];
     HicooBlock& ba = b.access_block(bi);
-    while(ba.blockZ == blockIdx.x) {
+    while(ba.blockZ == blockIdx.x && bi < b.numBlocks) {
         HicooBlock& bb = b.access_block(bi+1);
 
         unsigned int bx = ba.blockX * b.blockWidth;
