@@ -13,7 +13,9 @@
 using namespace std;
 
 int dimSizeI = 30, dimSizeJ = 30, dimSizeK = 30, dimSizeL = 30;
+float density = 1.0f;
 int RANDOM_SEED = 1234;
+float VALIDATION_THRESHOLD = 1e-3; // not great...
 
 void compareOutput(DenseMatrix a, DenseMatrix b) {
     int errors = 0;
@@ -27,8 +29,8 @@ void compareOutput(DenseMatrix a, DenseMatrix b) {
     assert(b.values_h != nullptr);
     for (int i = 0; i < dimSizeI; i++) {
         for (int j = 0; j < dimSizeJ; j++) {
-            float mag = abs(a.access(i, j)) + 1e-4;
-            if(abs(a.access(i, j) - b.access(i, j)) > mag * 1e-5) {
+            float mag = abs(a.access(i, j)) + VALIDATION_THRESHOLD;
+            if(abs(a.access(i, j) - b.access(i, j)) > mag * VALIDATION_THRESHOLD) {
                 printf("\n    Outputs do not match at index (%d,%d): %f vs %f", i,j, a.access(i,j), b.access(i,j));
                 errors++;
 
@@ -74,6 +76,7 @@ int main(int argc, char *argv[]) {
     bool allowCPU = true;
     int  blockSize = 4;
     float FOREVER = 9e9;
+    std::string tensorFilename = "defaultDense:30x30x30";
 
     printf("Creating TensorManager Objects... ");
     CooTensorManager Coo;
@@ -97,12 +100,13 @@ int main(int argc, char *argv[]) {
         blockSize = atoi(argv[2]);
     }
 
-    if (argc >= 4) {
+    if (argc >= 4 && std::string(argv[3]).rfind("dense-", 0) != 0) {
         //NEED TO CREATE TENSOR FROM FILEIN
 
         printf("Creating CooTensor from file '%s'... ", argv[3]);
         fflush(stdout);
         Coo.create(argv[3]);
+        tensorFilename = argv[3];
         dimSizeI = Coo.tensor->tensor.depth;
         dimSizeK = Coo.tensor->tensor.height;
         dimSizeL = Coo.tensor->tensor.width;
@@ -112,7 +116,29 @@ int main(int argc, char *argv[]) {
         // Generate dense tensor
         useDense = true;
 
-        printf("No command line arguments detected... Beginning generic testing sequence...\n\n");
+        if(argc >= 4) { // if we're passed a dense-WIDTHxHEIGHTxDEPTHdDENSITY string in place of a filename
+            std::string denseSizeStr = std::string(argv[3]).substr(6); // crop off 'dense-'
+            tensorFilename = argv[3];
+
+            std::string dim1Str; // https://stackoverflow.com/questions/236129/how-do-i-iterate-over-the-words-of-a-string
+            std::string dim2Str;
+            std::string dim3Str;
+            std::string densityStr;
+            std::stringstream ss(denseSizeStr);
+            std::getline(ss, dim1Str, 'x');
+            std::getline(ss, dim2Str, 'x');
+            std::getline(ss, dim3Str, 'd');
+            std::getline(ss, densityStr, 'd');
+            dimSizeL = atoi(dim1Str.c_str());
+            dimSizeK = atoi(dim2Str.c_str());
+            dimSizeI = atoi(dim3Str.c_str());
+            if(densityStr.length() > 0)
+                density  = atof(densityStr.c_str());
+
+            printf("Creating dense tensor of size %d x %d x %d, density = %f\n\n", dimSizeL, dimSizeK, dimSizeI, density);
+        } else {
+            printf("No filename detected... Beginning generic testing sequence...\n\n");
+        }
         //exit(0);
 
 
@@ -122,7 +148,8 @@ int main(int argc, char *argv[]) {
         for (int i = 0; i < dimSizeI; i++) {
             for (int k = 0; k < dimSizeK; k++) {
                 for (int l = 0; l < dimSizeL; l++) {
-                     B.tensor->tensor.access(i,k,l) = rand() / (float) RAND_MAX;
+                    if (density >= 1.0f || (rand() / (float) RAND_MAX) <= density)
+                        B.tensor->tensor.access(i,k,l) = rand() / (float) RAND_MAX;
                 }
             }
         }
@@ -134,7 +161,12 @@ int main(int argc, char *argv[]) {
         printf("Done.\n");
         fflush(stdout);
 
-        performAndTestDenseToCoo(Coo, B);
+        if(density != 1.0f) {
+            printf("Skipping dense-to-coo validation because density != 1\n");
+            Coo = B.tensor->tensor.toCoo();
+        } else {
+            performAndTestDenseToCoo(Coo, B);
+        }
     }
 
 
@@ -201,13 +233,13 @@ int main(int argc, char *argv[]) {
         printf("WARNING - VALIDATING AGAINST A GPU RUN, BECAUSE CPU IS TOO SLOW\n");
         fflush(stdout);
 
-        goodRet = Coo.tensor->tensor.mttkrp_naive_gpu(D, C);
+        goodRet = Coo.tensor->tensor.mttkrp_kevin1(D, C);
         goodRet.tensor->tensor.downloadToHost();
         goodRet.tensor->tensor.freeDeviceArrays();
     }
 
     // Time Parallel
-    float CooGPUTime = validateAndTime(Coo, FUNC_AND_NAME(CooTensor::mttkrp_naive_gpu), D, C, goodRet);
+    float CooGPUTime = FOREVER; //validateAndTime(Coo, FUNC_AND_NAME(CooTensor::mttkrp_naive_gpu), D, C, goodRet);
 
     float CooKevin1Time = validateAndTime(Coo, FUNC_AND_NAME(CooTensor::mttkrp_kevin1), D, C, goodRet);
 
@@ -217,7 +249,7 @@ int main(int argc, char *argv[]) {
         printf("\n=================== Beginning Kernel Tests on Dense Tensor ===================\n\n");
         fflush(stdout);
 
-        float denseCpuTime = validateAndTime(B, FUNC_AND_NAME(DenseTensor::mttkrp_naive_cpu), D, C, goodRet);
+        float denseCpuTime = FOREVER; //validateAndTime(B, FUNC_AND_NAME(DenseTensor::mttkrp_naive_cpu), D, C, goodRet);
 
         //float denseGpuTime = validateAndTime(B, FUNC_AND_NAME(DenseTensor::mttkrp_naive_gpu), D, C, goodRet);
 
@@ -235,18 +267,21 @@ int main(int argc, char *argv[]) {
 
     float HicooCPUTime = FOREVER;
     if(allowCPU) {
-        HicooCPUTime = validateAndTime(Hicoo, FUNC_AND_NAME(HicooTensor::mttkrp_naive_cpu), D, C, goodRet);
+        HicooCPUTime = FOREVER; //validateAndTime(Hicoo, FUNC_AND_NAME(HicooTensor::mttkrp_naive_cpu), D, C, goodRet);
     }
 
-    float HicooGPUTime = validateAndTime(Hicoo, FUNC_AND_NAME(HicooTensor::mttkrp_naive_gpu), D, C, goodRet);
+    float HicooGPUTime = FOREVER; //validateAndTime(Hicoo, FUNC_AND_NAME(HicooTensor::mttkrp_naive_gpu), D, C, goodRet);
 
     // TODO - PUT OPTIMIZED KERNELS HERE
+    float HicooCollab1Time = validateAndTime(Hicoo, FUNC_AND_NAME(HicooTensor::mttkrp_collab1), D, C, goodRet);
+
+    float HicooJames1Time = validateAndTime(Hicoo, FUNC_AND_NAME(HicooTensor::mttkrp_james1), D, C, goodRet);
 
     float HicooKevin1Time = validateAndTime(Hicoo, FUNC_AND_NAME(HicooTensor::mttkrp_kevin1), D, C, goodRet);
 
-    float HicooKevin2Time = validateAndTime(Hicoo, FUNC_AND_NAME(HicooTensor::mttkrp_kevin2), D, C, goodRet);
+    float HicooKevin2Time = FOREVER; //validateAndTime(Hicoo, FUNC_AND_NAME(HicooTensor::mttkrp_kevin2), D, C, goodRet);
 
-    float HicooKevin3Time = validateAndTime(Hicoo, FUNC_AND_NAME(HicooTensor::mttkrp_kevin3), D, C, goodRet);
+    float HicooKevin3Time = FOREVER; //validateAndTime(Hicoo, FUNC_AND_NAME(HicooTensor::mttkrp_kevin3), D, C, goodRet);
 
     Hicoo.tensor->tensor.freeDeviceArrays();
 
@@ -269,24 +304,29 @@ int main(int argc, char *argv[]) {
 
     printf("\n  ======================= Timing(s) ======================= \n");
 
-    printf("  COO MTTKRP (%d,%d,%d; J=%d)\n",dimSizeI,dimSizeK,dimSizeL, dimSizeJ);
+    printf("  file = %s, J=%d\n", tensorFilename.c_str(), dimSizeJ);
+    printf("  COO MTTKRP ( %d, %d, %d;   J=%d;   NNZ=%d )\n",dimSizeI,dimSizeK,dimSizeL, dimSizeJ, Coo.tensor->tensor.numElements);
     printf("    CPU -> %f\n", CooCPUTime);
     printf("    NAIVE GPU -> %f\n", CooGPUTime);
     printf("      Speedup -> %f\n", CooCPUTime/CooGPUTime);
     printf("    Kevin1 -> %f\n", CooKevin1Time);
     printf("      Speedup -> %f\n", CooCPUTime/CooKevin1Time);
     printf("\n");
-    printf("  HiCOO MTTKRP (%d,%d,%d)\n",dimSizeI,dimSizeK,dimSizeL);
+    printf("  HiCOO MTTKRP ( %d, %d, %d    J=%d;   NNZ=%d   bs=%d)\n",dimSizeI,dimSizeK,dimSizeL, dimSizeJ, Coo.tensor->tensor.numElements, blockSize);
     printf("    CPU -> %f\n", HicooCPUTime);
     printf("    NAIVE GPU -> %f\n", HicooGPUTime);
     printf("      Speedup -> %f\n", HicooCPUTime/HicooGPUTime);
     // TODO - PRINT TIME FOR OPTIMIZED KERNELS HERE
+    printf("    Collab1 -> %f\n", HicooCollab1Time);
+    printf("      Speedup -> %f\n", CooCPUTime/HicooCollab1Time);
+    printf("    James1 -> %f\n", HicooJames1Time);
+    printf("      Speedup -> %f\n", CooCPUTime/HicooJames1Time);
     printf("    Kevin1 -> %f\n", HicooKevin1Time);
-    printf("      Speedup -> %f\n", CooCPUTime/HicooKevin1Time);
-    printf("    Kevin2 -> %f\n", HicooKevin2Time);
-    printf("      Speedup -> %f\n", CooCPUTime/HicooKevin2Time);
+    printf("      Speedup -> %f\n", HicooGPUTime/HicooKevin1Time);
+    printf("    Kevin2 [currently disabled] -> %f\n", HicooKevin2Time);
+    printf("      Speedup -> %f\n", HicooGPUTime/HicooKevin2Time);
     printf("    Kevin3 -> %f\n", HicooKevin3Time);
-    printf("      Speedup -> %f\n", CooCPUTime/HicooKevin3Time);
+    printf("      Speedup -> %f\n", HicooGPUTime/HicooKevin3Time);
     printf("\n");
 
     printf("  =========================================================\n\n");
@@ -304,6 +344,7 @@ int main(int argc, char *argv[]) {
 // helper functions
 
 void performAndTestDenseToCoo(CooTensorManager Coo, DenseTensorManager B) {
+    assert(density == 1.0f); // not implemented for other densities
     printf("  Creating CooTensor from known data for comparison... ");
     srand(RANDOM_SEED);
     for (int i = 0; i < dimSizeI; i++) {
