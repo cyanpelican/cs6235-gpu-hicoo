@@ -233,7 +233,7 @@ int main(int argc, char *argv[]) {
         printf("WARNING - VALIDATING AGAINST A GPU RUN, BECAUSE CPU IS TOO SLOW\n");
         fflush(stdout);
 
-        goodRet = Coo.tensor->tensor.mttkrp_naive_gpu(D, C);
+        goodRet = Coo.tensor->tensor.mttkrp_kevin1(D, C);
         goodRet.tensor->tensor.downloadToHost();
         goodRet.tensor->tensor.freeDeviceArrays();
     }
@@ -276,7 +276,7 @@ int main(int argc, char *argv[]) {
 
     float HicooKevin1Time = validateAndTime(Hicoo, FUNC_AND_NAME(HicooTensor::mttkrp_kevin1), D, C, goodRet);
 
-    float HicooKevin2Time = validateAndTime(Hicoo, FUNC_AND_NAME(HicooTensor::mttkrp_kevin2), D, C, goodRet);
+    float HicooKevin2Time = FOREVER; //validateAndTime(Hicoo, FUNC_AND_NAME(HicooTensor::mttkrp_kevin2), D, C, goodRet);
 
     float HicooKevin3Time = validateAndTime(Hicoo, FUNC_AND_NAME(HicooTensor::mttkrp_kevin3), D, C, goodRet);
 
@@ -302,21 +302,21 @@ int main(int argc, char *argv[]) {
     printf("\n  ======================= Timing(s) ======================= \n");
 
     printf("  file = %s, J=%d\n", tensorFilename.c_str(), dimSizeJ);
-    printf("  COO MTTKRP (%d,%d,%d; J=%d)\n",dimSizeI,dimSizeK,dimSizeL, dimSizeJ);
+    printf("  COO MTTKRP ( %d, %d, %d;   J=%d;   NNZ=%d )\n",dimSizeI,dimSizeK,dimSizeL, dimSizeJ, Coo.tensor->tensor.numElements);
     printf("    CPU -> %f\n", CooCPUTime);
     printf("    NAIVE GPU -> %f\n", CooGPUTime);
     printf("      Speedup -> %f\n", CooCPUTime/CooGPUTime);
     printf("    Kevin1 -> %f\n", CooKevin1Time);
     printf("      Speedup -> %f\n", CooCPUTime/CooKevin1Time);
     printf("\n");
-    printf("  HiCOO MTTKRP (%d,%d,%d J=%d)\n",dimSizeI,dimSizeK,dimSizeL, dimSizeJ);
+    printf("  HiCOO MTTKRP ( %d, %d, %d    J=%d;   NNZ=%d   bs=%d)\n",dimSizeI,dimSizeK,dimSizeL, dimSizeJ, Coo.tensor->tensor.numElements, blockSize);
     printf("    CPU -> %f\n", HicooCPUTime);
     printf("    NAIVE GPU -> %f\n", HicooGPUTime);
     printf("      Speedup -> %f\n", HicooCPUTime/HicooGPUTime);
     // TODO - PRINT TIME FOR OPTIMIZED KERNELS HERE
     printf("    Kevin1 -> %f\n", HicooKevin1Time);
     printf("      Speedup -> %f\n", CooCPUTime/HicooKevin1Time);
-    printf("    Kevin2 -> %f\n", HicooKevin2Time);
+    printf("    Kevin2 [currently disabled] -> %f\n", HicooKevin2Time);
     printf("      Speedup -> %f\n", CooCPUTime/HicooKevin2Time);
     printf("    Kevin3 -> %f\n", HicooKevin3Time);
     printf("      Speedup -> %f\n", CooCPUTime/HicooKevin3Time);

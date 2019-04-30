@@ -290,7 +290,7 @@ DenseMatrixManager HicooTensor::mttkrp_kevin1(DenseMatrixManager D, DenseMatrixM
 __global__ void hicoo_kevin2_kernel(DenseMatrix a, HicooTensor b, DenseMatrix d, DenseMatrix c, int* lut) {
     int myBlockZ = blockIdx.x;
     int bi = lut[myBlockZ];
-    
+
     HicooBlock ba = b.access_block(bi);
     while(ba.blockZ == myBlockZ && bi < b.numBlocks) {
         // go through each block in this blockZ
@@ -358,6 +358,11 @@ DenseMatrixManager HicooTensor::mttkrp_kevin2(DenseMatrixManager D, DenseMatrixM
 
     DEBUG_PRINT("    - malloc output matrix\n");
     a.setSize_d(I, J);
+
+    //if(depth > 20000000) {
+    //    printf("Skipping execution, because this likes to OOM or something\n");
+    //    return ret;
+    //}
 
     DEBUG_PRINT("    - create LUT on gpu\n");
     int blocksZ = (width-1)/blockDepth + 1;
