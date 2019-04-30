@@ -242,9 +242,9 @@ int main(int argc, char *argv[]) {
 
     float HicooKevin1Time = validateAndTime(Hicoo, FUNC_AND_NAME(HicooTensor::mttkrp_kevin1), D, C, goodRet);
 
-    float HicooKevin2Time = validateAndTime(Hicoo, FUNC_AND_NAME(HicooTensor::mttkrp_kevin2), D, C, goodRet);
+    float HicooKevin2Time = FOREVER; //validateAndTime(Hicoo, FUNC_AND_NAME(HicooTensor::mttkrp_kevin2), D, C, goodRet);
 
-    float HicooKevin3Time = validateAndTime(Hicoo, FUNC_AND_NAME(HicooTensor::mttkrp_kevin3), D, C, goodRet);
+    float HicooKevin3Time = FOREVER; //validateAndTime(Hicoo, FUNC_AND_NAME(HicooTensor::mttkrp_kevin3), D, C, goodRet);
 
     Hicoo.tensor->tensor.freeDeviceArrays();
 
