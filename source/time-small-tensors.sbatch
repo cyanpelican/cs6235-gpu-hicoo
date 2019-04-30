@@ -20,22 +20,22 @@ nvidia-smi
 echo VISIBLE === $CUDA_VISIBLE_DEVICES
 
 #                 J      BS file
-./HiCooExperiment 262114 4 datasets/matmul_2-2-2.tns
-./HiCooExperiment 262114 4 datasets/matmul_3-3-3.tns
-./HiCooExperiment 262114 4 datasets/matmul_4-3-2.tns
-./HiCooExperiment 262114 4 datasets/matmul_4-4-3.tns
-./HiCooExperiment 262114 4 datasets/matmul_4-4-4.tns
-./HiCooExperiment 262114 4 datasets/matmul_5-5-5.tns
-./HiCooExperiment 262114 4 datasets/matmul_6-3-3.tns
+#./HiCooExperiment 262114 4 datasets/matmul_2-2-2.tns
+#./HiCooExperiment 262114 4 datasets/matmul_3-3-3.tns
+#./HiCooExperiment 262114 4 datasets/matmul_4-3-2.tns
+#./HiCooExperiment 262114 4 datasets/matmul_4-4-3.tns
+#./HiCooExperiment 262114 4 datasets/matmul_4-4-4.tns
+#./HiCooExperiment 262114 4 datasets/matmul_5-5-5.tns
+#./HiCooExperiment 262114 4 datasets/matmul_6-3-3.tns
 
 
 
-./HiCooExperiment 32     8 datasets/vast-2015-mc1-3d.tns NOCPU
-./HiCooExperiment 128    8 datasets/vast-2015-mc1-3d.tns NOCPU
-./HiCooExperiment 256    8 datasets/vast-2015-mc1-3d.tns NOCPU
-./HiCooExperiment 512    8 datasets/vast-2015-mc1-3d.tns NOCPU
+#./HiCooExperiment 32     8 datasets/vast-2015-mc1-3d.tns NOCPU
+#./HiCooExperiment 128    8 datasets/vast-2015-mc1-3d.tns NOCPU
+#./HiCooExperiment 256    8 datasets/vast-2015-mc1-3d.tns NOCPU
+#./HiCooExperiment 512    8 datasets/vast-2015-mc1-3d.tns NOCPU
 
-./HiCooExperiment 1024   2 datasets/vast-2015-mc1-3d.tns
+#./HiCooExperiment 1024   2 datasets/vast-2015-mc1-3d.tns
 ./HiCooExperiment 1024   4 datasets/vast-2015-mc1-3d.tns
 ./HiCooExperiment 1024   8 datasets/vast-2015-mc1-3d.tns
 ./HiCooExperiment 1024   16 datasets/vast-2015-mc1-3d.tns
