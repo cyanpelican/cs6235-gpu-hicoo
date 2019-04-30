@@ -387,7 +387,7 @@ __global__ void hicoo_kevin3_kernel(DenseMatrix a, HicooTensor b, DenseMatrix d,
 
     int blockZ = ba.blockZ;
 
-    while(ba.blockZ == blockZ) {
+    while(ba.blockZ == blockZ && bi < b.numBlocks) {
         HicooBlock& bb = b.access_block(bi+1);
 
         unsigned int bx = ba.blockX * b.blockWidth;
