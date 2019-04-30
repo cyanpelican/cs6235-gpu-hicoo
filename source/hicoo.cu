@@ -373,6 +373,10 @@ DenseMatrixManager HicooTensor::mttkrp_kevin2(DenseMatrixManager D, DenseMatrixM
         printf("%d ", zbi_h[i]);
       }
       printf("\n");
+      for(int i = 0; i < numBlocks; i++) {
+        printf("blk: %d %d %d\n", access_block(i).blockX, access_block(i).blockY, access_block(i).blockZ);
+      }
+      printf("\n");
       fflush(stdout);
       free(zbi_h);
     }
