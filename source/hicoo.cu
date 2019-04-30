@@ -342,6 +342,9 @@ DenseMatrixManager HicooTensor::mttkrp_kevin2(DenseMatrixManager D, DenseMatrixM
     assert(d.values_d != nullptr);
 
     assert(sorting == ZYX);
+    for(int i = 1; i < numBlocks; i++) {
+        assert(access_block(i).blockZ >= access_block(i-1).blockZ);
+    }
 
     // A(i,j) = B(i,k,l) * D(l,j) * C(k,j);
     int I = this->depth, J = d.width, K = this->height, L = this->width;
@@ -362,6 +365,17 @@ DenseMatrixManager HicooTensor::mttkrp_kevin2(DenseMatrixManager D, DenseMatrixM
 
     DEBUG_PRINT("    - populate LUT on gpu\n");
     hicoo_kevin2_lut_populate<<<(numBlocks-1)/32+1, 32>>>(*this, zBlockIndices);
+
+    {
+      int* zbi_h = (int*)malloc(sizeof(int) * blocksZ);
+      cudaErrorCheck(cudaMemcpy(zbi_h, zBlockIndices, sizeof(int) * blocksZ, cudaMemcpyDeviceToHost));
+      for(int i = 0; i < blocksZ; i++) {
+        printf("%d ", zbi_h[i]);
+      }
+      printf("\n");
+      fflush(stdout);
+      free(zbi_h);
+    }
 
     DEBUG_PRINT("    - do compute on gpu\n");
     hicoo_kevin2_kernel<<<blocksZ, 32>>>(a, *this, d, c, zBlockIndices);
