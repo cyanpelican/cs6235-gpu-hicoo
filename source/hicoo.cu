@@ -296,7 +296,21 @@ __global__ void hicoo_collab1_kernel(DenseMatrix a, HicooTensor b, DenseMatrix d
     for(int e = ba.blockAddress; e < bb.blockAddress; e++) {
         //For every HiCOOPoint in the HiCOO block
         & p = b.access_point(e);
-        for(int j = threadIdx.x; j < a.width; j+=128) {
+        int j;
+        for (j = threadIdx.x; j <= a.width - blockDim.x*4 ; j += blockDim.x*4) { //4x unroll
+            float val1 = p.value * d.access(p.x+bx,j + blockDim.x*0) * c.access(p.y+by,j + blockDim.x*0);
+            float val2 = p.value * d.access(p.x+bx,j + blockDim.x*1) * c.access(p.y+by,j + blockDim.x*1);
+            float val3 = p.value * d.access(p.x+bx,j + blockDim.x*2) * c.access(p.y+by,j + blockDim.x*2);
+            float val4 = p.value * d.access(p.x+bx,j + blockDim.x*3) * c.access(p.y+by,j + blockDim.x*3);
+
+            atomicAdd(&a.access(p.z+bz, j + blockDim.x*0), val1);
+            atomicAdd(&a.access(p.z+bz, j + blockDim.x*1), val2);
+            atomicAdd(&a.access(p.z+bz, j + blockDim.x*2), val3);
+            atomicAdd(&a.access(p.z+bz, j + blockDim.x*3), val4);
+
+        }
+        //finish what the unrolling couldn't
+        for(/*continue j*/; j < a.width; j+=blockDim.x) {
             float val = p.value * d.access(p.x+bx,j) * c.access(p.y+by,j);
             atomicAdd(&a.access(p.z+bz, j), val);
         }
@@ -327,7 +341,7 @@ DenseMatrixManager HicooTensor::mttkrp_collab1(DenseMatrixManager D, DenseMatrix
     a.setSize_d(I, J);
 
     DEBUG_PRINT("    - do compute on gpu\n");
-    hicoo_james1_kernel<<<numBlocks, 128>>>(a, *this, d, c);
+    hicoo_collab1_kernel<<<numBlocks, 128>>>(a, *this, d, c);
 
     DEBUG_PRINT("    - downloading to host\n");
     a.downloadToHost();
