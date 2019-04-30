@@ -6,7 +6,9 @@ set -e
 
 sbatch time-dense.sbatch
 sbatch time-flickr.sbatch
-sbatch time-high-order-tensors.sbatch
+sbatch time-crime.sbatch #higher-order
+sbatch time-enron.sbatch #higher-order
+sbatch time-uber.sbatch #higher-order
 sbatch time-nell1.sbatch
 sbatch time-nell2.sbatch
 sbatch time-small-tensors.sbatch

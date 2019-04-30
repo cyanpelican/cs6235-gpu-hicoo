@@ -7,10 +7,10 @@
 #SBATCH --cpus-per-task=1
 #SBATCH --gres=gpu:p100:1
 #SBATCH --mem=60G
-#SBATCH --time=04:00:00
+#SBATCH --time=01:00:00
 #SBATCH --export=ALL
 #SBATCH --qos=soc-gpu-kp
-#SBATCH --output=slurm-%j-nell2.out
+#SBATCH --output=slurm-%j-enron.out
 echo $0
 echo
 ulimit -c unlimited -s
@@ -18,12 +18,13 @@ ulimit -c unlimited -s
 nvidia-smi
 echo VISIBLE === $CUDA_VISIBLE_DEVICES
 
+# higher-order tensors (crops extra dimensions off)
+
 #                 J      BS file
-#./HiCooExperiment 32     8 datasets/nell-2.tns
-#./HiCooExperiment 512    8 datasets/nell-2.tns
-./HiCooExperiment 1024   8 datasets/nell-2.tns   #NOCPU # too slow
-./HiCooExperiment 4096   8 datasets/nell-2.tns   #NOCPU # too slow
-./HiCooExperiment 8192   8 datasets/nell-2.tns   #NOCPU # too slow
+#./HiCooExperiment 32     8 datasets/enron.tns
+#./HiCooExperiment 128    8 datasets/enron.tns
+./HiCooExperiment 512    8 datasets/enron.tns
+./HiCooExperiment 1024   8 datasets/enron.tns
 
 
 

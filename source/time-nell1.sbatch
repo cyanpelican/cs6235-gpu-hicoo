@@ -22,6 +22,8 @@ echo VISIBLE === $CUDA_VISIBLE_DEVICES
 #                 J      BS file
 #./HiCooExperiment 16     8 datasets/nell-1.tns
 #./HiCooExperiment 32     8 datasets/nell-1.tns
+./HiCooExperiment 16     16 datasets/nell-1.tns
+./HiCooExperiment 32     16 datasets/nell-1.tns
 
 
 

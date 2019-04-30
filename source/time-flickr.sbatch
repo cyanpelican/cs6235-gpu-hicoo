@@ -22,8 +22,10 @@ echo VISIBLE === $CUDA_VISIBLE_DEVICES
 #./HiCooExperiment 16     4 datasets/flickr-3d.tns   NOCPU
 #./HiCooExperiment 16     8 datasets/flickr-3d.tns   NOCPU
 #./HiCooExperiment 32     8 datasets/flickr-3d.tns   NOCPU
-./HiCooExperiment 32     16 datasets/flickr-3d.tns
-./HiCooExperiment 64     8 datasets/flickr-3d.tns
+#./HiCooExperiment 32     16 datasets/flickr-3d.tns  NOCPU
+./HiCooExperiment 32     32 datasets/flickr-3d.tns
+./HiCooExperiment 32     64 datasets/flickr-3d.tns  
+#./HiCooExperiment 64     8 datasets/flickr-3d.tns   NOCPU
 
 
 echo TESTS COMPLETED
