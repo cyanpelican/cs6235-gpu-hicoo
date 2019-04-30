@@ -13,6 +13,7 @@
 using namespace std;
 
 int dimSizeI = 30, dimSizeJ = 30, dimSizeK = 30, dimSizeL = 30;
+float density = 1.0f;
 int RANDOM_SEED = 1234;
 
 void compareOutput(DenseMatrix a, DenseMatrix b) {
@@ -97,7 +98,7 @@ int main(int argc, char *argv[]) {
         blockSize = atoi(argv[2]);
     }
 
-    if (argc >= 4 && std::string(argv[3]).rfind("dense-", 0) == 0) {
+    if (argc >= 4 && std::string(argv[3]).rfind("dense-", 0) != 0) {
         //NEED TO CREATE TENSOR FROM FILEIN
 
         printf("Creating CooTensor from file '%s'... ", argv[3]);
@@ -112,21 +113,25 @@ int main(int argc, char *argv[]) {
         // Generate dense tensor
         useDense = true;
 
-        if(argc >= 4) {
+        if(argc >= 4) { // if we're passed a dense-WIDTHxHEIGHTxDEPTHdDENSITY string in place of a filename
             std::string denseSizeStr = std::string(argv[3]).substr(6); // crop off 'dense-'
 
             std::string dim1Str; // https://stackoverflow.com/questions/236129/how-do-i-iterate-over-the-words-of-a-string
             std::string dim2Str;
             std::string dim3Str;
+            std::string densityStr;
             std::stringstream ss(denseSizeStr);
             std::getline(ss, dim1Str, 'x');
             std::getline(ss, dim2Str, 'x');
-            std::getline(ss, dim3Str, 'x');
+            std::getline(ss, dim3Str, 'd');
+            std::getline(ss, densityStr, 'd');
             dimSizeL = atoi(dim1Str.c_str());
             dimSizeK = atoi(dim2Str.c_str());
             dimSizeI = atoi(dim3Str.c_str());
+            if(densityStr.length() > 0)
+                density  = atof(densityStr.c_str());
 
-            printf("Creating dense tensor of size %d x %d x %d\n\n", dimSizeL, dimSizeK, dimSizeI);
+            printf("Creating dense tensor of size %d x %d x %d, density = %f\n\n", dimSizeL, dimSizeK, dimSizeI, density);
         } else {
             printf("No filename detected... Beginning generic testing sequence...\n\n");
         }
@@ -139,7 +144,8 @@ int main(int argc, char *argv[]) {
         for (int i = 0; i < dimSizeI; i++) {
             for (int k = 0; k < dimSizeK; k++) {
                 for (int l = 0; l < dimSizeL; l++) {
-                     B.tensor->tensor.access(i,k,l) = rand() / (float) RAND_MAX;
+                    if (density >= 1.0f || (rand() / (float) RAND_MAX) <= density)
+                        B.tensor->tensor.access(i,k,l) = rand() / (float) RAND_MAX;
                 }
             }
         }
@@ -151,7 +157,12 @@ int main(int argc, char *argv[]) {
         printf("Done.\n");
         fflush(stdout);
 
-        performAndTestDenseToCoo(Coo, B);
+        if(density != 1.0f) {
+            printf("Skipping dense-to-coo validation because density != 1\n");
+            Coo = B.tensor->tensor.toCoo();
+        } else {
+            performAndTestDenseToCoo(Coo, B);
+        }
     }
 
 
@@ -293,7 +304,7 @@ int main(int argc, char *argv[]) {
     printf("    Kevin1 -> %f\n", CooKevin1Time);
     printf("      Speedup -> %f\n", CooCPUTime/CooKevin1Time);
     printf("\n");
-    printf("  HiCOO MTTKRP (%d,%d,%d)\n",dimSizeI,dimSizeK,dimSizeL);
+    printf("  HiCOO MTTKRP (%d,%d,%d J=%d)\n",dimSizeI,dimSizeK,dimSizeL, dimSizeJ);
     printf("    CPU -> %f\n", HicooCPUTime);
     printf("    NAIVE GPU -> %f\n", HicooGPUTime);
     printf("      Speedup -> %f\n", HicooCPUTime/HicooGPUTime);
@@ -321,6 +332,7 @@ int main(int argc, char *argv[]) {
 // helper functions
 
 void performAndTestDenseToCoo(CooTensorManager Coo, DenseTensorManager B) {
+    assert(density == 1.0f); // not implemented for other densities
     printf("  Creating CooTensor from known data for comparison... ");
     srand(RANDOM_SEED);
     for (int i = 0; i < dimSizeI; i++) {
