@@ -311,20 +311,11 @@ DenseMatrixManager CooTensor::mttkrp_kevin1(DenseMatrixManager D, DenseMatrixMan
     assert(c.height == K);
     assert(c.width  == J);
 
-
-    DEBUG_PRINT("    - uploadToDevice\n");
-    this->uploadToDevice();
-    d.uploadToDevice();
-    c.uploadToDevice();
-
     DEBUG_PRINT("    - malloc output matrix\n");
     a.setSize_d(I, J);
 
     DEBUG_PRINT("    - do compute on gpu\n");
     coo_mttkrp_kevin1_kernel<<<numElements, 32>>>(a, *this, d, c);
-
-    DEBUG_PRINT("    - downloading\n");
-    a.downloadToHost();
     DEBUG_PRINT("    - done\n");
 
 

@@ -282,9 +282,6 @@ DenseMatrixManager HicooTensor::mttkrp_kevin1(DenseMatrixManager D, DenseMatrixM
     DEBUG_PRINT("    - do compute on gpu\n");
     hicoo_kevin1_kernel<<<numBlocks, 32>>>(a, *this, d, c);
 
-    DEBUG_PRINT("    - downloading to host\n");
-    a.downloadToHost();
-
     DEBUG_PRINT("    - done\n");
     return ret;
 }
@@ -377,9 +374,6 @@ DenseMatrixManager HicooTensor::mttkrp_kevin2(DenseMatrixManager D, DenseMatrixM
     DEBUG_PRINT("    - Freeing LUT\n");
     cudaErrorCheck(cudaFree(zBlockIndices));
 
-    DEBUG_PRINT("    - downloading to host\n");
-    a.downloadToHost();
-
     DEBUG_PRINT("    - done\n");
     return ret;
 }
@@ -452,9 +446,6 @@ DenseMatrixManager HicooTensor::mttkrp_kevin3(DenseMatrixManager D, DenseMatrixM
 
     DEBUG_PRINT("    - do compute on gpu\n");
     hicoo_kevin3_kernel<<<numBlocks, 32>>>(a, *this, d, c);
-
-    DEBUG_PRINT("    - downloading to host\n");
-    a.downloadToHost();
 
     DEBUG_PRINT("    - done\n");
     return ret;
