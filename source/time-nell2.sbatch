@@ -19,11 +19,11 @@ nvidia-smi
 echo VISIBLE === $CUDA_VISIBLE_DEVICES
 
 #                 J      BS file
-#./HiCooExperiment 32     8 datasets/nell-2.tns
-#./HiCooExperiment 512    8 datasets/nell-2.tns
-./HiCooExperiment 1024   8 datasets/nell-2.tns   #NOCPU # too slow
-./HiCooExperiment 4096   8 datasets/nell-2.tns   #NOCPU # too slow
-./HiCooExperiment 8192   8 datasets/nell-2.tns   #NOCPU # too slow
+./HiCooExperiment 32     8 datasets/nell-2.tns   NOCPU
+./HiCooExperiment 512    8 datasets/nell-2.tns   NOCPU
+./HiCooExperiment 1024   8 datasets/nell-2.tns   NOCPU # too slow
+./HiCooExperiment 4096   8 datasets/nell-2.tns   NOCPU # too slow
+./HiCooExperiment 8192   8 datasets/nell-2.tns   NOCPU # too slow
 
 
 

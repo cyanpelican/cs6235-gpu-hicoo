@@ -239,7 +239,7 @@ int main(int argc, char *argv[]) {
     }
 
     // Time Parallel
-    float CooGPUTime = validateAndTime(Coo, FUNC_AND_NAME(CooTensor::mttkrp_naive_gpu), D, C, goodRet);
+    float CooGPUTime = FOREVER; //validateAndTime(Coo, FUNC_AND_NAME(CooTensor::mttkrp_naive_gpu), D, C, goodRet);
 
     float CooKevin1Time = validateAndTime(Coo, FUNC_AND_NAME(CooTensor::mttkrp_kevin1), D, C, goodRet);
 
@@ -249,7 +249,7 @@ int main(int argc, char *argv[]) {
         printf("\n=================== Beginning Kernel Tests on Dense Tensor ===================\n\n");
         fflush(stdout);
 
-        float denseCpuTime = validateAndTime(B, FUNC_AND_NAME(DenseTensor::mttkrp_naive_cpu), D, C, goodRet);
+        float denseCpuTime = FOREVER; //validateAndTime(B, FUNC_AND_NAME(DenseTensor::mttkrp_naive_cpu), D, C, goodRet);
 
         //float denseGpuTime = validateAndTime(B, FUNC_AND_NAME(DenseTensor::mttkrp_naive_gpu), D, C, goodRet);
 
@@ -267,10 +267,10 @@ int main(int argc, char *argv[]) {
 
     float HicooCPUTime = FOREVER;
     if(allowCPU) {
-        HicooCPUTime = validateAndTime(Hicoo, FUNC_AND_NAME(HicooTensor::mttkrp_naive_cpu), D, C, goodRet);
+        HicooCPUTime = FOREVER; //validateAndTime(Hicoo, FUNC_AND_NAME(HicooTensor::mttkrp_naive_cpu), D, C, goodRet);
     }
 
-    float HicooGPUTime = validateAndTime(Hicoo, FUNC_AND_NAME(HicooTensor::mttkrp_naive_gpu), D, C, goodRet);
+    float HicooGPUTime = FOREVER; //validateAndTime(Hicoo, FUNC_AND_NAME(HicooTensor::mttkrp_naive_gpu), D, C, goodRet);
 
     // TODO - PUT OPTIMIZED KERNELS HERE
 
@@ -278,7 +278,7 @@ int main(int argc, char *argv[]) {
 
     float HicooKevin2Time = FOREVER; //validateAndTime(Hicoo, FUNC_AND_NAME(HicooTensor::mttkrp_kevin2), D, C, goodRet);
 
-    float HicooKevin3Time = validateAndTime(Hicoo, FUNC_AND_NAME(HicooTensor::mttkrp_kevin3), D, C, goodRet);
+    float HicooKevin3Time = FOREVER; //validateAndTime(Hicoo, FUNC_AND_NAME(HicooTensor::mttkrp_kevin3), D, C, goodRet);
 
     Hicoo.tensor->tensor.freeDeviceArrays();
 
