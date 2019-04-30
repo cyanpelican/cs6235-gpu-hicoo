@@ -329,7 +329,7 @@ __global__ void hicoo_kevin2_lut_populate(HicooTensor b, int* lut) {
 
 DenseMatrixManager HicooTensor::mttkrp_kevin2(DenseMatrixManager D, DenseMatrixManager C) {
     // Has each thread block mapped to a hicoo block (parallelizing blocks across J)
-    DEBUG_PRINT("HT: mttkrp kevin1\n");
+    DEBUG_PRINT("HT: mttkrp kevin2\n");
     DEBUG_PRINT("    - asserts, initialization\n");
     DenseMatrixManager ret;
     DenseMatrix& a = ret;
@@ -411,7 +411,7 @@ __global__ void hicoo_kevin3_kernel(DenseMatrix a, HicooTensor b, DenseMatrix d,
 
 DenseMatrixManager HicooTensor::mttkrp_kevin3(DenseMatrixManager D, DenseMatrixManager C) {
     // Has each thread block mapped to a hicoo block (parallelizing blocks across J)
-    DEBUG_PRINT("HT: mttkrp kevin1\n");
+    DEBUG_PRINT("HT: mttkrp kevin3\n");
     DEBUG_PRINT("    - asserts, initialization\n");
     DenseMatrixManager ret;
     DenseMatrix& a = ret;
@@ -431,7 +431,7 @@ DenseMatrixManager HicooTensor::mttkrp_kevin3(DenseMatrixManager D, DenseMatrixM
     assert(d.height == L);
     assert(c.height == K);
     assert(c.width  == J);
-    
+
 
     DEBUG_PRINT("    - malloc output matrix\n");
     a.setSize_d(I, J);
