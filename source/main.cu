@@ -273,13 +273,13 @@ int main(int argc, char *argv[]) {
     float HicooGPUTime = FOREVER; //validateAndTime(Hicoo, FUNC_AND_NAME(HicooTensor::mttkrp_naive_gpu), D, C, goodRet);
 
     // TODO - PUT OPTIMIZED KERNELS HERE
-    float HicooCollab1Time = validateAndTime(Hicoo, FUNC_AND_NAME(HicooTensor::mttkrp_collab1), D, C, goodRet);
+    float HicooCollab1Time = FOREVER; //validateAndTime(Hicoo, FUNC_AND_NAME(HicooTensor::mttkrp_collab1), D, C, goodRet);
 
-    float HicooJames1Time = validateAndTime(Hicoo, FUNC_AND_NAME(HicooTensor::mttkrp_james1), D, C, goodRet);
+    float HicooJames1Time = FOREVER; //validateAndTime(Hicoo, FUNC_AND_NAME(HicooTensor::mttkrp_james1), D, C, goodRet);
 
-    float HicooKevin1Time = validateAndTime(Hicoo, FUNC_AND_NAME(HicooTensor::mttkrp_kevin1), D, C, goodRet);
+    float HicooKevin1Time = FOREVER; //validateAndTime(Hicoo, FUNC_AND_NAME(HicooTensor::mttkrp_kevin1), D, C, goodRet);
 
-    float HicooKevin2Time = FOREVER; //validateAndTime(Hicoo, FUNC_AND_NAME(HicooTensor::mttkrp_kevin2), D, C, goodRet);
+    float HicooKevin2Time = validateAndTime(Hicoo, FUNC_AND_NAME(HicooTensor::mttkrp_kevin2), D, C, goodRet);
 
     float HicooKevin3Time = FOREVER; //validateAndTime(Hicoo, FUNC_AND_NAME(HicooTensor::mttkrp_kevin3), D, C, goodRet);
 

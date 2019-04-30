@@ -20,7 +20,7 @@ nvidia-smi
 echo VISIBLE === $CUDA_VISIBLE_DEVICES
 
 #                 J      BS flavor
-./HiCooExperiment 8      4                        NOCPU
+./HiCooExperiment 8      4                        #NOCPU
 ./HiCooExperiment 1024   8 dense-32x32x32         NOCPU
 ./HiCooExperiment 16384                           # cpu is ok
 ./HiCooExperiment 16384  8 dense-256x256x256d.1   NOCPU # takes forever to do dense
