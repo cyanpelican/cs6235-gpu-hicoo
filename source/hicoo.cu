@@ -381,7 +381,7 @@ DenseMatrixManager HicooTensor::mttkrp_kevin2(DenseMatrixManager D, DenseMatrixM
 __global__ void hicoo_kevin3_kernel(DenseMatrix a, HicooTensor b, DenseMatrix d, DenseMatrix c) {
     int bi = blockIdx.x;
     HicooBlock& ba = b.access_block(bi);
-    if(bi > 0 && ba.blockZ != b.access_block(bi-1).blockZ) {
+    if(bi > 0 && ba.blockZ == b.access_block(bi-1).blockZ) {
         return;
     }
 
