@@ -15,8 +15,8 @@ ulimit -c unlimited -s
 nvidia-smi
 echo VISIBLE === $CUDA_VISIBLE_DEVICES
 
-./HiCooExperiment 
-./HiCooExperiment 1024
+./HiCooExperiment        8
+./HiCooExperiment 1024   8
 #./HiCooExperiment 16384
 #./HiCooExperiment 262114
 #
