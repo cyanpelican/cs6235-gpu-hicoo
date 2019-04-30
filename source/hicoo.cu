@@ -295,6 +295,7 @@ __global__ void hicoo_kevin2_kernel(DenseMatrix a, HicooTensor b, DenseMatrix d,
     int bi = lut[myBlockZ];
     HicooBlock ba = b.access_block(bi);
     while(ba.blockZ == myBlockZ && bi < b.numBlocks) {
+        // go through each block in this blockZ
         HicooBlock bb = b.access_block(bi+1);
 
         unsigned int bx = ba.blockX * b.blockWidth;
@@ -305,6 +306,7 @@ __global__ void hicoo_kevin2_kernel(DenseMatrix a, HicooTensor b, DenseMatrix d,
         for(int e = ba.blockAddress; e < bb.blockAddress; e++) {
             HicooPoint& p = b.access_point(e);
             for(int j = threadIdx.x; j < a.width; j+=32) {
+                // because each cuda block is only accessing one blockZ, we don't have to atomicAdd()
                 float val = p.value * d.access(p.x+bx,j) * c.access(p.y+by,j);
                 a.access(p.z+bz, j) += val;
                 //atomicAdd(&a.access(p.z+bz, j), val);
@@ -317,6 +319,7 @@ __global__ void hicoo_kevin2_kernel(DenseMatrix a, HicooTensor b, DenseMatrix d,
 }
 
 __global__ void hicoo_kevin2_lut_populate(HicooTensor b, int* lut) {
+    // build a lookup table of where each blockZ starts
     int idx = blockIdx.x * blockDim.x + threadIdx.x;
 
     if(idx < b.numBlocks && idx > 0) {
@@ -324,6 +327,8 @@ __global__ void hicoo_kevin2_lut_populate(HicooTensor b, int* lut) {
         HicooBlock curr = b.access_block(idx);
 
         if(prev.blockZ != curr.blockZ) {
+            // only write if we're on a boundary
+            // since the list is sorted, this won't have any race conditions
             lut[curr.blockZ] = idx;
         }
     }
@@ -386,12 +391,15 @@ __global__ void hicoo_kevin3_kernel(DenseMatrix a, HicooTensor b, DenseMatrix d,
     // check that we are in the first block of this given blockZ (will often fail)
     HicooBlock ba = b.access_block(bi);
     if(bi > 0 && ba.blockZ == b.access_block(bi-1).blockZ) {
+        // this makes a bit more sense when demorganized:
+        // continue only if bi==0, or if blockZ different from previous
         return;
     }
 
     int blockZ = ba.blockZ;
 
     while(ba.blockZ == blockZ && bi < b.numBlocks) {
+        // go through each block in this blockZ
         HicooBlock bb = b.access_block(bi+1);
 
         unsigned int bx = ba.blockX * b.blockWidth;
@@ -402,6 +410,7 @@ __global__ void hicoo_kevin3_kernel(DenseMatrix a, HicooTensor b, DenseMatrix d,
         for(int e = ba.blockAddress; e < bb.blockAddress; e++) {
             HicooPoint& p = b.access_point(e);
             for(int j = threadIdx.x; j < a.width; j+=32) {
+                // because each cuda block is only accessing one blockZ, we don't have to atomicAdd()
                 float val = p.value * d.access(p.x+bx,j) * c.access(p.y+by,j);
                 a.access(p.z+bz, j) += val;
                 //atomicAdd(&a.access(p.z+bz, j), val);
@@ -415,7 +424,7 @@ __global__ void hicoo_kevin3_kernel(DenseMatrix a, HicooTensor b, DenseMatrix d,
 
 
 DenseMatrixManager HicooTensor::mttkrp_kevin3(DenseMatrixManager D, DenseMatrixManager C) {
-    // kevin2 but skip the LUT by pushing the essence of it into the kernel (still no atomicAdd) 
+    // kevin2 but skip the LUT by pushing the essence of it into the kernel (still no atomicAdd)
     DEBUG_PRINT("HT: mttkrp kevin3\n");
     DEBUG_PRINT("    - asserts, initialization\n");
     DenseMatrixManager ret;

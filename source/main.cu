@@ -97,7 +97,7 @@ int main(int argc, char *argv[]) {
         blockSize = atoi(argv[2]);
     }
 
-    if (argc >= 4) {
+    if (argc >= 4 && std::string(argv[3]).rfind("dense-", 0) == 0) {
         //NEED TO CREATE TENSOR FROM FILEIN
 
         printf("Creating CooTensor from file '%s'... ", argv[3]);
@@ -112,7 +112,24 @@ int main(int argc, char *argv[]) {
         // Generate dense tensor
         useDense = true;
 
-        printf("No command line arguments detected... Beginning generic testing sequence...\n\n");
+        if(argc >= 4) {
+            std::string denseSizeStr = std::string(argv[3]).substr(6); // crop off 'dense-'
+
+            std::string dim1Str; // https://stackoverflow.com/questions/236129/how-do-i-iterate-over-the-words-of-a-string
+            std::string dim2Str;
+            std::string dim3Str;
+            std::stringstream ss(denseSizeStr);
+            std::getline(ss, dim1Str, 'x');
+            std::getline(ss, dim2Str, 'x');
+            std::getline(ss, dim3Str, 'x');
+            dimSizeL = atoi(dim1Str.c_str());
+            dimSizeK = atoi(dim2Str.c_str());
+            dimSizeI = atoi(dim3Str.c_str());
+
+            printf("Creating dense tensor of size %d x %d x %d\n\n", dimSizeL, dimSizeK, dimSizeI);
+        } else {
+            printf("No filename detected... Beginning generic testing sequence...\n\n");
+        }
         //exit(0);
 
 

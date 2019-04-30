@@ -16,8 +16,9 @@ nvidia-smi
 echo VISIBLE === $CUDA_VISIBLE_DEVICES
 
 ./HiCooExperiment        8
-./HiCooExperiment 1024   8
+./HiCooExperiment 1024   8 dense-32x32x32
 #./HiCooExperiment 16384
+#./HiCooExperiment 16384  8 dense-256x256x256
 #./HiCooExperiment 262114
 #
 #./HiCooExperiment 262114 8 datasets/matmul_2-2-2.tns
