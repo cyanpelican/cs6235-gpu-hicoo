@@ -246,7 +246,7 @@ __global__ void hicoo_kevin1_kernel(DenseMatrix a, HicooTensor b, DenseMatrix d,
 
     // A(i,j) = B(i,k,l) * D(l,j) * C(k,j);
     for(int e = ba.blockAddress; e < bb.blockAddress; e++) {
-        HicooPoint& p = b.access_point(e);
+        HicooPoint p = b.access_point(e);
         for(int j = threadIdx.x; j < a.width; j+=32) {
             float val = p.value * d.access(p.x+bx,j) * c.access(p.y+by,j);
             atomicAdd(&a.access(p.z+bz, j), val);
@@ -290,6 +290,7 @@ DenseMatrixManager HicooTensor::mttkrp_kevin1(DenseMatrixManager D, DenseMatrixM
 __global__ void hicoo_kevin2_kernel(DenseMatrix a, HicooTensor b, DenseMatrix d, DenseMatrix c, int* lut) {
     int myBlockZ = blockIdx.x;
     int bi = lut[myBlockZ];
+    
     HicooBlock ba = b.access_block(bi);
     while(ba.blockZ == myBlockZ && bi < b.numBlocks) {
         // go through each block in this blockZ
@@ -301,7 +302,7 @@ __global__ void hicoo_kevin2_kernel(DenseMatrix a, HicooTensor b, DenseMatrix d,
 
         // A(i,j) = B(i,k,l) * D(l,j) * C(k,j);
         for(int e = ba.blockAddress; e < bb.blockAddress; e++) {
-            HicooPoint& p = b.access_point(e);
+            HicooPoint p = b.access_point(e);
             for(int j = threadIdx.x; j < a.width; j+=32) {
                 // because each cuda block is only accessing one blockZ, we don't have to atomicAdd()
                 float val = p.value * d.access(p.x+bx,j) * c.access(p.y+by,j);
@@ -383,6 +384,7 @@ DenseMatrixManager HicooTensor::mttkrp_kevin2(DenseMatrixManager D, DenseMatrixM
 __global__ void hicoo_kevin3_kernel(DenseMatrix a, HicooTensor b, DenseMatrix d, DenseMatrix c) {
     int bi = blockIdx.x;
     // check that we are in the first block of this given blockZ (will often fail)
+    // effecient if depth is very sparse; ineffecient otherwise
     HicooBlock ba = b.access_block(bi);
     if(bi > 0 && ba.blockZ == b.access_block(bi-1).blockZ) {
         // this makes a bit more sense when demorganized:
@@ -402,7 +404,7 @@ __global__ void hicoo_kevin3_kernel(DenseMatrix a, HicooTensor b, DenseMatrix d,
 
         // A(i,j) = B(i,k,l) * D(l,j) * C(k,j);
         for(int e = ba.blockAddress; e < bb.blockAddress; e++) {
-            HicooPoint& p = b.access_point(e);
+            HicooPoint p = b.access_point(e);
             for(int j = threadIdx.x; j < a.width; j+=32) {
                 // because each cuda block is only accessing one blockZ, we don't have to atomicAdd()
                 float val = p.value * d.access(p.x+bx,j) * c.access(p.y+by,j);
@@ -419,6 +421,7 @@ __global__ void hicoo_kevin3_kernel(DenseMatrix a, HicooTensor b, DenseMatrix d,
 
 DenseMatrixManager HicooTensor::mttkrp_kevin3(DenseMatrixManager D, DenseMatrixManager C) {
     // kevin2 but skip the LUT by pushing the essence of it into the kernel (still no atomicAdd)
+    // effecient if depth is very sparse; ineffecient otherwise
     DEBUG_PRINT("HT: mttkrp kevin3\n");
     DEBUG_PRINT("    - asserts, initialization\n");
     DenseMatrixManager ret;
