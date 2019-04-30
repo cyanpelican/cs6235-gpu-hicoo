@@ -117,6 +117,7 @@ HicooTensorManager CooTensor::toHicoo(int blockDepth, int blockHeight, int block
     retTensor.sorting = ZYX;
 
 
+    DEBUG_PRINT("    - done converting to hicoo\n");
     return ret;
 }
 DenseTensorManager CooTensor::toDense() {
