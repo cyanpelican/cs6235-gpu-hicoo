@@ -29,7 +29,7 @@ void compareOutput(DenseMatrix a, DenseMatrix b) {
     for (int i = 0; i < dimSizeI; i++) {
         for (int j = 0; j < dimSizeJ; j++) {
             float mag = abs(a.access(i, j)) + 1e-4;
-            if(abs(a.access(i, j) - b.access(i, j)) > mag * 1e-5) {
+            if(abs(a.access(i, j) - b.access(i, j)) > mag * 1e-4) {
                 printf("\n    Outputs do not match at index (%d,%d): %f vs %f", i,j, a.access(i,j), b.access(i,j));
                 errors++;
 
@@ -75,6 +75,7 @@ int main(int argc, char *argv[]) {
     bool allowCPU = true;
     int  blockSize = 4;
     float FOREVER = 9e9;
+    std::string tensorFilename = "defaultDense:30x30x30";
 
     printf("Creating TensorManager Objects... ");
     CooTensorManager Coo;
@@ -104,6 +105,7 @@ int main(int argc, char *argv[]) {
         printf("Creating CooTensor from file '%s'... ", argv[3]);
         fflush(stdout);
         Coo.create(argv[3]);
+        tensorFilename = argv[3];
         dimSizeI = Coo.tensor->tensor.depth;
         dimSizeK = Coo.tensor->tensor.height;
         dimSizeL = Coo.tensor->tensor.width;
@@ -115,6 +117,7 @@ int main(int argc, char *argv[]) {
 
         if(argc >= 4) { // if we're passed a dense-WIDTHxHEIGHTxDEPTHdDENSITY string in place of a filename
             std::string denseSizeStr = std::string(argv[3]).substr(6); // crop off 'dense-'
+            tensorFilename = argv[3];
 
             std::string dim1Str; // https://stackoverflow.com/questions/236129/how-do-i-iterate-over-the-words-of-a-string
             std::string dim2Str;
@@ -297,6 +300,7 @@ int main(int argc, char *argv[]) {
 
     printf("\n  ======================= Timing(s) ======================= \n");
 
+    printf("  file = %s, J=%d\n", tensorFilename.c_str(), dimSizeJ);
     printf("  COO MTTKRP (%d,%d,%d; J=%d)\n",dimSizeI,dimSizeK,dimSizeL, dimSizeJ);
     printf("    CPU -> %f\n", CooCPUTime);
     printf("    NAIVE GPU -> %f\n", CooGPUTime);
