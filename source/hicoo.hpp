@@ -133,6 +133,8 @@ struct HicooTensor {
     DenseMatrixManager mttkrp_guy1(DenseMatrixManager d, DenseMatrixManager c);
     DenseMatrixManager mttkrp_james1(DenseMatrixManager d, DenseMatrixManager c);
     DenseMatrixManager mttkrp_kevin1(DenseMatrixManager d, DenseMatrixManager c);
+    DenseMatrixManager mttkrp_kevin2(DenseMatrixManager d, DenseMatrixManager c);
+    DenseMatrixManager mttkrp_kevin3(DenseMatrixManager d, DenseMatrixManager c);
 };
 
 

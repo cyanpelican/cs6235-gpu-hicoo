@@ -168,12 +168,16 @@ int main(int argc, char *argv[]) {
             c.access(k,j) = rand() / (float) RAND_MAX;
         }
     }
+    printf("Uploading to device... ");
+    d.uploadToDevice();
+    c.uploadToDevice();
     printf("Done.\n");
     fflush(stdout);
 
 
     DenseMatrixManager goodRet;
     printf("\n=================== Beginning Kernel Tests on COO Tensor ===================\n\n");
+    Coo.tensor->tensor.uploadToDevice();
 
     memUsage = Coo.tensor->tensor.getTotalMemory();
     printf("(Memory usage: %llu)\n",memUsage);
@@ -196,7 +200,10 @@ int main(int argc, char *argv[]) {
     } else {
         printf("WARNING - VALIDATING AGAINST A GPU RUN, BECAUSE CPU IS TOO SLOW\n");
         fflush(stdout);
+
         goodRet = Coo.tensor->tensor.mttkrp_naive_gpu(D, C);
+        goodRet.tensor->tensor.downloadToHost();
+        goodRet.tensor->tensor.freeDeviceArrays();
     }
 
     // Time Parallel
@@ -204,7 +211,7 @@ int main(int argc, char *argv[]) {
 
     float CooKevin1Time = validateAndTime(Coo, FUNC_AND_NAME(CooTensor::mttkrp_kevin1), D, C, goodRet);
 
-
+    Coo.tensor->tensor.freeDeviceArrays();
 
     if (useDense && allowCPU) {
         printf("\n=================== Beginning Kernel Tests on Dense Tensor ===================\n\n");
@@ -224,6 +231,7 @@ int main(int argc, char *argv[]) {
     printf("  Converting to hicoo\n");
     fflush(stdout);
     Hicoo = Coo.tensor->tensor.toHicoo(blockSize, blockSize, blockSize);
+    Hicoo.tensor->tensor.uploadToDevice();
 
     float HicooCPUTime = FOREVER;
     if(allowCPU) {
@@ -234,7 +242,11 @@ int main(int argc, char *argv[]) {
 
     float HicooKevin1Time = validateAndTime(Hicoo, FUNC_AND_NAME(HicooTensor::mttkrp_kevin1), D, C, goodRet);
 
-    fflush(stdout);
+    float HicooKevin2Time = FOREVER; //validateAndTime(Hicoo, FUNC_AND_NAME(HicooTensor::mttkrp_kevin2), D, C, goodRet);
+
+    float HicooKevin3Time = FOREVER; //validateAndTime(Hicoo, FUNC_AND_NAME(HicooTensor::mttkrp_kevin3), D, C, goodRet);
+
+    Hicoo.tensor->tensor.freeDeviceArrays();
 
 
 
@@ -268,6 +280,10 @@ int main(int argc, char *argv[]) {
     printf("      Speedup -> %f\n", HicooCPUTime/HicooGPUTime);
     printf("    Kevin1 -> %f\n", HicooKevin1Time);
     printf("      Speedup -> %f\n", CooCPUTime/HicooKevin1Time);
+    printf("    Kevin2 -> %f\n", HicooKevin2Time);
+    printf("      Speedup -> %f\n", CooCPUTime/HicooKevin2Time);
+    printf("    Kevin3 -> %f\n", HicooKevin3Time);
+    printf("      Speedup -> %f\n", CooCPUTime/HicooKevin3Time);
     printf("\n");
 
     printf("  =========================================================\n\n");
@@ -354,10 +370,17 @@ float validateAndTime(Class inputTensor, Functype func, std::string funcname, De
     cudaEventSynchronize(timing_stop);
 
     cudaEventElapsedTime(&retTime, timing_start, timing_stop);
-    compareOutput(expected.tensor->tensor, result.tensor->tensor);
 
     printf("    Time = %f\n", retTime);
     fflush(stdout);
+
+    DEBUG_PRINT("Download result...\n");
+    if(result.tensor->tensor.values_h == nullptr) {
+        result.tensor->tensor.downloadToHost();
+    }
+
+    DEBUG_PRINT("Validating...\n");
+    compareOutput(expected.tensor->tensor, result.tensor->tensor);
 
     DEBUG_PRINT("done with validateAndTime\n");
     return retTime;

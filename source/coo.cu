@@ -51,9 +51,9 @@ void CooTensor::downloadToHost() {
 
 // for std::map / std::set insertion
 bool operator<(const HicooBlock& a, const HicooBlock& b) {
-    if(a.blockX < b.blockX) {
+    if(a.blockZ < b.blockZ) {
         return true;
-    } else if(a.blockX > b.blockX) {
+    } else if(a.blockZ > b.blockZ) {
         return false;
     }
     if(a.blockY < b.blockY) {
@@ -61,9 +61,9 @@ bool operator<(const HicooBlock& a, const HicooBlock& b) {
     } else if(a.blockY > b.blockY) {
         return false;
     }
-    if(a.blockZ < b.blockZ) {
+    if(a.blockX < b.blockX) {
         return true;
-    } else if(a.blockZ > b.blockZ) {
+    } else if(a.blockX > b.blockX) {
         return false;
     }
 
@@ -113,6 +113,7 @@ HicooTensorManager CooTensor::toHicoo(int blockDepth, int blockHeight, int block
     retTensor.blocks_h[blockIndex].blockY = 0xFFFFFFFF;
     retTensor.blocks_h[blockIndex].blockZ = 0xFFFFFFFF;
     retTensor.blocks_h[blockIndex].UNUSED = 0xFFFFFFFF;
+    retTensor.sorting = ZYX;
 
 
     return ret;
@@ -232,7 +233,9 @@ DenseMatrixManager CooTensor::mttkrp_naive_gpu(DenseMatrixManager D, DenseMatrix
     DenseMatrix& c = C;
     DenseMatrix& d = D;
 
-    assert(points_h != nullptr);
+    assert(points_d != nullptr);
+    assert(c.values_d != nullptr);
+    assert(d.values_d != nullptr);
 
     int I = this->depth, J = d.width, K = this->height, L = this->width;
     DEBUG_PRINT("    - I = %d, J = %d, K = %d, L = %d\n", I, J, K, L);
@@ -240,14 +243,10 @@ DenseMatrixManager CooTensor::mttkrp_naive_gpu(DenseMatrixManager D, DenseMatrix
     assert(c.height == K);
     assert(c.width  == J);
     a.setSize_d(I, J);
-    d.uploadToDevice();
-    c.uploadToDevice();
 
     //todo: split up the blocks & blocks per threads appropriately
     mttkrp_naive_gpu_kernel<<<ceil(this->numElements/64.0), 64>>>(*this, d, c, ret);
     cudaDeviceSynchronize();
-
-    ret.tensor->tensor.downloadToHost();
 
     DEBUG_PRINT("    - done\n");
     return ret;
@@ -298,7 +297,10 @@ DenseMatrixManager CooTensor::mttkrp_kevin1(DenseMatrixManager D, DenseMatrixMan
     DenseMatrix& c = C;
     DenseMatrix& d = D;
 
-    assert(points_h != nullptr);
+
+    assert(points_d != nullptr);
+    assert(c.values_d != nullptr);
+    assert(d.values_d != nullptr);
 
     // A(i,j) = B(i,k,l) * D(l,j) * C(k,j);
     int I = this->depth, J = d.width, K = this->height, L = this->width;
