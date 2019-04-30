@@ -240,6 +240,8 @@ int main(int argc, char *argv[]) {
 
     float HicooGPUTime = validateAndTime(Hicoo, FUNC_AND_NAME(HicooTensor::mttkrp_naive_gpu), D, C, goodRet);
 
+    // TODO - PUT OPTIMIZED KERNELS HERE
+
     float HicooKevin1Time = validateAndTime(Hicoo, FUNC_AND_NAME(HicooTensor::mttkrp_kevin1), D, C, goodRet);
 
     float HicooKevin2Time = FOREVER; //validateAndTime(Hicoo, FUNC_AND_NAME(HicooTensor::mttkrp_kevin2), D, C, goodRet);
@@ -269,15 +271,16 @@ int main(int argc, char *argv[]) {
 
     printf("  COO MTTKRP (%d,%d,%d; J=%d)\n",dimSizeI,dimSizeK,dimSizeL, dimSizeJ);
     printf("    CPU -> %f\n", CooCPUTime);
-    printf("    GPU -> %f\n", CooGPUTime);
+    printf("    NAIVE GPU -> %f\n", CooGPUTime);
     printf("      Speedup -> %f\n", CooCPUTime/CooGPUTime);
     printf("    Kevin1 -> %f\n", CooKevin1Time);
     printf("      Speedup -> %f\n", CooCPUTime/CooKevin1Time);
     printf("\n");
     printf("  HiCOO MTTKRP (%d,%d,%d)\n",dimSizeI,dimSizeK,dimSizeL);
     printf("    CPU -> %f\n", HicooCPUTime);
-    printf("    GPU -> %f\n", HicooGPUTime);
+    printf("    NAIVE GPU -> %f\n", HicooGPUTime);
     printf("      Speedup -> %f\n", HicooCPUTime/HicooGPUTime);
+    // TODO - PRINT TIME FOR OPTIMIZED KERNELS HERE
     printf("    Kevin1 -> %f\n", HicooKevin1Time);
     printf("      Speedup -> %f\n", CooCPUTime/HicooKevin1Time);
     printf("    Kevin2 -> %f\n", HicooKevin2Time);
