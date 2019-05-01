@@ -21,15 +21,15 @@ echo VISIBLE === $CUDA_VISIBLE_DEVICES
 # higher-order tensors (crops extra dimensions off)
 
 #                 J      BS file
-./HiCooExperiment 32     8 datasets/uber.tns   NOCPU
-./HiCooExperiment 256    8 datasets/uber.tns   NOCPU
-./HiCooExperiment 1024   8 datasets/uber.tns   NOCPU
-./HiCooExperiment 4096   8 datasets/uber.tns   NOCPU
-./HiCooExperiment 16384  8 datasets/uber.tns   NOCPU
-./HiCooExperiment 262114 8 datasets/uber.tns   NOCPU
-./HiCooExperiment 262114 16 datasets/uber.tns  NOCPU
-./HiCooExperiment 262114 32 datasets/uber.tns  NOCPU
-./HiCooExperiment 262114 64 datasets/uber.tns  NOCPU
+./HiCooExperiment 32     8 datasets/uber.tns
+./HiCooExperiment 256    8 datasets/uber.tns
+./HiCooExperiment 1024   8 datasets/uber.tns
+./HiCooExperiment 4096   8 datasets/uber.tns
+./HiCooExperiment 16384  8 datasets/uber.tns
+./HiCooExperiment 262114 8 datasets/uber.tns
+./HiCooExperiment 262114 16 datasets/uber.tns
+./HiCooExperiment 262114 32 datasets/uber.tns
+./HiCooExperiment 262114 64 datasets/uber.tns  
 
 
 

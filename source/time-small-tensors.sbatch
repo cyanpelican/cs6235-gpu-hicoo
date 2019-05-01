@@ -30,19 +30,19 @@ echo VISIBLE === $CUDA_VISIBLE_DEVICES
 
 
 
-./HiCooExperiment 32     8 datasets/vast-2015-mc1-3d.tns NOCPU
-./HiCooExperiment 128    8 datasets/vast-2015-mc1-3d.tns NOCPU
-./HiCooExperiment 256    8 datasets/vast-2015-mc1-3d.tns NOCPU
-./HiCooExperiment 512    8 datasets/vast-2015-mc1-3d.tns NOCPU
+./HiCooExperiment 32     8 datasets/vast-2015-mc1-3d.tns
+./HiCooExperiment 128    8 datasets/vast-2015-mc1-3d.tns
+./HiCooExperiment 256    8 datasets/vast-2015-mc1-3d.tns
+./HiCooExperiment 512    8 datasets/vast-2015-mc1-3d.tns
 
-./HiCooExperiment 1024   2 datasets/vast-2015-mc1-3d.tns   NOCPU
-./HiCooExperiment 1024   4 datasets/vast-2015-mc1-3d.tns   NOCPU
-./HiCooExperiment 1024   8 datasets/vast-2015-mc1-3d.tns   NOCPU
-./HiCooExperiment 1024   16 datasets/vast-2015-mc1-3d.tns  NOCPU
-./HiCooExperiment 1024   32 datasets/vast-2015-mc1-3d.tns  NOCPU
-./HiCooExperiment 1024   64 datasets/vast-2015-mc1-3d.tns  NOCPU
-./HiCooExperiment 1024   128 datasets/vast-2015-mc1-3d.tns NOCPU
-./HiCooExperiment 1024   256 datasets/vast-2015-mc1-3d.tns NOCPU
+./HiCooExperiment 1024   2 datasets/vast-2015-mc1-3d.tns
+./HiCooExperiment 1024   4 datasets/vast-2015-mc1-3d.tns
+./HiCooExperiment 1024   8 datasets/vast-2015-mc1-3d.tns
+./HiCooExperiment 1024   16 datasets/vast-2015-mc1-3d.tns
+./HiCooExperiment 1024   32 datasets/vast-2015-mc1-3d.tns
+./HiCooExperiment 1024   64 datasets/vast-2015-mc1-3d.tns
+./HiCooExperiment 1024   128 datasets/vast-2015-mc1-3d.tns
+./HiCooExperiment 1024   256 datasets/vast-2015-mc1-3d.tns 
 
 
 echo TESTS COMPLETED

@@ -21,10 +21,10 @@ echo VISIBLE === $CUDA_VISIBLE_DEVICES
 # higher-order tensors (crops extra dimensions off)
 
 #                 J      BS file
-./HiCooExperiment 32     8 datasets/enron.tns  NOCPU
-./HiCooExperiment 128    8 datasets/enron.tns  NOCPU
-./HiCooExperiment 512    8 datasets/enron.tns  NOCPU
-./HiCooExperiment 1024   8 datasets/enron.tns  NOCPU
+./HiCooExperiment 32     8 datasets/enron.tns
+./HiCooExperiment 128    8 datasets/enron.tns
+./HiCooExperiment 512    8 datasets/enron.tns
+./HiCooExperiment 1024   8 datasets/enron.tns  
 
 
 
