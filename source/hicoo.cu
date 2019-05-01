@@ -209,22 +209,6 @@ __global__ void mttkrp_naive_gpu_kernel(HicooTensor hicooTensor, DenseMatrix d, 
     }
 }
 
-<<<<<<< HEAD
-=======
-DenseMatrixManager HicooTensor::mttkrp_guy1(DenseMatrixManager D, DenseMatrixManager C) {
-    DenseMatrixManager ret;
-    DenseMatrix& c = C;
-    DenseMatrix& d = D;
-
-    // TODO
-    assert(0);
-
-    // A(i,j) = B(i,k,l) * D(l,j) * C(k,j);
-
-    return ret;
-}
-
-
 __global__ void hicoo_james1_kernel(DenseMatrix a, HicooTensor b, DenseMatrix d, DenseMatrix c) {
     //launched with 128 threads per block
 
@@ -248,7 +232,6 @@ __global__ void hicoo_james1_kernel(DenseMatrix a, HicooTensor b, DenseMatrix d,
     }
 }
 
->>>>>>> c7556324a8ef9a9ea9d7ddd64981fbf44a9a5c7c
 DenseMatrixManager HicooTensor::mttkrp_james1(DenseMatrixManager D, DenseMatrixManager C) {
     DEBUG_PRINT("HT: mttkrp james1\n");
     DEBUG_PRINT("    - asserts, initialization\n");
@@ -542,10 +525,7 @@ __global__ void hicoo_kevin3_kernel(DenseMatrix a, HicooTensor b, DenseMatrix d,
 
 DenseMatrixManager HicooTensor::mttkrp_kevin3(DenseMatrixManager D, DenseMatrixManager C) {
     // kevin2 but skip the LUT by pushing the essence of it into the kernel (still no atomicAdd)
-<<<<<<< HEAD
-=======
     // effecient if depth is very sparse; ineffecient otherwise
->>>>>>> c7556324a8ef9a9ea9d7ddd64981fbf44a9a5c7c
     DEBUG_PRINT("HT: mttkrp kevin3\n");
     DEBUG_PRINT("    - asserts, initialization\n");
     DenseMatrixManager ret;
