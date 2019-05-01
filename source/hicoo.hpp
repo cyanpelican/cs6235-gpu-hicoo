@@ -129,8 +129,6 @@ struct HicooTensor {
     DenseMatrixManager mttkrp_naive_cpu(DenseMatrixManager d, DenseMatrixManager c);
     DenseMatrixManager mttkrp_naive_gpu(DenseMatrixManager d, DenseMatrixManager c);
 
-    // Feel free to make more under your name, or do collaboration ones; just setting this up so we don't get crazy merge conflicts
-    DenseMatrixManager mttkrp_guy1(DenseMatrixManager d, DenseMatrixManager c);
     DenseMatrixManager mttkrp_james1(DenseMatrixManager d, DenseMatrixManager c);
     DenseMatrixManager mttkrp_kevin1(DenseMatrixManager d, DenseMatrixManager c);
     DenseMatrixManager mttkrp_kevin2(DenseMatrixManager d, DenseMatrixManager c);

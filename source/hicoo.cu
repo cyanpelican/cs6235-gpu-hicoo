@@ -209,19 +209,6 @@ __global__ void mttkrp_naive_gpu_kernel(HicooTensor hicooTensor, DenseMatrix d, 
     }
 }
 
-DenseMatrixManager HicooTensor::mttkrp_guy1(DenseMatrixManager D, DenseMatrixManager C) {
-    DenseMatrixManager ret;
-    DenseMatrix& c = C;
-    DenseMatrix& d = D;
-
-    // TODO
-    assert(0);
-
-    // A(i,j) = B(i,k,l) * D(l,j) * C(k,j);
-
-    return ret;
-}
-
 DenseMatrixManager HicooTensor::mttkrp_james1(DenseMatrixManager D, DenseMatrixManager C) {
     DenseMatrixManager ret;
     DenseMatrix& c = C;
@@ -415,7 +402,7 @@ __global__ void hicoo_kevin3_kernel(DenseMatrix a, HicooTensor b, DenseMatrix d,
 
 
 DenseMatrixManager HicooTensor::mttkrp_kevin3(DenseMatrixManager D, DenseMatrixManager C) {
-    // kevin2 but skip the LUT by pushing the essence of it into the kernel (still no atomicAdd) 
+    // kevin2 but skip the LUT by pushing the essence of it into the kernel (still no atomicAdd)
     DEBUG_PRINT("HT: mttkrp kevin3\n");
     DEBUG_PRINT("    - asserts, initialization\n");
     DenseMatrixManager ret;

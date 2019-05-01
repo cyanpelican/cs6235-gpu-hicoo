@@ -135,9 +135,6 @@ struct CooTensor {
     DenseMatrixManager mttkrp_naive_cpu(DenseMatrixManager d, DenseMatrixManager c);
     DenseMatrixManager mttkrp_naive_gpu(DenseMatrixManager d, DenseMatrixManager c);
 
-    // Just in case anyone wants to play with coo; we never said we would in the assignment
-    DenseMatrixManager mttkrp_guy1(DenseMatrixManager d, DenseMatrixManager c);
-    DenseMatrixManager mttkrp_james1(DenseMatrixManager d, DenseMatrixManager c);
     DenseMatrixManager mttkrp_kevin1(DenseMatrixManager d, DenseMatrixManager c);
 };
 

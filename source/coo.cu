@@ -253,31 +253,6 @@ DenseMatrixManager CooTensor::mttkrp_naive_gpu(DenseMatrixManager D, DenseMatrix
 }
 
 
-DenseMatrixManager CooTensor::mttkrp_guy1(DenseMatrixManager d, DenseMatrixManager c) {
-    DEBUG_PRINT("CT: fast mttkrp gpu\n");
-    DenseMatrixManager ret;
-
-    // TODO or DELTEME
-    assert(0);
-
-    // A(i,j) = B(i,k,l) * D(l,j) * C(k,j);
-
-    return ret;
-}
-
-DenseMatrixManager CooTensor::mttkrp_james1(DenseMatrixManager d, DenseMatrixManager c) {
-    DEBUG_PRINT("CT: fast mttkrp gpu\n");
-    DenseMatrixManager ret;
-
-    // TODO or DELTEME
-    assert(0);
-
-    // A(i,j) = B(i,k,l) * D(l,j) * C(k,j);
-
-    return ret;
-}
-
-
 __global__ void coo_mttkrp_kevin1_kernel(DenseMatrix a, CooTensor b, DenseMatrix d, DenseMatrix c) {
     CooPoint point = b.access(blockIdx.x);
 
