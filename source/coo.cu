@@ -5,6 +5,7 @@
 #include <map>
 #include "common.hpp"
 #include <list>
+#include <vector>
 
 
 void CooTensor::freeAllArrays() {
@@ -76,7 +77,7 @@ HicooTensorManager CooTensor::toHicoo(int blockDepth, int blockHeight, int block
 
     // build an std::map of everything
     DEBUG_PRINT("    - building map\n");
-    std::map<HicooBlock, std::list<HicooPoint>> hicooMap;
+    std::map<HicooBlock, std::vector<HicooPoint>> hicooMap;
     for(int i = 0; i < numElements; i++) {
         CooPoint p = access(i);
 
@@ -98,7 +99,7 @@ HicooTensorManager CooTensor::toHicoo(int blockDepth, int blockHeight, int block
     unsigned int blockIndex = 0;
     unsigned long long pointIndex = 0;
     DEBUG_PRINT("    - insert to ret tensor\n");
-    for(const std::pair<HicooBlock, std::list<HicooPoint>>& pair : hicooMap) {
+    for(const std::pair<HicooBlock, std::vector<HicooPoint>>& pair : hicooMap) {
         retTensor.blocks_h[blockIndex] = pair.first;
         retTensor.blocks_h[blockIndex].blockAddress = pointIndex;
         for(HicooPoint p : pair.second) {
@@ -116,6 +117,7 @@ HicooTensorManager CooTensor::toHicoo(int blockDepth, int blockHeight, int block
     retTensor.sorting = ZYX;
 
 
+    DEBUG_PRINT("    - done converting to hicoo\n");
     return ret;
 }
 DenseTensorManager CooTensor::toDense() {
@@ -284,20 +286,11 @@ DenseMatrixManager CooTensor::mttkrp_kevin1(DenseMatrixManager D, DenseMatrixMan
     assert(c.height == K);
     assert(c.width  == J);
 
-
-    DEBUG_PRINT("    - uploadToDevice\n");
-    this->uploadToDevice();
-    d.uploadToDevice();
-    c.uploadToDevice();
-
     DEBUG_PRINT("    - malloc output matrix\n");
     a.setSize_d(I, J);
 
     DEBUG_PRINT("    - do compute on gpu\n");
     coo_mttkrp_kevin1_kernel<<<numElements, 32>>>(a, *this, d, c);
-
-    DEBUG_PRINT("    - downloading\n");
-    a.downloadToHost();
     DEBUG_PRINT("    - done\n");
 
 
